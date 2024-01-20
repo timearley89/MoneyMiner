@@ -15,10 +15,10 @@ namespace FirstClicker
     public partial class frmMain : Form
     {
 
-        public decimal myMoney; //max value currently is Decimal.MaxValue, which is just over 79 Octillion.
+        public decimal myMoney; //max value currently is Decimal.MaxValue, which is just over 79 Octillion. Need to restructure this.
         public decimal salary;
         public decimal clickAmount;
-        private decimal costMult = 1.1m;
+        private decimal costMult = 1.05m;
         private int purchAmount = 1;
 
         public ItemView[] myItems;
@@ -35,26 +35,42 @@ namespace FirstClicker
                 new ItemView(4, "Steel", 1320.0m, costMult, 0),
                 new ItemView(5, "Diamond", 14520.0m, costMult, 0),
                 new ItemView(6, "Uranium", 159720.0m, costMult, 0),
-                new ItemView(7, "Antimatter", 1756920.0m, costMult, 0)];
-                
-            //5 available items right now
+                new ItemView(7, "Antimatter", 1756920.0m, costMult, 0),
+                new ItemView(8, "Black Hole", 19326120.0m, costMult, 0)];
+            //(ID, Name, Cost, Multiplier, Quantity)
+            //8 available items right now
+
+            //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
+            //double when qty = 10, 25, 100, 200, 500, 1000
+            //maybe clickamount should increase when money thresholds are reached:
+            //money = $10, $100, $1000, etc, clickamount*=2?
+            //Also we should have upgrades. Expensive, but worth it, for both click amount and salary.
+            //Also, a prestige system, which uses prestige points earned to further multiply salary per second per item and initial click amount.
+            //Also, a window to keep track of stats, like amount made, upgrades purchased, prestige points, etc
         }
 
         private void frmMain_Load(object sender, EventArgs e)
         {
-            //for now there are 5 basic items that can be bought.
+            //Populate form with possible items from array, then update their labels.
             for (int i = 1; i <= myItems.Length; i++)
             {
                 flowLayoutPanel1.Controls.Add(myItems[i - 1]);
             }
+            foreach (ItemView item in myItems) { item.UpdateLabels(); }
+            frmMain_UpdateLabels();
             this.timer1.Start();
+        }
+        public void frmMain_UpdateLabels()
+        {
+            lblMoneyAmt.Text = $"${decimal.Round(myMoney, 2):N}";
+            lblSalary.Text = $"${decimal.Round(salary, 2):N} Per Second, ${decimal.Round(clickAmount, 2):N} Per Click";
+            btnPurchAmount.Text = $"Buy: x{this.purchAmount}";
         }
 
         private void frmMain_Click(object sender, EventArgs e)
         {
             this.myMoney += clickAmount;
-            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
-            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${clickAmount.ToString()} Per Click";
+            frmMain_UpdateLabels();
         }
 
         private void frmMain_Paint(object sender, PaintEventArgs e)
@@ -66,80 +82,65 @@ namespace FirstClicker
         {
             //update button colors based on affordability
             //update money amount based on quantity of items owned and any multipliers
-            //update lblMoneyAmt.Text as needed
-            decimal tempsal = 0.00m;
+            //update labels and buttons as needed
+            decimal tempsal = 0.00m;    //iterate through items owned and calculate total salary per cycle.
             foreach (ItemView view in myItems)
             {
                 tempsal += (view.mySalary * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             salary = tempsal;
             myMoney += salary;
-            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
-            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${clickAmount.ToString()} Per Click";
+            frmMain_UpdateLabels();
             foreach (ItemView view in myItems)
             {
-                view.ButtonColor(view.calculatedCost <= myMoney);
+                view.UpdateLabels();
+                view.ButtonColor(myMoney, purchAmount, costMult);
                 //we do this at the end of the tick() event so that the button color doesn't wait til the next tick to update if money is enough on this tick.
             }
         }
-        public void BuyClicked(ItemView sender, int purchaseQuantity)
+        public void BuyClicked(ItemView sender)
         {
-            if (myMoney - sender.calculatedCost >= 0.00m)
+            if (sender.CanAfford(this.myMoney, purchAmount, costMult))
             {
                 myMoney -= sender.calculatedCost;
-                sender.myQty += purchaseQuantity;
-                sender.myCost = sender.calculatedCost * costMult; //increase cost of each item purchased, iteratively if buying more than one.
+                sender.myQty += sender.purchaseAmount;
+                sender.myCost = sender.myCost * (decimal)Math.Pow((double)costMult, sender.purchaseAmount);
             }
- 
-            
-
-            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
             sender.UpdateLabels();
-            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${decimal.Round(clickAmount, 2).ToString()} Per Click";
-            sender.ButtonColor(sender.myCost <= myMoney);   //update button color after purchasing as well
+            frmMain_UpdateLabels();
+            sender.ButtonColor(myMoney, purchAmount, costMult);
         }
 
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
+            //purchAmount should be made into an enum. Perfect use-case for it, and reduces possible errors from invalid values.
             if (purchAmount == 1)
             {
                 purchAmount = 10;
-                this.btnPurchAmount.Text = $"Buy: x{purchAmount}";
             }
             else if (purchAmount == 10)
             {
                 purchAmount = 100;
-                this.btnPurchAmount.Text = $"Buy: x{purchAmount}";
             }
             else if (purchAmount == 100)
             {
                 purchAmount = 1;
-                this.btnPurchAmount.Text = $"Buy: x{purchAmount}";
             }
-            //we only wanna loop through once, so we'll set a condition for anything other than 'max'.
-            //--should we display the combined salarypersecond as well? or keep it as SPS for one of each item?
-            if (purchAmount != 999)
+            frmMain_UpdateLabels(); //this function updates the button text already
+            
+            if (purchAmount == 1 || purchAmount == 10 || purchAmount == 100)
             {
                 for (int i = 0; i < myItems.Length; i++)
                 {
-                    //set lblCost.Text to the total iterative cost of purchasing.
-                    myItems[i].purchaseAmount = purchAmount;
-                    myItems[i].calculatedCost = myItems[i].myCost * (decimal)Math.Pow((double)costMult, purchAmount - 1);
-                    //myItems[i].Controls.Find("lblCost", true)[0].Text = "Cost: $" + decimal.Round(myItems[i].calculatedCost, 2).ToString();
+                    //we just need to update the item with the new amount, and then update the labels and colors.
+                    myItems[i].CalcCost(purchAmount, costMult);
+                    myItems[i].ButtonColor(myMoney, purchAmount, costMult);
                     myItems[i].UpdateLabels();
-                    myItems[i].ButtonColor(myItems[i].calculatedCost <= myMoney);
                 }
             }
             else
             {
-                //how would we reverse multiplying by an exponent? Log?
-
-                //we need to determine the highest amount of each item we could buy without going over our balance.
-                //for now, iterate til over max. Keep in mind this will get computationally expensive later.
-                foreach (ItemView item in myItems)
-                {
-                    
-                }
+                //write method for calculating max purchase amount
             }
         }
     }

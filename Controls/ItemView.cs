@@ -24,61 +24,75 @@ namespace FirstClicker.Controls
         public ItemView(int myID, string myName, decimal _myCost, decimal _myCostMult, int _myQty = 0)
         {
             InitializeComponent();
-            this.myCost = _myCost * myID;
+            this.myCost = _myCost;
             this.myQty = _myQty;
             this.myCostMult = _myCostMult;
-            this.lblCost.Text = $"Cost: ${decimal.Round(myCost, 2).ToString()}";
-            this.lblQuantity.Text = $"Qty: {myQty.ToString()}";
-
             this.Name = myName;
-            this.grpItem.Text = this.Name;
             this.mySalary = myCost / 10; //temporary
-            this.lblSalPerSec.Text = $"Per Sec: ${decimal.Round(this.mySalary, 2).ToString()}";
-            this.lblTotalSal.Text = $"Total Salary: ${decimal.Round((decimal)(this.mySalary * this.myQty), 2)}";
+            this.UpdateLabels();
         }
 
         private void ItemView_Load(object sender, EventArgs e)
         {
-            this.calculatedCost = myCost * purchaseAmount;
-            ButtonColor(false);
+            
         }
         public void UpdateLabels()
         {
-            this.calculatedCost = myCost * (decimal)Math.Pow((double)myCostMult, purchaseAmount - 1);
-            this.lblCost.Text = $"Cost: ${decimal.Round(calculatedCost, 2).ToString()}";
-            this.lblQuantity.Text = $"Qty: {myQty.ToString()}";
-            this.lblTotalSal.Text = $"Total Salary: ${decimal.Round((decimal)(this.mySalary * this.myQty), 2)}";
+            //no calculations, just update labels/buttons.
+            this.lblCost.Text = $"Cost: ${decimal.Round(calculatedCost, 2):N}";
+            this.lblQuantity.Text = $"Qty: {myQty:N0}";
+            this.lblTotalSal.Text = $"Total Salary: ${decimal.Round((decimal)(this.mySalary * this.myQty), 2):N}";
+            this.lblSalPerSec.Text = $"Salary: ${decimal.Round(this.mySalary, 2):N}";
+            this.grpItem.Text = this.Name;
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount}";
         }
 
         private void ItemView_Paint(object sender, PaintEventArgs e)
         {
-            //this.calculatedCost = myCost * ((decimal)Math.Pow((double)myCostMult, purchaseAmount));
-            //this.btnBuy.Text = $"Purchase x{purchaseAmount}";
-            //this.lblCost.Text = $"Cost: ${decimal.Round(calculatedCost, 2).ToString()}";
-            
-            this.lblQuantity.Text = $"Qty: {myQty.ToString()}";
-            this.lblTotalSal.Text = $"Total Salary: ${decimal.Round((decimal)(this.mySalary * this.myQty), 2)}";
-            this.grpItem.Text = this.Name;
+            //this causes unexpected problems, because the main form raises this event on mouseover or focus switch.
         }
 
-        public void ButtonColor(bool afford)
+        public void ButtonColor(decimal myMoney, int purchaseQty, decimal costMultiplier)
         {
-            if (afford)
+            //calculates whether purchase can be done given current balance, purchase amount, and cost multiplier, based on current cost of this item.
+            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) ? Color.Green : Color.Gray;
+        }
+        public bool CanAfford(decimal myMoney, int purchaseQty, decimal costMultiplier)
+        {
+            return myMoney >= this.CalcCost(purchaseQty, costMultiplier);
+        }
+        public decimal CalcCost(int purchaseQty, decimal costMultiplier)
+        {
+            //just returns the cost for purchasing x amount of this item and updates internal variables accordingly.
+            if (purchaseQty <= 0) 
             {
-                this.btnBuy.BackColor = Color.Green;
+                this.calculatedCost = 0.00m; 
+                this.purchaseAmount = 0; 
             }
             else
             {
-                this.btnBuy.BackColor = Color.Gray;
-            }
-        }
+                //the issue here is that the cost for purchasing more than one has to be recursively calculated, otherwise it gives the 
+                //cost for buying the Nth item, but not the total. Use a while loop.
+                //this.calculatedCost = this.myCost * (decimal)Math.Pow((double)costMultiplier, purchaseQty - 1);
 
+                decimal temptotalcost = 0.00m;
+                int tempqty = purchaseQty;
+                while (tempqty >= 1)
+                {
+                    temptotalcost += this.myCost * (decimal)Math.Pow((double)costMultiplier, tempqty - 1);
+                    tempqty--;
+                }
+                this.calculatedCost = temptotalcost;
+                this.purchaseAmount = purchaseQty;
+            }
+            return this.calculatedCost;
+        }
         private void btnBuy_Click(object sender, EventArgs e)
         {
             //passes itself as a parameter to the parent form, to avoid change-watcher system for array. I'm sure better ideas exist.
-            ((frmMain)(this.Parent).Parent).BuyClicked(this, this.purchaseAmount);
-            this.ItemView_Paint(this, new PaintEventArgs(CreateGraphics(), this.DisplayRectangle));
+            
+            ((frmMain)(this.Parent).Parent).BuyClicked(this);
+            
 
         }
         
