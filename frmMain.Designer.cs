@@ -101,7 +101,7 @@
             Controls.Add(lblMoney);
             Controls.Add(flowLayoutPanel1);
             Name = "frmMain";
-            Text = "frmMain";
+            Text = "First Clicker/Idle Game";
             Load += frmMain_Load;
             Click += frmMain_Click;
             Paint += frmMain_Paint;

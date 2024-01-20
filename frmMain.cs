@@ -28,12 +28,15 @@ namespace FirstClicker
             InitializeComponent();
             myMoney = 0.00m;
             salary = 0.00m;
-            clickAmount = 0.05m;
-            myItems = [new ItemView(1, "Wood", 0.5m, costMult, 0),
-                new ItemView(2, "Stone", 5.5m, costMult, 0),
-                new ItemView(3, "Iron", 55.5m, costMult, 0),
-                new ItemView(4, "Steel", 555.5m, costMult, 0),
-                new ItemView(5, "Diamond", 5555.5m, costMult, 0)];
+            clickAmount = 0.10m; //initial value, temporary
+            myItems = [new ItemView(1, "Wood", 1.0m, costMult, 0),
+                new ItemView(2, "Stone", 11.0m, costMult, 0),
+                new ItemView(3, "Iron", 120.0m, costMult, 0),
+                new ItemView(4, "Steel", 1320.0m, costMult, 0),
+                new ItemView(5, "Diamond", 14520.0m, costMult, 0),
+                new ItemView(6, "Uranium", 159720.0m, costMult, 0),
+                new ItemView(7, "Antimatter", 1756920.0m, costMult, 0)];
+                
             //5 available items right now
         }
 
@@ -50,8 +53,8 @@ namespace FirstClicker
         private void frmMain_Click(object sender, EventArgs e)
         {
             this.myMoney += clickAmount;
-            lblMoneyAmt.Text = decimal.Round(myMoney, 2).ToString();
-            lblSalary.Text = $"Salary: {decimal.Round(salary, 2).ToString()} Per Second, {clickAmount.ToString()} Per Click";
+            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
+            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${clickAmount.ToString()} Per Click";
         }
 
         private void frmMain_Paint(object sender, PaintEventArgs e)
@@ -71,8 +74,8 @@ namespace FirstClicker
             }
             salary = tempsal;
             myMoney += salary;
-            lblMoneyAmt.Text = decimal.Round(myMoney, 2).ToString();
-            lblSalary.Text = $"Salary: {decimal.Round(salary, 2).ToString()} Per Second, {clickAmount.ToString()} Per Click";
+            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
+            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${clickAmount.ToString()} Per Click";
             foreach (ItemView view in myItems)
             {
                 view.ButtonColor(view.calculatedCost <= myMoney);
@@ -90,9 +93,9 @@ namespace FirstClicker
  
             
 
-            lblMoneyAmt.Text = decimal.Round(myMoney, 2).ToString();
+            lblMoneyAmt.Text = "$" + decimal.Round(myMoney, 2).ToString();
             sender.UpdateLabels();
-            lblSalary.Text = $"Salary: {decimal.Round(salary, 2).ToString()} Per Second, {decimal.Round(clickAmount, 2).ToString()} Per Click";
+            lblSalary.Text = $"Salary: ${decimal.Round(salary, 2).ToString()} Per Second, ${decimal.Round(clickAmount, 2).ToString()} Per Click";
             sender.ButtonColor(sender.myCost <= myMoney);   //update button color after purchasing as well
         }
 
