@@ -29,61 +29,32 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
-            flowLayoutPanel1 = new FlowLayoutPanel();
-            lblMoney = new Label();
-            lblMoneyAmt = new Label();
+            itemPanel = new FlowLayoutPanel();
             timer1 = new System.Windows.Forms.Timer(components);
-            lblSalary = new Label();
             btnPurchAmount = new Button();
             UpgradePanel = new FlowLayoutPanel();
+            btnMine = new Button();
+            lblMatsMined = new Label();
+            statusPane = new FlowLayoutPanel();
+            lblMoney = new Label();
+            lblSalary = new Label();
+            statusPane.SuspendLayout();
             SuspendLayout();
             // 
-            // flowLayoutPanel1
+            // itemPanel
             // 
-            flowLayoutPanel1.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
-            flowLayoutPanel1.AutoScroll = true;
-            flowLayoutPanel1.CausesValidation = false;
-            flowLayoutPanel1.Location = new Point(12, 12);
-            flowLayoutPanel1.Name = "flowLayoutPanel1";
-            flowLayoutPanel1.Size = new Size(353, 546);
-            flowLayoutPanel1.TabIndex = 0;
-            // 
-            // lblMoney
-            // 
-            lblMoney.AutoSize = true;
-            lblMoney.CausesValidation = false;
-            lblMoney.Font = new Font("Segoe UI", 16F);
-            lblMoney.Location = new Point(512, 12);
-            lblMoney.Name = "lblMoney";
-            lblMoney.Size = new Size(92, 30);
-            lblMoney.TabIndex = 1;
-            lblMoney.Text = "Money: ";
-            // 
-            // lblMoneyAmt
-            // 
-            lblMoneyAmt.AutoSize = true;
-            lblMoneyAmt.CausesValidation = false;
-            lblMoneyAmt.Font = new Font("Segoe UI", 16F);
-            lblMoneyAmt.Location = new Point(610, 12);
-            lblMoneyAmt.Name = "lblMoneyAmt";
-            lblMoneyAmt.Size = new Size(25, 30);
-            lblMoneyAmt.TabIndex = 2;
-            lblMoneyAmt.Text = "0";
+            itemPanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left;
+            itemPanel.AutoScroll = true;
+            itemPanel.CausesValidation = false;
+            itemPanel.Location = new Point(12, 12);
+            itemPanel.Name = "itemPanel";
+            itemPanel.Size = new Size(353, 546);
+            itemPanel.TabIndex = 0;
             // 
             // timer1
             // 
             timer1.Interval = 1000;
             timer1.Tick += timer1_Tick;
-            // 
-            // lblSalary
-            // 
-            lblSalary.AutoSize = true;
-            lblSalary.CausesValidation = false;
-            lblSalary.Location = new Point(566, 42);
-            lblSalary.Name = "lblSalary";
-            lblSalary.Size = new Size(38, 15);
-            lblSalary.TabIndex = 3;
-            lblSalary.Text = "label1";
             // 
             // btnPurchAmount
             // 
@@ -98,11 +69,65 @@
             // 
             // UpgradePanel
             // 
-            UpgradePanel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+            UpgradePanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            UpgradePanel.AutoScroll = true;
             UpgradePanel.Location = new Point(792, 12);
             UpgradePanel.Name = "UpgradePanel";
             UpgradePanel.Size = new Size(196, 546);
             UpgradePanel.TabIndex = 5;
+            // 
+            // btnMine
+            // 
+            btnMine.Font = new Font("Segoe UI", 24F);
+            btnMine.Location = new Point(422, 178);
+            btnMine.Name = "btnMine";
+            btnMine.Size = new Size(317, 295);
+            btnMine.TabIndex = 6;
+            btnMine.Text = "Mine Materials";
+            btnMine.UseVisualStyleBackColor = true;
+            btnMine.Click += btnMine_Click;
+            // 
+            // lblMatsMined
+            // 
+            lblMatsMined.AutoSize = true;
+            lblMatsMined.Font = new Font("Segoe UI", 12F);
+            lblMatsMined.Location = new Point(508, 476);
+            lblMatsMined.Name = "lblMatsMined";
+            lblMatsMined.Size = new Size(138, 21);
+            lblMatsMined.TabIndex = 7;
+            lblMatsMined.Text = "Materials Mined: 0";
+            // 
+            // statusPane
+            // 
+            statusPane.CausesValidation = false;
+            statusPane.Controls.Add(lblMoney);
+            statusPane.Controls.Add(lblSalary);
+            statusPane.Location = new Point(422, 12);
+            statusPane.Name = "statusPane";
+            statusPane.Size = new Size(317, 115);
+            statusPane.TabIndex = 8;
+            // 
+            // lblMoney
+            // 
+            lblMoney.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblMoney.AutoSize = true;
+            lblMoney.Font = new Font("Segoe UI", 18F);
+            lblMoney.Location = new Point(3, 0);
+            lblMoney.Name = "lblMoney";
+            lblMoney.Size = new Size(158, 32);
+            lblMoney.TabIndex = 0;
+            lblMoney.Text = "Money: $0.00";
+            // 
+            // lblSalary
+            // 
+            lblSalary.AutoSize = true;
+            lblSalary.CausesValidation = false;
+            lblSalary.Font = new Font("Segoe UI", 14F);
+            lblSalary.Location = new Point(3, 32);
+            lblSalary.Name = "lblSalary";
+            lblSalary.Size = new Size(305, 50);
+            lblSalary.TabIndex = 1;
+            lblSalary.Text = "Salary: $0.00 Per Second, $0.00 Per Click";
             // 
             // frmMain
             // 
@@ -110,12 +135,12 @@
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(1000, 570);
+            Controls.Add(lblMatsMined);
+            Controls.Add(btnMine);
             Controls.Add(UpgradePanel);
             Controls.Add(btnPurchAmount);
-            Controls.Add(lblSalary);
-            Controls.Add(lblMoneyAmt);
-            Controls.Add(lblMoney);
-            Controls.Add(flowLayoutPanel1);
+            Controls.Add(itemPanel);
+            Controls.Add(statusPane);
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "frmMain";
@@ -124,18 +149,22 @@
             Load += frmMain_Load;
             Click += frmMain_Click;
             Paint += frmMain_Paint;
+            statusPane.ResumeLayout(false);
+            statusPane.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
         }
 
         #endregion
 
-        private FlowLayoutPanel flowLayoutPanel1;
-        private Label lblMoney;
-        private Label lblMoneyAmt;
+        private FlowLayoutPanel itemPanel;
         private System.Windows.Forms.Timer timer1;
-        private Label lblSalary;
         private Button btnPurchAmount;
         private FlowLayoutPanel UpgradePanel;
+        private Button btnMine;
+        private Label lblMatsMined;
+        private FlowLayoutPanel statusPane;
+        private Label lblMoney;
+        private Label lblSalary;
     }
 }
