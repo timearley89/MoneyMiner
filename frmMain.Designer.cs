@@ -30,7 +30,7 @@
         {
             components = new System.ComponentModel.Container();
             itemPanel = new FlowLayoutPanel();
-            timer1 = new System.Windows.Forms.Timer(components);
+            timerPerSec = new System.Windows.Forms.Timer(components);
             btnPurchAmount = new Button();
             UpgradePanel = new FlowLayoutPanel();
             btnMine = new Button();
@@ -38,6 +38,8 @@
             statusPane = new FlowLayoutPanel();
             lblMoney = new Label();
             lblSalary = new Label();
+            lblIncrPerClick = new Label();
+            timerVisualUpdate = new System.Windows.Forms.Timer(components);
             statusPane.SuspendLayout();
             SuspendLayout();
             // 
@@ -51,10 +53,10 @@
             itemPanel.Size = new Size(353, 546);
             itemPanel.TabIndex = 0;
             // 
-            // timer1
+            // timerPerSec
             // 
-            timer1.Interval = 1000;
-            timer1.Tick += timer1_Tick;
+            timerPerSec.Interval = 1000;
+            timerPerSec.Tick += timer1_Tick;
             // 
             // btnPurchAmount
             // 
@@ -129,12 +131,26 @@
             lblSalary.TabIndex = 1;
             lblSalary.Text = "Salary: $0.00 Per Second, $0.00 Per Click";
             // 
+            // lblIncrPerClick
+            // 
+            lblIncrPerClick.AutoSize = true;
+            lblIncrPerClick.Location = new Point(529, 497);
+            lblIncrPerClick.Name = "lblIncrPerClick";
+            lblIncrPerClick.Size = new Size(102, 15);
+            lblIncrPerClick.TabIndex = 9;
+            lblIncrPerClick.Text = "Mined Per Click: 1";
+            // 
+            // timerVisualUpdate
+            // 
+            timerVisualUpdate.Tick += timerVisualUpdate_Tick;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(1000, 570);
+            Controls.Add(lblIncrPerClick);
             Controls.Add(lblMatsMined);
             Controls.Add(btnMine);
             Controls.Add(UpgradePanel);
@@ -158,7 +174,7 @@
         #endregion
 
         private FlowLayoutPanel itemPanel;
-        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Timer timerPerSec;
         private Button btnPurchAmount;
         private FlowLayoutPanel UpgradePanel;
         private Button btnMine;
@@ -166,5 +182,7 @@
         private FlowLayoutPanel statusPane;
         private Label lblMoney;
         private Label lblSalary;
+        private Label lblIncrPerClick;
+        private System.Windows.Forms.Timer timerVisualUpdate;
     }
 }

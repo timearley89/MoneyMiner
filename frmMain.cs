@@ -21,6 +21,7 @@ namespace FirstClicker
         private decimal costMult = 1.05m;
         private int purchAmount = 1;
         public int matsMined;
+        public int incrperclick = 1;
 
         public ItemView[] myItems;
         public List<Button> upgradeButtons;
@@ -42,7 +43,9 @@ namespace FirstClicker
                 new ItemView(7, "Antimatter", 1756920.0m, costMult, 0),
                 new ItemView(8, "Black Hole", 19326120.0m, costMult, 0)];
             upgradeButtons = new List<Button>();    //basic buttons for now - create new custom control for upgrades containing a button and some
-                                                    //labels for information like price, description, etc.
+                                                    //labels for information like price, description, etc. Keep them invisible until user buys at least
+                                                    //one related item. Buttons (and items) should also be sorted within their list by ItemView.myID.
+                                                    //Or should we just use the index of the button within the array, and update the tag?
             upgradeButtons.Add(new Button());   //Add upgrade button for clickamount upgrades.
             foreach (var item in myItems) { upgradeButtons.Add(new Button()); } //add upgrade button for each item.
             //(ID, Name, Cost, Multiplier, Quantity)
@@ -55,6 +58,8 @@ namespace FirstClicker
             //Also we should have upgrades. Expensive, but worth it, for both click amount and salary.
             //Also, a prestige system, which uses prestige points earned to further multiply salary per second per item and initial click amount.
             //Also, a window to keep track of stats, like amount made, upgrades purchased, prestige points, etc
+            //Need to implement save states/loading, and calculate time between last save/current load, add to playtime stat, and multiply by $/sec to
+            //add to money, thus making it a true 'idle' game. Right now it's just more of a clicker.
 
             //Upgrades should probably be broken out into an xml file or similar.
             string[] clickUpgrades = { "Doubletap", "Click Amplifier", "Mega-clicking", "Click Physics", "Parallel Clicking" };
@@ -66,8 +71,9 @@ namespace FirstClicker
             string[] item6Upgrades = { "Waste Uranium", "Mined Uranium", "Refined Uranium", "Synthetic Uranium", "Quantum Uranium" };
             string[] item7Upgrades = { "Low Yield Antimatter", "Mid Yield Antimatter", "High Yield Antimatter", "Perfect Antimatter", "CPT Reversed Antimatter" };
             string[] item8Upgrades = { "Plank Black Hole", "Primordial Black Hole", "Rogue Black Hole", "Supermassive Black Hole", "Universal Black Hole" };
-            upgradeArrays = new string[][] {clickUpgrades, item1Upgrades, item2Upgrades, item3Upgrades, item4Upgrades, item5Upgrades, item6Upgrades, item7Upgrades, item8Upgrades};
+            upgradeArrays = new string[][] { clickUpgrades, item1Upgrades, item2Upgrades, item3Upgrades, item4Upgrades, item5Upgrades, item6Upgrades, item7Upgrades, item8Upgrades };
             //when calculating ownership, use an int representing number of upgrades owned. This can be retroactively used to determine next upgrade to buy. Cost is a whole different thing. Maybe a parseable string?
+            //Or a decimal[] containing base costs for upgrades, to be multiplied by itemID's to determine upgrade costs?
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -80,7 +86,7 @@ namespace FirstClicker
 
             for (int i = 0; i < upgradeButtons.Count; i++)
             {
-                upgradeButtons[i].Tag = new int[] { i + 1, 0 }; //tag contains itemID, upgradelevel
+                upgradeButtons[i].Tag = new int[] { i, 0 }; //tag contains itemID, upgradelevel. itemID==0 is clickAmount upgrade button.
                 upgradeButtons[i].Click += new EventHandler(upgradeClicked);
                 upgradeButtons[i].Width = (int)(UpgradePanel.Width * 0.85);  //button width is 85% of panel width
                 upgradeButtons[i].Height = (int)(upgradeButtons[i].Width * 0.40); //button height is 40% of button width
@@ -88,30 +94,76 @@ namespace FirstClicker
                 UpgradePanel.Controls.Add(upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
             foreach (ItemView item in myItems) { item.UpdateLabels(); }
-            frmMain_UpdateLabels();
-            this.timer1.Start();
+            //frmMain_UpdateLabels();
+            this.timerPerSec.Start();
+            this.timerVisualUpdate.Start();
         }
         public void upgradeClicked(object? sender, EventArgs e)
         {
-            if (sender == null) { return; } //basic protection
-            //if you can afford it:
-                //determine from 'tag' property which item it's for, and which upgrade you're trying to buy. Maybe 'Upgrade' should
-                //be it's own class/object? Then it could store all relevant data, and be passed through the 'tag' property. 
-                //if it's all valid, purchase the upgrade and apply the new multiplier to the relevant item's salary property.
-                //then iterate the button text and price to reflect the next upgrade in the relevant array.
+            if (sender == null || ((Button)sender).Tag == null) { return; } //basic protection
+                                                                            //if you can afford it:
+                                                                            //determine from 'tag' property which item it's for, and which upgrade you're trying to buy. Maybe 'Upgrade' should
+                                                                            //be it's own class/object? Then it could store all relevant data, and be passed through the 'tag' property. 
+                                                                            //if it's all valid, purchase the upgrade and apply the new multiplier to the relevant item's salary property.
+                                                                            //then iterate the button text and price to reflect the next upgrade in the relevant array.
 
-            //TO DO --- UPGRADE LOGIC HERE
+            //TO DO --- ADD UPGRADE COST LOGIC
+            else
+            {
+                int[] btnvars = ((Button)sender).Tag as int[];
+                if (btnvars[0] >= 1 && btnvars[0] <= myItems.Length)
+                {
+                    //btnvars itemID is between 1 and the last itemID in myItems, so ItemUpgrade
+                    if (btnvars[1] < upgradeArrays[btnvars[0]].Length - 1)
+                    {
+                        btnvars[1]++;
+                        myItems[btnvars[0] - 1].mySalary *= 2;  //double related salary
+                        ((Button)sender).Text = upgradeArrays[btnvars[0]][btnvars[1]];
+                        //update cost of upgrade
+                    }
+                    else if (btnvars[1] == upgradeArrays[btnvars[0]].Length - 1)
+                    {
+                        //max upgrade reached
+                        btnvars[1]++;
+                        myItems[btnvars[0] - 1].mySalary *= 2;
+                        ((Button)sender).Text = "Maximum Reached";
+                        ((Button)sender).Enabled = false;
+                    }
+                }
+                else if (btnvars[0] == 0)
+                {
+                    //clickAmount upgrade
+                    if (btnvars[1] < upgradeArrays[0].Length - 1)
+                    {
+                        //max owned upgrade is (5)-1=4
+                        btnvars[1]++;
+                        clickAmount *= 2;   //double clickamount
+                        ((Button)sender).Text = upgradeArrays[0][btnvars[1]];
+                        //update cost of upgrade
+                    }
+                    else if (btnvars[1] == upgradeArrays[0].Length - 1)
+                    {
+                        btnvars[1]++;
+                        clickAmount *= 2;
+                        ((Button)sender).Text = "Maximum Reached";
+                        ((Button)sender).Enabled = false;
+                    }
+                }
+
+            }
         }
         public void frmMain_UpdateLabels()
         {
             lblMoney.Text = $"Money: ${decimal.Round(myMoney, 2):N}";
             lblSalary.Text = $"${decimal.Round(salary, 2):N} Per Second, ${decimal.Round(clickAmount, 2):N} Per Click";
+            lblIncrPerClick.Text = $"Mined Per Click: {incrperclick:N0}";
+            lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
             btnPurchAmount.Text = $"Buy: x{this.purchAmount}";
         }
 
         private void frmMain_Click(object sender, EventArgs e)
         {
-            
+
         }
 
         private void frmMain_Paint(object sender, PaintEventArgs e)
@@ -131,13 +183,6 @@ namespace FirstClicker
             }
             salary = tempsal;
             myMoney += salary;
-            frmMain_UpdateLabels();
-            foreach (ItemView view in myItems)
-            {
-                view.UpdateLabels();
-                view.ButtonColor(myMoney, purchAmount, costMult);
-                //we do this at the end of the tick() event so that the button color doesn't wait til the next tick to update if money is enough on this tick.
-            }
         }
         public void BuyClicked(ItemView sender)
         {
@@ -148,7 +193,7 @@ namespace FirstClicker
                 sender.myCost = sender.myCost * (decimal)Math.Pow((double)costMult, sender.purchaseAmount);
             }
             sender.UpdateLabels();
-            frmMain_UpdateLabels();
+            //frmMain_UpdateLabels();
             sender.ButtonColor(myMoney, purchAmount, costMult);
         }
 
@@ -167,7 +212,7 @@ namespace FirstClicker
             {
                 purchAmount = 1;
             }
-            frmMain_UpdateLabels(); //this function updates the button text already
+            //frmMain_UpdateLabels(); //this function updates the button text already
 
             if (purchAmount == 1 || purchAmount == 10 || purchAmount == 100)
             {
@@ -187,10 +232,28 @@ namespace FirstClicker
 
         private void btnMine_Click(object sender, EventArgs e)
         {
-            this.matsMined++;
-            if (matsMined % 100 == 0) { clickAmount *= 2; } //for now, when matsMined reaches another multiple of 100, clickamount is doubled.
-            lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
+            if (matsMined != 0 && matsMined + incrperclick >= (Math.Round((double)matsMined / 100.0d, MidpointRounding.ToPositiveInfinity) * 100) && incrperclick < 10 && matsMined != (Math.Round((double)matsMined / 100.0d, MidpointRounding.ToPositiveInfinity) * 100))
+            {
+                matsMined += incrperclick;
+                incrperclick++;
+                clickAmount = (clickAmount / (incrperclick - 1)) * incrperclick;
+
+            } //for now, when matsMined reaches another multiple of 100, amountperclick is incremented. clickAmount reflects this.
+            //incrperclick has a max of 10 for now.
+            else { matsMined += incrperclick; }
+
             this.myMoney += clickAmount;
+            //frmMain_UpdateLabels();
+        }
+
+        private void timerVisualUpdate_Tick(object sender, EventArgs e)
+        {
+            foreach (ItemView item in myItems)
+            {
+                item.ButtonColor(myMoney, purchAmount, costMult);
+                item.UpdateLabels();
+            }
+            //TODO: Add upgrade labelupdates and buttoncolor updates
             frmMain_UpdateLabels();
         }
     }
