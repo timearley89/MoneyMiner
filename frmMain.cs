@@ -4,13 +4,16 @@ using System.ComponentModel;
 using System.Configuration;
 using System.Data;
 using System.Drawing;
+using System.Drawing.Printing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Windows.Forms.VisualStyles;
 using FirstClicker.Controls;
+using static FirstClicker.Upgrade;
 
 namespace FirstClicker
 {
@@ -43,7 +46,11 @@ namespace FirstClicker
             btnMine.BackColor = Colors.colButtonEnabled;
             itemPanel.BackColor = Colors.colBorders;
             UpgradePanel.BackColor = Colors.colBorders;
-            
+            grpMoney.BackColor = Colors.colBorders;
+
+
+
+
             if (this.thislifetimeMoney == default)
             {
                 this.thislifetimeMoney = lastlifeMoney;
@@ -52,7 +59,7 @@ namespace FirstClicker
             {
                 this.prestigePoints = prestPoints;
             }
-            
+
             if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
             matsMined = 0;
             myMoney = 0.00d;    //debug only if not $0.00
@@ -159,10 +166,11 @@ namespace FirstClicker
             foreach (Upgrade upgrade in MainUpgradeList)
             {
                 UpgradeButton btn = new UpgradeButton();
-                btn.Text = upgrade.Description + $"\n${upgrade.Cost:N0}";
-                //btn.EnabledChanged += new EventHandler(ChangeButtonEnableColor);
+                btn.Text = upgrade.Description + $"\n${(upgrade.Cost > 1000000.0d ? Stringify(double.Round(upgrade.Cost, 2).ToString(), StringifyOptions.LongText) : (double.Round(upgrade.Cost, 2))):N}";
+                btn.EnabledChanged += new EventHandler(ChangeButtonEnableColor);
+                btn.Paint += Btn_Paint;
                 btn.myUpgrade = upgrade;
-                btn.Enabled = true; //just to set colors
+                btn.CausesValidation = false;
                 btn.BackColor = Colors.colButtonDisabled;
                 btn.ForeColor = Colors.colTextSecondary;
                 btn.Enabled = false;
@@ -171,21 +179,50 @@ namespace FirstClicker
 
         }
 
+        private void Btn_Paint(object? sender, PaintEventArgs e)
+        {
+            if (sender == null) { return; }
+            UpgradeButton myButton = (UpgradeButton)sender;
+            if (myButton.Enabled) { return; }
+            SolidBrush myBrush;
+            if (myButton.Enabled)
+            {
+                myBrush = new SolidBrush(Colors.colTextPrimary);
+            }
+            else
+            {
+                myBrush = new SolidBrush(Colors.colTextSecondary);
+            }
+            StringFormat strFormat = new StringFormat
+            {
+                Alignment = StringAlignment.Center,
+                LineAlignment = StringAlignment.Center
+            };
+            //button text is erased, and now will be repainted onto the button in the correct color so that 'Disabling' the button won't render black text.
+            e.Graphics.DrawString(myButton.Text, myButton.Font, myBrush, e.ClipRectangle, strFormat);
+            myBrush.Dispose();
+            strFormat.Dispose();
+        }
+
         public void ChangeButtonEnableColor(object? sender, EventArgs e)
         {
             if (sender == null) { return; }
+            /*
             UpgradeButton btnme = (UpgradeButton)sender;
             if (btnme.Enabled)
             {
                 btnme.BackColor = Colors.colButtonEnabled;
                 btnme.ForeColor = Colors.colTextPrimary;
+
             }
             else
             {
                 btnme.BackColor = Colors.colButtonDisabled;
                 btnme.ForeColor = Colors.colTextSecondary;
+
+
             }
-            return;
+            return;*/
         }
 
         private void frmMain_Load(object sender, EventArgs e)
@@ -199,6 +236,7 @@ namespace FirstClicker
                 itemPanel.Controls.Add(myItems[i - 1]);  //add all items to itempanel
             }
 
+
             for (int i = 0; i < upgradeButtons.Count; i++)
             {
                 //itemID==0 is clickAmount upgrade button.
@@ -208,13 +246,13 @@ namespace FirstClicker
                 upgradeButtons[i].Width = (int)(UpgradePanel.Width * 0.85);  //button width is 85% of panel width
                 upgradeButtons[i].Height = (int)(upgradeButtons[i].Width * 0.40); //button height is 40% of button width
                 //upgradeButtons[i].BackColorChanged += new EventHandler(btncolorchanged);
-                upgradeButtons[i].Enabled = true;   //just for color change
+
                 upgradeButtons[i].BackColor = Colors.colButtonDisabled;
                 upgradeButtons[i].ForeColor = Colors.colTextSecondary;
                 upgradeButtons[i].Enabled = false;
                 UpgradePanel.Controls.Add(upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
-            
+
             foreach (ItemView item in myItems) { item.UpdateLabels(); }
             //frmMain_UpdateLabels();
             this.timerPerSec.Start();
@@ -237,7 +275,7 @@ namespace FirstClicker
                     //btnvars itemID is between 1 and the last itemID in myItems, so ItemUpgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = true;   //color change
+
                         btnsender.BackColor = Colors.colButtonPurchased;
                         btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
@@ -248,7 +286,7 @@ namespace FirstClicker
                     }
                     else
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonDisabled;
                         btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
@@ -259,7 +297,7 @@ namespace FirstClicker
                     //clickAmount upgrade, may be removed entirely, not sure yet
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonPurchased;
                         btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
@@ -271,7 +309,7 @@ namespace FirstClicker
                     }
                     else
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonDisabled;
                         btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
@@ -282,7 +320,7 @@ namespace FirstClicker
                     //All Items Upgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = true; ;
+
                         btnsender.BackColor = Colors.colButtonPurchased;
                         btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
@@ -296,7 +334,7 @@ namespace FirstClicker
                     }
                     else
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonDisabled;
                         btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
@@ -308,7 +346,7 @@ namespace FirstClicker
                     //prestige points upgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonPurchased;
                         btnsender.ForeColor = Colors.colTextPrimary;
                         btnsender.Enabled = false;
@@ -319,7 +357,7 @@ namespace FirstClicker
                     }
                     else
                     {
-                        btnsender.Enabled = true;
+
                         btnsender.BackColor = Colors.colButtonDisabled;
                         btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
@@ -338,8 +376,9 @@ namespace FirstClicker
 
         public void frmMain_UpdateLabels()
         {
-            lblMoney.Text = $"Money: ${double.Round(myMoney, 2):N}";
-            lblSalary.Text = $"${double.Round(salary, 2):N} Per Second, ${double.Round(clickAmount, 2):N} Per Click";
+            lblMoney.Text = $"Money: ${(myMoney >= 1000000.0d ? Stringify((double.Round(myMoney, 2).ToString()), StringifyOptions.LongText) : double.Round(myMoney, 2)):N}";
+            lblSalary.Text = $"Salary: ${(salary >= 1000000.0d ? Stringify((double.Round(salary, 2).ToString()), StringifyOptions.LongText) : double.Round(salary, 2)):N} Per Second";
+            lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify((double.Round(clickAmount, 2).ToString()), StringifyOptions.LongText) : double.Round(clickAmount, 2)):N} Per Click";
             lblIncrPerClick.Text = $"Mined Per Click: {incrperclick:N0}";
             lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
             if (this.purchAmount == 1 || this.purchAmount == 10 || this.purchAmount == 100)
@@ -358,11 +397,10 @@ namespace FirstClicker
 
 
                     //specify color to override enabledchanged event handler method
-                    btn.Enabled = true;
+
                     btn.BackColor = Colors.colButtonPurchased;
                     btn.ForeColor = Colors.colTextPrimary;
                     btn.Enabled = false;
-                    continue;
                 }
                 //if we can afford it and haven't bought it, enable it and turn it green, if not, disable it and turn it gray. real simple.
                 else if (!(btn.myUpgrade.Purchased))
@@ -371,24 +409,37 @@ namespace FirstClicker
                     if (myMoney >= btn.myUpgrade.Cost)
                     {
                         //can afford
-                        btn.Enabled = true;
+
                         btn.BackColor = Colors.colButtonEnabled;
                         btn.ForeColor = Colors.colTextPrimary; //black
+                        btn.Enabled = true;
                     }
                     else
                     {
                         //can't afford
-                        
-                        btn.Enabled = true;
+
+
                         btn.BackColor = Colors.colButtonDisabled;
                         btn.ForeColor = Colors.colTextSecondary; //white
                         btn.Enabled = false;
                     }
                 }
-
+                btn.Refresh();
 
             }
-            
+            //override x coordinate in itemPanel to center ItemViews
+            for (int i = 0; i < itemPanel.Controls.Count; i++)
+            {
+                itemPanel.Controls[i].Anchor = AnchorStyles.None;
+                //get left x coord of itempanel, add half of itempanel.width to find center of itempanel, then subtract half of item.width to find it's left x coord. Y remains unchanged.
+                int xLocation = (itemPanel.Location.X + ((itemPanel.Size.Width - System.Windows.Forms.SystemInformation.VerticalScrollBarWidth) / 2)) - (itemPanel.Controls[i].Size.Width / 2);
+
+                Point newLocation = new Point(xLocation, itemPanel.Controls[i].Location.Y);
+                //subtract itemPanel.X from xLocation to prevent adding extra padding due to distance of itemPanel from edge of form.
+                Padding padding = new Padding(xLocation - itemPanel.Location.X, 10, 10, 10);
+                itemPanel.Controls[i].Margin = padding;
+                //itemPanel.Controls[i].Location = newLocation; Not needed afterall, causes flickering due to different locations anyway. Parent Control forces location anyway.
+            }
         }
 
         private void frmMain_Click(object sender, EventArgs e)
@@ -522,17 +573,21 @@ namespace FirstClicker
             double tempprestige = this.calcPrestige(lastlifetimeMoney, thislifetimeMoney);
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
-            
-            
+            FormWindowState myWindowstate = this.WindowState;
+
             DialogResult dres = MessageBox.Show($"Current Prestige: {this.prestigePoints:N0}. \nPrestige to Gain: {tempprestige:N0}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
             if (dres == DialogResult.Yes)
             {
 
                 frmMain newLife = new(thislifetimeMoney + lastlifetimeMoney, tempprestige);
-                newLife.Show();
                 this.timerPerSec.Stop();
                 this.timerVisualUpdate.Stop();
                 this.Hide();
+                
+                newLife.WindowState = myWindowstate;
+                newLife.Show();
+                newLife.Focus();
+                
             }
             else if (dres == DialogResult.No)
             {
@@ -540,12 +595,84 @@ namespace FirstClicker
                 timerVisualUpdate.Start();
             }
         }
+        internal static string Stringify(string input, StringifyOptions option = StringifyOptions.LongText)
+        {
+            //IMPORTANT - Currently will not handle non-numerical input. Intended for 'lblMoney.Text = Stringify(myMoney.ToString():N, StringifyOptions.LongText);' or similar!
+            switch (option)
+            {
+                case (StringifyOptions.LongText):
+                    {
+                        //1,000.00
+                        if (input.Length > 5 && input.Contains("."))
+                        {
+                            input = input.Split('.')[0];
+                            //if the input is longer than 4 digits plus a decimal then we don't need the decimal for display.
+                        }
+                        //return string using classic long notation (#.### followed by Million, Billion, Trillion, etc)
+                        string myOutput = "";
+                        string[] TextStrings = { "Million", "Billion", "Trillion", "Quadrillion", "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion", "Undecillion", "Duodecillion", "Tredecillion", "Quattordecillion", "Quindecillion", "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion",
+                                                "Unvigintillion", "Duovigintillion", "Trevigintillion", "Quattorvigintillion", "Quinvigintillion", "Sexvigintillion", "Septenvigintillion", "Octovigintillion", "Novemvigintillion", "Trigintillion", "Untrigintillion", "Duotrigintillion", "Tretrigintillion", "Quattortrigintillion", "Quintrigintillion",
+                                                "Sextrigintillion", "Septentrigintillion", "Octotrigintillion", "Novemtrigintillion", "Quadragintillion"};  //currently up to 9.99*10^125
+                        //index 0 = 7-9 length, index 1 = 10-12 length, index 2 = 13-15 length, etc
+                        int digitcount = 0;
+                        for (int i = 0; i < input.Length; i++)
+                        {
+                            if (input[i] != ',') { digitcount++; }
+                        }
+                        //input 1,935,342.35 => split: 1,935,342
+                        if (digitcount < 7) { return input; }
+                        string trimmedinput = "";
+                        int index = 0;
+                        int digits = 0;
+                        while (digits < 4)
+                        {
+                            if (input[index] != ',')
+                            {
+                                trimmedinput += input[index];
+                                digits++;
+                            }
+                            index++;
+                        }   //1935
+                        trimmedinput = trimmedinput.Insert(1, ".");    //1.935
+                        trimmedinput += " ";
+                        //7/3=2.333, 9/3=3, 10/3=3.333, 12/3=4, cast to double, do division, round up to nearest integer, subtract 3.
+                        int wordindex = ((int)double.Round((double)digitcount / 3, MidpointRounding.ToPositiveInfinity) - 3);
+                        myOutput = trimmedinput + TextStrings[wordindex];
+                        return myOutput;
+                    }
+                default:
+                    {
+                        return input;
+                    }
+            }
+        }
+        internal enum StringifyOptions
+        {
+            LongText = 32,
+            ShortText = 64,
+            ScientificNotation = 128
+        }
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
             //frmMain.SaveState(); -- TODO
             //I know the way restarting after prestige works currently is a hack, and because of the way it's implemented currently, this is required to avoid hidden forms keeping the application running in the background.
             Application.Exit();
+        }
+
+        private void lblMoney_SizeChanged(object sender, EventArgs e)
+        {
+            lblMoney.Left = (this.grpMoney.Width - lblMoney.Size.Width) / 2;
+        }
+
+        private void lblSalary_SizeChanged(object sender, EventArgs e)
+        {
+            lblSalary.Left = (this.grpMoney.Width - lblSalary.Size.Width) / 2;
+        }
+
+        private void lblClickAmount_SizeChanged(object sender, EventArgs e)
+        {
+            lblClickAmount.Left = (this.grpMoney.Width - lblClickAmount.Size.Width) / 2;
         }
     }
     internal struct Upgrade(string description, double cost, int ID, double multiplier)
@@ -569,6 +696,10 @@ namespace FirstClicker
             myUpgrade._purchased = true;
             return myUpgrade;
         }
+
+        
+
+        
     }
     public class UpgradeButton : Button
     {

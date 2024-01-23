@@ -45,10 +45,11 @@ namespace FirstClicker.Controls
         public void UpdateLabels()
         {
             //no calculations, just update labels/buttons.
-            this.lblCost.Text = $"Cost: ${double.Round(calculatedCost, 2):N}";
+            
+            this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(double.Round(calculatedCost, 2).ToString(), frmMain.StringifyOptions.LongText)) : double.Round(calculatedCost, 2)):N}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
-            this.lblTotalSal.Text = $"Total Salary: ${double.Round((this.mySalary * this.myQty), 2):N}";
-            this.lblSalPerSec.Text = $"Salary: ${double.Round(this.mySalary, 2):N}";
+            this.lblTotalSal.Text = $"Total Salary: ${(double.Round(this.mySalary * this.myQty, 2) > 1000000.0d ? (frmMain.Stringify(double.Round(this.mySalary * this.myQty, 2).ToString(), frmMain.StringifyOptions.LongText)) : double.Round(this.mySalary * this.myQty, 2)):N}";//double.Round((this.mySalary * this.myQty), 2):N
+            this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? (frmMain.Stringify(double.Round(this.mySalary, 2).ToString(), frmMain.StringifyOptions.LongText)) : double.Round(this.mySalary, 2)):N}";//double.Round(this.mySalary, 2):N
             this.grpItem.Text = this.Name;
             
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount}";
