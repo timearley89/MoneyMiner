@@ -40,6 +40,7 @@
             lblSalary = new Label();
             lblIncrPerClick = new Label();
             timerVisualUpdate = new System.Windows.Forms.Timer(components);
+            btnPrestige = new Button();
             statusPane.SuspendLayout();
             SuspendLayout();
             // 
@@ -56,7 +57,7 @@
             // timerPerSec
             // 
             timerPerSec.Interval = 1000;
-            timerPerSec.Tick += timer1_Tick;
+            timerPerSec.Tick += timerPerSec_Tick;
             // 
             // btnPurchAmount
             // 
@@ -144,12 +145,23 @@
             // 
             timerVisualUpdate.Tick += timerVisualUpdate_Tick;
             // 
+            // btnPrestige
+            // 
+            btnPrestige.Location = new Point(695, 503);
+            btnPrestige.Name = "btnPrestige";
+            btnPrestige.Size = new Size(75, 55);
+            btnPrestige.TabIndex = 10;
+            btnPrestige.Text = "Prestige";
+            btnPrestige.UseVisualStyleBackColor = true;
+            btnPrestige.Click += btnPrestige_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(1000, 570);
+            Controls.Add(btnPrestige);
             Controls.Add(lblIncrPerClick);
             Controls.Add(lblMatsMined);
             Controls.Add(btnMine);
@@ -184,5 +196,6 @@
         private Label lblSalary;
         private Label lblIncrPerClick;
         private System.Windows.Forms.Timer timerVisualUpdate;
+        private Button btnPrestige;
     }
 }

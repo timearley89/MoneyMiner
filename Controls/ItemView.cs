@@ -12,23 +12,26 @@ namespace FirstClicker.Controls
 {
     public partial class ItemView : UserControl
     {
-
-        public decimal myCost;
-        public int myQty;
-        public decimal mySalary;
+        public MyColors Colors;
+        public double myCost;
+        public int myQty = 0;
+        public double mySalary;
         public int myID;
         public int purchaseAmount = 1;
-        public decimal myCostMult;
-        public decimal calculatedCost;
+        public double myCostMult;
+        public double calculatedCost;
+        public double baseCost;
 
-        public ItemView(int myID, string myName, decimal _myCost, decimal _myCostMult, int _myQty = 0)
+        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary)
         {
             InitializeComponent();
+            this.Colors = new MyColors();
             this.myCost = _myCost;
-            this.myQty = _myQty;
+            this.baseCost = _myCost;
+            //this.myQty = _myQty;
             this.myCostMult = _myCostMult;
             this.Name = myName;
-            this.mySalary = myCost / 10; //temporary
+            this.mySalary = _mySalary;
             this.UpdateLabels();
         }
 
@@ -39,11 +42,12 @@ namespace FirstClicker.Controls
         public void UpdateLabels()
         {
             //no calculations, just update labels/buttons.
-            this.lblCost.Text = $"Cost: ${decimal.Round(calculatedCost, 2):N}";
+            this.lblCost.Text = $"Cost: ${double.Round(calculatedCost, 2):N}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
-            this.lblTotalSal.Text = $"Total Salary: ${decimal.Round((decimal)(this.mySalary * this.myQty), 2):N}";
-            this.lblSalPerSec.Text = $"Salary: ${decimal.Round(this.mySalary, 2):N}";
+            this.lblTotalSal.Text = $"Total Salary: ${double.Round((this.mySalary * this.myQty), 2):N}";
+            this.lblSalPerSec.Text = $"Salary: ${double.Round(this.mySalary, 2):N}";
             this.grpItem.Text = this.Name;
+            
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount}";
         }
 
@@ -52,21 +56,21 @@ namespace FirstClicker.Controls
             //this causes unexpected problems, because the main form raises this event on mouseover or focus switch.
         }
 
-        public void ButtonColor(decimal myMoney, int purchaseQty, decimal costMultiplier)
+        public void ButtonColor(double myMoney, int purchaseQty, double costMultiplier)
         {
             //calculates whether purchase can be done given current balance, purchase amount, and cost multiplier, based on current cost of this item.
-            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) ? Color.Green : Color.Gray;
+            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colPrimary : Colors.colDisable;
         }
-        public bool CanAfford(decimal myMoney, int purchaseQty, decimal costMultiplier)
+        public bool CanAfford(double myMoney, int purchaseQty, double costMultiplier)
         {
             return myMoney >= this.CalcCost(purchaseQty, costMultiplier);
         }
-        public decimal CalcCost(int purchaseQty, decimal costMultiplier)
+        public double CalcCost(int purchaseQty, double costMultiplier)
         {
             //just returns the cost for purchasing x amount of this item and updates internal variables accordingly.
             if (purchaseQty <= 0) 
             {
-                this.calculatedCost = 0.00m; 
+                this.calculatedCost = 0.00d; 
                 this.purchaseAmount = 0; 
             }
             else
@@ -75,11 +79,11 @@ namespace FirstClicker.Controls
                 //cost for buying the Nth item, but not the total. Use a while loop.
                 //this.calculatedCost = this.myCost * (decimal)Math.Pow((double)costMultiplier, purchaseQty - 1);
 
-                decimal temptotalcost = 0.00m;
+                double temptotalcost = 0.00d;
                 int tempqty = purchaseQty;
                 while (tempqty >= 1)
                 {
-                    temptotalcost += this.myCost * (decimal)Math.Pow((double)costMultiplier, tempqty - 1);
+                    temptotalcost += this.myCost * Math.Pow(costMultiplier, tempqty - 1);
                     tempqty--;
                 }
                 this.calculatedCost = temptotalcost;
@@ -90,8 +94,14 @@ namespace FirstClicker.Controls
         private void btnBuy_Click(object sender, EventArgs e)
         {
             //passes itself as a parameter to the parent form, to avoid change-watcher system for array. I'm sure better ideas exist.
-            
-            ((frmMain)(this.Parent).Parent).BuyClicked(this);
+            if (this.Parent != null && (this.Parent).Parent != null)
+            {
+                ((frmMain)(this.Parent).Parent).BuyClicked(this);
+            }
+            else
+            {
+                throw new NullReferenceException();
+            }
             
 
         }
