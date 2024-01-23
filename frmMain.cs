@@ -35,10 +35,15 @@ namespace FirstClicker
 
         public frmMain(double lastlifeMoney = 0.0d, double prestPoints = 0.0d)
         {
-            this.Colors = new MyColors();
-            this.BackColor = Colors.colTertiary;
-            
             InitializeComponent();
+
+            //set form colors
+            this.Colors = new MyColors();
+            this.BackColor = Colors.colBackground;
+            btnMine.BackColor = Colors.colButtonEnabled;
+            itemPanel.BackColor = Colors.colBorders;
+            UpgradePanel.BackColor = Colors.colBorders;
+            
             if (this.thislifetimeMoney == default)
             {
                 this.thislifetimeMoney = lastlifeMoney;
@@ -47,10 +52,10 @@ namespace FirstClicker
             {
                 this.prestigePoints = prestPoints;
             }
-            btnMine.BackColor = Colors.colSecondary;
+            
             if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
             matsMined = 0;
-            myMoney = 1000.00d;    //debug only if not $0.00
+            myMoney = 0.00d;    //debug only if not $0.00
             salary = 0.00d;
             clickAmount = 0.25d; //initial value, temporary
             myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
@@ -67,7 +72,7 @@ namespace FirstClicker
             {
                 this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
             }
-            foreach (var item in myItems) 
+            foreach (var item in myItems)
             {
                 //upgradeButtons.Add(new UpgradeButton());
                 if (this.prestigePoints > 0.0d)
@@ -75,14 +80,14 @@ namespace FirstClicker
                     item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
                 }
             } //add upgrade button for each item and adjust salary for prestigepoints.
-            //(ID, Name, baseCost, Multiplier, Salary)
-            //8 available items right now
+              //(ID, Name, baseCost, Multiplier, Salary)
+              //8 available items right now
 
-            
+
 
             //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
             //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
-            
+
             //Also, a window to keep track of stats, like amount made, upgrades purchased, prestige points, etc
 
             //Need to implement save states/loading, and calculate time between last save/current load, add to playtime stat, and multiply by $/sec to
@@ -92,10 +97,10 @@ namespace FirstClicker
             List<Upgrade> MainUpgradeList =
             [
                 new Upgrade("Double Tap", 1000.0d, 0, 3), //Click Upgrades
-                new Upgrade("Click Amplifier", 7500.0d, 0, 3),
-                new Upgrade("Mega-Clicking", 15000.0d, 0, 3),
-                new Upgrade("Click Physics", 40000.0d, 0, 3),
-                new Upgrade("Parallel Clicking", 100000.0d, 0, 3),
+                new Upgrade("Click Amplifier", 25000.0d, 0, 3),
+                new Upgrade("Mega-Clicking", 75000.0d, 0, 3),
+                new Upgrade("Click Physics", 150000.0d, 0, 3),
+                new Upgrade("Parallel Clicking", 500000.0d, 0, 3),
                 new Upgrade("Birch Wood", 250000.0d, 1, 3), //Item1 Upgrades
                 new Upgrade("Pine Wood", 20000000000000.0d, 1, 3),
                 new Upgrade("Oak Wood", 2000000000000000000.0d, 1, 3),
@@ -149,24 +154,45 @@ namespace FirstClicker
                 ];
             MainUpgradeList = (List<Upgrade>)MainUpgradeList.OrderBy(x => x.Cost).ToList();
             //Upgrades should probably be broken out into an xml file or similar.
-            
+
 
             foreach (Upgrade upgrade in MainUpgradeList)
             {
                 UpgradeButton btn = new UpgradeButton();
                 btn.Text = upgrade.Description + $"\n${upgrade.Cost:N0}";
+                //btn.EnabledChanged += new EventHandler(ChangeButtonEnableColor);
                 btn.myUpgrade = upgrade;
-                btn.BackColor = Colors.colDisable;
+                btn.Enabled = true; //just to set colors
+                btn.BackColor = Colors.colButtonDisabled;
+                btn.ForeColor = Colors.colTextSecondary;
                 btn.Enabled = false;
                 upgradeButtons.Add(btn);
             }
 
         }
 
-        
+        public void ChangeButtonEnableColor(object? sender, EventArgs e)
+        {
+            if (sender == null) { return; }
+            UpgradeButton btnme = (UpgradeButton)sender;
+            if (btnme.Enabled)
+            {
+                btnme.BackColor = Colors.colButtonEnabled;
+                btnme.ForeColor = Colors.colTextPrimary;
+            }
+            else
+            {
+                btnme.BackColor = Colors.colButtonDisabled;
+                btnme.ForeColor = Colors.colTextSecondary;
+            }
+            return;
+        }
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+
+            //frmMain.LoadState(string defaultSaveFile) -- TODO
+
             //Populate form with possible items from array, then update their labels.
             for (int i = 1; i <= myItems.Length; i++)
             {
@@ -177,14 +203,18 @@ namespace FirstClicker
             {
                 //itemID==0 is clickAmount upgrade button.
                 //itemID==15 is allitem upgrade, itemID==20 is prestigemultiplier upgrade.
-                
+
                 upgradeButtons[i].Click += new EventHandler(upgradeClicked);
                 upgradeButtons[i].Width = (int)(UpgradePanel.Width * 0.85);  //button width is 85% of panel width
                 upgradeButtons[i].Height = (int)(upgradeButtons[i].Width * 0.40); //button height is 40% of button width
-                upgradeButtons[i].BackColorChanged += new EventHandler(btncolorchanged);
+                //upgradeButtons[i].BackColorChanged += new EventHandler(btncolorchanged);
+                upgradeButtons[i].Enabled = true;   //just for color change
+                upgradeButtons[i].BackColor = Colors.colButtonDisabled;
+                upgradeButtons[i].ForeColor = Colors.colTextSecondary;
                 upgradeButtons[i].Enabled = false;
                 UpgradePanel.Controls.Add(upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
+            
             foreach (ItemView item in myItems) { item.UpdateLabels(); }
             //frmMain_UpdateLabels();
             this.timerPerSec.Start();
@@ -192,7 +222,7 @@ namespace FirstClicker
         }
         public void btncolorchanged(Object? sender, EventArgs e)
         {
-            //MessageBox.Show("");
+            //MessageBox.Show(""); --debug
         }
         public void upgradeClicked(Object? sender, EventArgs e)
         {
@@ -207,17 +237,21 @@ namespace FirstClicker
                     //btnvars itemID is between 1 and the last itemID in myItems, so ItemUpgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colPrimary;
+                        btnsender.Enabled = true;   //color change
+                        btnsender.BackColor = Colors.colButtonPurchased;
+                        btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
                         myItems[btnitemID - 1].mySalary *= btnsender.myUpgrade.Multiplier;
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
+                        btnsender.Enabled = false;
                     }
                     else
                     {
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonDisabled;
+                        btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colDisable;
                     }
                 }
                 else if (btnitemID == 0)
@@ -225,18 +259,22 @@ namespace FirstClicker
                     //clickAmount upgrade, may be removed entirely, not sure yet
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colPrimary;
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonPurchased;
+                        btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
                         clickAmount *= btnsender.myUpgrade.Multiplier;
                         //had to make 'SetPurchased' a static method that returned an object reference. For some reason it wasn't updating the object passed to it before...
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
+                        btnsender.Enabled = false;
                     }
                     else
                     {
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonDisabled;
+                        btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colDisable;
                     }
                 }
                 else if (btnitemID == 15)
@@ -244,9 +282,11 @@ namespace FirstClicker
                     //All Items Upgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
-                        btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colPrimary;
+                        btnsender.Enabled = true; ;
+                        btnsender.BackColor = Colors.colButtonPurchased;
+                        btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
+                        btnsender.Enabled = false;
                         foreach (ItemView item in myItems)
                         {
                             item.mySalary *= btnsender.myUpgrade.Multiplier;
@@ -256,18 +296,22 @@ namespace FirstClicker
                     }
                     else
                     {
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonDisabled;
+                        btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colDisable;
                     }
-                    
+
                 }
                 else if (btnitemID == 20)
                 {
                     //prestige points upgrade
                     if (myMoney >= btnsender.myUpgrade.Cost)
                     {
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonPurchased;
+                        btnsender.ForeColor = Colors.colTextPrimary;
                         btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colPrimary;
                         double newmult = (btnsender.myUpgrade.Multiplier * 100) - 100;
                         prestigeMultiplier += newmult;
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
@@ -275,8 +319,10 @@ namespace FirstClicker
                     }
                     else
                     {
+                        btnsender.Enabled = true;
+                        btnsender.BackColor = Colors.colButtonDisabled;
+                        btnsender.ForeColor = Colors.colTextSecondary;
                         btnsender.Enabled = false;
-                        btnsender.BackColor = Colors.colDisable;
                     }
                 }
             }
@@ -307,31 +353,42 @@ namespace FirstClicker
 
             foreach (UpgradeButton btn in upgradeButtons)
             {
-                if (btn.myUpgrade.Purchased) {
-                    btn.Enabled = false; 
-                    btn.BackColor = Colors.colTertiary; 
-                    btn.ForeColor = Color.White; 
-                    continue; }
+                if (btn.myUpgrade.Purchased)
+                {
+
+
+                    //specify color to override enabledchanged event handler method
+                    btn.Enabled = true;
+                    btn.BackColor = Colors.colButtonPurchased;
+                    btn.ForeColor = Colors.colTextPrimary;
+                    btn.Enabled = false;
+                    continue;
+                }
                 //if we can afford it and haven't bought it, enable it and turn it green, if not, disable it and turn it gray. real simple.
-                else if (!(btn.myUpgrade.Purchased)) 
-                { 
+                else if (!(btn.myUpgrade.Purchased))
+                {
                     //if not purchased
                     if (myMoney >= btn.myUpgrade.Cost)
                     {
                         //can afford
-                        btn.Enabled = true; 
-                        btn.BackColor = Colors.colPrimary; 
+                        btn.Enabled = true;
+                        btn.BackColor = Colors.colButtonEnabled;
+                        btn.ForeColor = Colors.colTextPrimary; //black
                     }
-                    else 
-                    { 
+                    else
+                    {
                         //can't afford
-                        btn.Enabled = false; 
-                        btn.BackColor = Colors.colDisable; 
+                        
+                        btn.Enabled = true;
+                        btn.BackColor = Colors.colButtonDisabled;
+                        btn.ForeColor = Colors.colTextSecondary; //white
+                        btn.Enabled = false;
                     }
-                } 
-                
+                }
+
 
             }
+            
         }
 
         private void frmMain_Click(object sender, EventArgs e)
@@ -356,7 +413,7 @@ namespace FirstClicker
                 tempsal += (view.mySalary * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             salary = tempsal;
-            myMoney += salary;  
+            myMoney += salary;
             thislifetimeMoney += salary;
         }
         public void BuyClicked(ItemView sender)
@@ -465,10 +522,12 @@ namespace FirstClicker
             double tempprestige = this.calcPrestige(lastlifetimeMoney, thislifetimeMoney);
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
-            DialogResult dres = MessageBox.Show($"Current Prestige: {this.prestigePoints:N0}. \nPrestige to Gain: {tempprestige:N0}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo);
+            
+            
+            DialogResult dres = MessageBox.Show($"Current Prestige: {this.prestigePoints:N0}. \nPrestige to Gain: {tempprestige:N0}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
             if (dres == DialogResult.Yes)
             {
-                
+
                 frmMain newLife = new(thislifetimeMoney + lastlifetimeMoney, tempprestige);
                 newLife.Show();
                 this.timerPerSec.Stop();
@@ -480,6 +539,13 @@ namespace FirstClicker
                 timerPerSec.Start();
                 timerVisualUpdate.Start();
             }
+        }
+
+        private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
+        {
+            //frmMain.SaveState(); -- TODO
+            //I know the way restarting after prestige works currently is a hack, and because of the way it's implemented currently, this is required to avoid hidden forms keeping the application running in the background.
+            Application.Exit();
         }
     }
     internal struct Upgrade(string description, double cost, int ID, double multiplier)
@@ -515,5 +581,12 @@ namespace FirstClicker
         public Color colSecondary = Color.SandyBrown;
         public Color colTertiary = Color.Tan;
         public Color colDisable = Color.Gray;
+        public Color colButtonDisabled = Color.FromArgb(37, 39, 46);//BlackOlive
+        public Color colButtonEnabled = Color.FromArgb(63, 210, 255);//PaleAzure
+        public Color colButtonPurchased = Color.FromArgb(20, 81, 195);//SteelBlue
+        public Color colBackground = Color.FromArgb(210, 180, 140);//Tan
+        public Color colTextPrimary = Color.Black;
+        public Color colTextSecondary = Color.White;
+        public Color colBorders = Color.FromArgb(78, 213, 215);//TiffanyBlue
     }
 }

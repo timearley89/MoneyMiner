@@ -74,10 +74,12 @@
             // 
             UpgradePanel.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
             UpgradePanel.AutoScroll = true;
+            UpgradePanel.ForeColor = SystemColors.ControlLightLight;
             UpgradePanel.Location = new Point(792, 12);
             UpgradePanel.Name = "UpgradePanel";
             UpgradePanel.Size = new Size(196, 546);
             UpgradePanel.TabIndex = 5;
+            UpgradePanel.WrapContents = false;
             // 
             // btnMine
             // 
@@ -174,6 +176,7 @@
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Hide;
             Text = "First Clicker/Idle Game";
+            FormClosing += frmMain_FormClosing;
             Load += frmMain_Load;
             Click += frmMain_Click;
             Paint += frmMain_Paint;

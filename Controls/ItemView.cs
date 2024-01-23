@@ -25,7 +25,10 @@ namespace FirstClicker.Controls
         public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary)
         {
             InitializeComponent();
-            this.Colors = new MyColors();
+            this.Colors = new MyColors();            
+            this.BackColor = Colors.colBackground;
+            this.grpItem.BackColor = Colors.colBackground;
+            this.ForeColor = Colors.colTextPrimary;
             this.myCost = _myCost;
             this.baseCost = _myCost;
             //this.myQty = _myQty;
@@ -59,7 +62,8 @@ namespace FirstClicker.Controls
         public void ButtonColor(double myMoney, int purchaseQty, double costMultiplier)
         {
             //calculates whether purchase can be done given current balance, purchase amount, and cost multiplier, based on current cost of this item.
-            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colPrimary : Colors.colDisable;
+            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colButtonEnabled : Colors.colButtonDisabled;
+            this.btnBuy.ForeColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colTextPrimary : Colors.colTextSecondary;
         }
         public bool CanAfford(double myMoney, int purchaseQty, double costMultiplier)
         {
