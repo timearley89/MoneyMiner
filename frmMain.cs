@@ -786,7 +786,7 @@ namespace FirstClicker
         public void LoadGame()
         {
             FileStreamOptions fsOptions = new FileStreamOptions();
-            GameState save;
+            GameState save = new GameState();
             try
             {
                 fsOptions.Mode = FileMode.Open;
