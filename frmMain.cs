@@ -70,7 +70,7 @@ namespace FirstClicker
 
 
             //frmMain constructor now initializes all fields. All we have to do is slip in a loading method to deserialize our custom GameState object, and set each parameter accordingly.
-            this.LoadGame();
+            //this.LoadGame();
 
             if (this.myItems == default || this.myItems.Length==0){
                 myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
@@ -641,7 +641,7 @@ namespace FirstClicker
                 this.incrperclick = default;
                 this.thislifetimeMoney = default;
                 this.thislifeGameTime = default;
-                SaveGame();
+                //SaveGame();
                 Program.RestartForPrestige = true;
                 this.Close();
             }
@@ -733,7 +733,7 @@ namespace FirstClicker
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            this.SaveGame();
+            //this.SaveGame();
             Program.RestartForPrestige = false;
             
             
