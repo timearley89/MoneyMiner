@@ -3,13 +3,18 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
 using System.Linq;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using FirstClicker.Controls;
@@ -22,19 +27,24 @@ namespace FirstClicker
     {
 
         public MyColors Colors;
-        public double myMoney; //max value currently is Decimal.MaxValue, which is just over 79 Octillion. Need to restructure this.
+        public double myMoney;
         public double salary;
         public double clickAmount;
-        public double thislifetimeMoney;    //needs to accumulate all money earned, just without subtracting from when item is purchased
+        public double thislifetimeMoney;
         public double lastlifetimeMoney;
         public double prestigePoints;
-        public double prestigeMultiplier = 2.0d; //2% initially
-        private int purchAmount = 1;
+        public double prestigeMultiplier;
+        private int purchAmount;
         public int matsMined;
-        public int incrperclick = 1;
+        public int incrperclick;
+        public int toolTipDelay;
+        public int toolTipVisibleTime;
+        public TimeSpan thislifeGameTime;
+        public TimeSpan totalGameTime;
 
         public ItemView[] myItems;
         public List<UpgradeButton> upgradeButtons;
+        internal List<Upgrade> MainUpgradeList;
 
         public frmMain(double lastlifeMoney = 0.0d, double prestPoints = 0.0d)
         {
@@ -47,50 +57,8 @@ namespace FirstClicker
             itemPanel.BackColor = Colors.colBorders;
             UpgradePanel.BackColor = Colors.colBorders;
             grpMoney.BackColor = Colors.colBorders;
-
-
-
-
-            if (this.thislifetimeMoney == default)
-            {
-                this.thislifetimeMoney = lastlifeMoney;
-            }
-            if (this.prestigePoints == default)
-            {
-                this.prestigePoints = prestPoints;
-            }
-
-            if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
-            matsMined = 0;
-            myMoney = 0.00d;    //debug only if not $0.00
-            salary = 0.00d;
-            clickAmount = 0.25d; //initial value, temporary
-            myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
-                new ItemView(2, "Stone", 60d, 1.15d, 20d),
-                new ItemView(3, "Iron", 720d, 1.14d, 90d),
-                new ItemView(4, "Steel", 8640d, 1.13d, 360d),
-                new ItemView(5, "Diamond", 103680d, 1.12d, 2160d),
-                new ItemView(6, "Uranium", 1244160d, 1.11d, 6480d),
-                new ItemView(7, "Antimatter", 14929920d, 1.10d, 19440d),
-                new ItemView(8, "Black Hole", 179159040d, 1.09d, 58320d)];
-            upgradeButtons = new List<UpgradeButton>();    //basic buttons for now - create new custom control for upgrades containing a button and labels for display
-
-            if (this.prestigePoints > 0.0d)
-            {
-                this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
-            }
-            foreach (var item in myItems)
-            {
-                //upgradeButtons.Add(new UpgradeButton());
-                if (this.prestigePoints > 0.0d)
-                {
-                    item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
-                }
-            } //add upgrade button for each item and adjust salary for prestigepoints.
-              //(ID, Name, baseCost, Multiplier, Salary)
-              //8 available items right now
-
-
+            lblMatsMined.AutoSize = true;
+            lblIncrPerClick.AutoSize = true;
 
             //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
             //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
@@ -100,8 +68,24 @@ namespace FirstClicker
             //Need to implement save states/loading, and calculate time between last save/current load, add to playtime stat, and multiply by $/sec to
             //add to money, thus making it a true 'idle' game. Right now it's just more of a clicker.
 
+
+            //frmMain constructor now initializes all fields. All we have to do is slip in a loading method to deserialize our custom GameState object, and set each parameter accordingly.
+            this.LoadGame();
+
+            if (this.myItems == default || this.myItems.Length==0){
+                myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
+                    new ItemView(2, "Stone", 60d, 1.15d, 20d),
+                    new ItemView(3, "Iron", 720d, 1.14d, 90d),
+                    new ItemView(4, "Steel", 8640d, 1.13d, 360d),
+                    new ItemView(5, "Diamond", 103680d, 1.12d, 2160d),
+                    new ItemView(6, "Uranium", 1244160d, 1.11d, 6480d),
+                    new ItemView(7, "Antimatter", 14929920d, 1.10d, 19440d),
+                    new ItemView(8, "Black Hole", 179159040d, 1.09d, 58320d)];
+            }
+            if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
+
             //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier). They can only be created or altered through their constructors.
-            List<Upgrade> MainUpgradeList =
+            if (this.MainUpgradeList == default){ MainUpgradeList =
             [
                 new Upgrade("Double Tap", 1000.0d, 0, 3), //Click Upgrades
                 new Upgrade("Click Amplifier", 25000.0d, 0, 3),
@@ -160,14 +144,39 @@ namespace FirstClicker
                 new Upgrade("Planetary Ransom", 1000000000000000000000000000000000000000.0d, 20, 1.06)
                 ];
             MainUpgradeList = (List<Upgrade>)MainUpgradeList.OrderBy(x => x.Cost).ToList();
-            //Upgrades should probably be broken out into an xml file or similar.
-
+        }
+            
+            if (this.toolTipVisibleTime == default) { toolTipVisibleTime = 2500; }
+            if (this.toolTipDelay == default) { toolTipDelay = 500; }
+            if (this.prestigeMultiplier == default) { prestigeMultiplier = 2.0d; }
+            if (this.clickAmount == default) { clickAmount = 0.25; }
+            if (this.salary == default) { salary = 0.0d; }
+            if (this.matsMined == default) { matsMined = 0; }
+            if (this.myMoney == default) { myMoney = 0.00d; }
+            if (this.incrperclick == default) { incrperclick = 1; }
+            if (this.purchAmount == default) { purchAmount = 1; }
+            if (this.thislifetimeMoney == default){this.thislifetimeMoney = lastlifeMoney;}
+            if (this.prestigePoints == default){ this.prestigePoints = prestPoints;}
+            if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
+            if (this.prestigePoints > 0.0d)
+            {
+                this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+            }
+            foreach (var item in myItems)
+            {
+                //upgradeButtons.Add(new UpgradeButton());
+                if (this.prestigePoints > 0.0d)
+                {
+                    item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                }
+            } //add upgrade button for each item and adjust salary for prestigepoints.
 
             foreach (Upgrade upgrade in MainUpgradeList)
             {
                 UpgradeButton btn = new UpgradeButton();
-                btn.Text = upgrade.Description + $"\n${(upgrade.Cost > 1000000.0d ? Stringify(double.Round(upgrade.Cost, 2).ToString(), StringifyOptions.LongText) : (double.Round(upgrade.Cost, 2))):N}";
-                btn.EnabledChanged += new EventHandler(ChangeButtonEnableColor);
+                btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString(), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
+                
+                btn.MouseHover += Btn_Hover;
                 btn.Paint += Btn_Paint;
                 btn.myUpgrade = upgrade;
                 btn.CausesValidation = false;
@@ -175,6 +184,64 @@ namespace FirstClicker
                 btn.ForeColor = Colors.colTextSecondary;
                 btn.Enabled = false;
                 upgradeButtons.Add(btn);
+            }
+
+        }
+
+        System.Windows.Forms.Timer toolTipTimer = new System.Windows.Forms.Timer();
+        ToolTip? myTip;
+        private void toolTipTick(object? sender, EventArgs e)
+        {
+            if (myTip != null) { myTip.Hide(this); }
+            toolTipTimer.Stop();
+            //hide the tooltip and stop the timer. If needed, it will be started again via the hover event.
+        }
+
+        private void Btn_Hover(object? sender, EventArgs e)
+        {
+            
+            toolTipTimer.Interval = toolTipVisibleTime;
+            toolTipTimer.Tick += new EventHandler(toolTipTick);
+
+            //get mouse location
+            //display some magical floating box that says {Description} multiplies {get-name-from-itemID()}'s salary by {multiplier}
+            if (sender == null) { return; }
+            if (myTip != null) { myTip.Hide(this); }
+            myTip = new ToolTip();
+            
+            myTip.InitialDelay = toolTipDelay;
+            myTip.IsBalloon = true;
+            myTip.AutoPopDelay = toolTipVisibleTime;
+            myTip.UseAnimation = true;
+            UpgradeButton btn = (UpgradeButton)sender;
+            Point mousepos = MousePosition;
+            mousepos.Offset(0, 30); //offset the tooltip down 30px so the cursor can still click the buttons
+            toolTipTimer.Start();
+            if (btn.myUpgrade.itemID >= 1 && btn.myUpgrade.itemID <= myItems.Length)
+            {
+                //upgrade refers to an item
+                myTip.Show($"{btn.myUpgrade.Description} multiplies {myItems[btn.myUpgrade.itemID - 1].Name}'s salary per second by {btn.myUpgrade.Multiplier}!", this, mousepos);
+                //"Double-Tap multiplies Wood's salary per second by 3!"
+            }
+            else if (btn.myUpgrade.itemID == 0)
+            {
+                //upgrade is a clickamount upgrade
+                myTip.Show($"{btn.myUpgrade.Description} multiplies 'Click-Mining' earnings by {btn.myUpgrade.Multiplier}!", this, mousepos);
+            }
+            else if (btn.myUpgrade.itemID == 15)
+            {
+                //upgrade is for all items
+                myTip.Show($"{btn.myUpgrade.Description} multiplies all item salaries by {btn.myUpgrade.Multiplier}!", this, mousepos);
+            }
+            else if (btn.myUpgrade.itemID == 20)
+            {
+                //upgrade is a prestige point upgrade
+                myTip.Show($"{btn.myUpgrade.Description} adds {((btn.myUpgrade.Multiplier * 100) - 100):N0}% gain per prestige point!", this, mousepos);
+            }
+            else
+            {
+                //we have no idea what this button does. ItemID not found.
+                return;
             }
 
         }
@@ -204,27 +271,6 @@ namespace FirstClicker
             strFormat.Dispose();
         }
 
-        public void ChangeButtonEnableColor(object? sender, EventArgs e)
-        {
-            if (sender == null) { return; }
-            /*
-            UpgradeButton btnme = (UpgradeButton)sender;
-            if (btnme.Enabled)
-            {
-                btnme.BackColor = Colors.colButtonEnabled;
-                btnme.ForeColor = Colors.colTextPrimary;
-
-            }
-            else
-            {
-                btnme.BackColor = Colors.colButtonDisabled;
-                btnme.ForeColor = Colors.colTextSecondary;
-
-
-            }
-            return;*/
-        }
-
         private void frmMain_Load(object sender, EventArgs e)
         {
 
@@ -237,7 +283,7 @@ namespace FirstClicker
             }
 
 
-            for (int i = 0; i < upgradeButtons.Count; i++)
+            for (int i = 0; i < upgradeButtons.Count; i++)      //SET UP UPGRADE BUTTONS
             {
                 //itemID==0 is clickAmount upgrade button.
                 //itemID==15 is allitem upgrade, itemID==20 is prestigemultiplier upgrade.
@@ -376,9 +422,9 @@ namespace FirstClicker
 
         public void frmMain_UpdateLabels()
         {
-            lblMoney.Text = $"Money: ${(myMoney >= 1000000.0d ? Stringify((double.Round(myMoney, 2).ToString()), StringifyOptions.LongText) : double.Round(myMoney, 2)):N}";
-            lblSalary.Text = $"Salary: ${(salary >= 1000000.0d ? Stringify((double.Round(salary, 2).ToString()), StringifyOptions.LongText) : double.Round(salary, 2)):N} Per Second";
-            lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify((double.Round(clickAmount, 2).ToString()), StringifyOptions.LongText) : double.Round(clickAmount, 2)):N} Per Click";
+            lblMoney.Text = $"Money: ${(myMoney >= 1000000.0d ? Stringify(myMoney.ToString(), StringifyOptions.LongText) : double.Round(myMoney, 2).ToString("N"))}";
+            lblSalary.Text = $"Salary: ${(salary >= 1000000.0d ? Stringify(salary.ToString(), StringifyOptions.LongText) : double.Round(salary, 2).ToString("N"))} Per Second";
+            lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify(clickAmount.ToString(), StringifyOptions.LongText) : double.Round(clickAmount, 2).ToString("N"))} Per Click";
             lblIncrPerClick.Text = $"Mined Per Click: {incrperclick:N0}";
             lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
             if (this.purchAmount == 1 || this.purchAmount == 10 || this.purchAmount == 100)
@@ -471,8 +517,9 @@ namespace FirstClicker
         {
             if (sender.CanAfford(this.myMoney, sender.purchaseAmount, sender.myCostMult))
             {
+                
                 myMoney -= sender.calculatedCost;
-                sender.myQty += sender.purchaseAmount; //how to implement progressive upgrades(i.e. value checking)?
+                sender.myQty += sender.purchaseAmount;
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
             }
             sender.UpdateLabels();
@@ -573,21 +620,30 @@ namespace FirstClicker
             double tempprestige = this.calcPrestige(lastlifetimeMoney, thislifetimeMoney);
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
-            FormWindowState myWindowstate = this.WindowState;
 
             DialogResult dres = MessageBox.Show($"Current Prestige: {this.prestigePoints:N0}. \nPrestige to Gain: {tempprestige:N0}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
             if (dres == DialogResult.Yes)
             {
-
-                frmMain newLife = new(thislifetimeMoney + lastlifetimeMoney, tempprestige);
                 this.timerPerSec.Stop();
                 this.timerVisualUpdate.Stop();
-                this.Hide();
-                
-                newLife.WindowState = myWindowstate;
-                newLife.Show();
-                newLife.Focus();
-                
+                this.toolTipTimer.Stop();
+
+                this.lastlifetimeMoney = thislifetimeMoney + lastlifetimeMoney;
+                this.prestigePoints += tempprestige;
+                this.myItems = new ItemView[0];
+                this.upgradeButtons = new List<UpgradeButton>();
+                this.MainUpgradeList = new List<Upgrade>();
+                this.salary = default;
+                this.myMoney = default;
+                this.clickAmount = default;
+                this.prestigeMultiplier = default;
+                this.matsMined = default;
+                this.incrperclick = default;
+                this.thislifetimeMoney = default;
+                this.thislifeGameTime = default;
+                SaveGame();
+                Program.RestartForPrestige = true;
+                this.Close();
             }
             else if (dres == DialogResult.No)
             {
@@ -602,6 +658,7 @@ namespace FirstClicker
             {
                 case (StringifyOptions.LongText):
                     {
+                        if (input.Contains("E")) { input = ReBig(input); }
                         //1,000.00
                         if (input.Length > 5 && input.Contains("."))
                         {
@@ -633,7 +690,8 @@ namespace FirstClicker
                             }
                             index++;
                         }   //1935
-                        trimmedinput = trimmedinput.Insert(1, ".");    //1.935
+                        //digitcount % 3 gives period placement, unless it's 0. If 0, put period at index 3.
+                        trimmedinput = trimmedinput.Insert((digitcount % 3 == 0 ? 3 : digitcount % 3), ".");    //1.935
                         trimmedinput += " ";
                         //7/3=2.333, 9/3=3, 10/3=3.333, 12/3=4, cast to double, do division, round up to nearest integer, subtract 3.
                         int wordindex = ((int)double.Round((double)digitcount / 3, MidpointRounding.ToPositiveInfinity) - 3);
@@ -653,11 +711,32 @@ namespace FirstClicker
             ScientificNotation = 128
         }
 
+        internal static string ReBig(string input)
+        {
+            //Removes scientific notation and returns a string as a literal representation of the number.
+            if (input[0] == '-') { input = input.Remove(0, 1); }
+            string[] parts = input.Split('E');  //7.5, +27
+            if (parts[1].Contains('+')) { parts[1] = parts[1].Remove(0, 1); }   //7.5, 27
+
+            //remove decimal if it exists, and subtract it's distance to end of string from parts[1]: {7.5, 27} => {75, 26}
+            if (parts[0].Contains('.'))
+            {
+                int subtractor = (parts[0].Length - 1) - parts[0].IndexOf("."); //7.5 gives 2-1=1, 4.23 gives 3-1=2, 2.331 gives 4-1=3
+                parts[1] = (Int32.Parse(parts[1]) - subtractor).ToString();     //27-1=26
+                parts[0] = parts[0].Remove(parts[0].IndexOf("."), 1);           //7.5 => 75
+            }
+            string output = parts[0];
+            for (int i = 0; i < Int32.Parse(parts[1]); i++) { output += "0"; }
+            return output;
+        }
+
+
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //frmMain.SaveState(); -- TODO
-            //I know the way restarting after prestige works currently is a hack, and because of the way it's implemented currently, this is required to avoid hidden forms keeping the application running in the background.
-            Application.Exit();
+            this.SaveGame();
+            Program.RestartForPrestige = false;
+            
+            
         }
 
         private void lblMoney_SizeChanged(object sender, EventArgs e)
@@ -673,6 +752,117 @@ namespace FirstClicker
         private void lblClickAmount_SizeChanged(object sender, EventArgs e)
         {
             lblClickAmount.Left = (this.grpMoney.Width - lblClickAmount.Size.Width) / 2;
+        }
+
+        //---TempBelowThisLine---//
+        public void SaveGame()
+        {
+            GameState save = new GameState();
+            save.myItems = this.myItems;
+            save.MainUpgradeList = this.MainUpgradeList;
+            save.upgradeButtons = this.upgradeButtons;
+            save.toolTipVisibleTime = this.toolTipVisibleTime;
+            save.toolTipDelay = this.toolTipDelay;
+            save.prestigeMultiplier = this.prestigeMultiplier;
+            save.clickAmount = this.clickAmount;
+            save.salary = this.salary;
+            save.matsMined = this.matsMined;
+            save.myMoney = this.myMoney;
+            save.incrperclick = this.incrperclick;
+            save.purchAmount = this.purchAmount;
+            save.thislifetimeMoney = this.thislifetimeMoney;
+            save.prestigePoints = this.prestigePoints;
+            save.lastlifetimeMoney = this.lastlifetimeMoney;
+            save.totalgametime = this.totalGameTime;
+            save.thislifegametime = this.thislifeGameTime;
+            save.lastsavetimestamp = DateTime.Now;
+            save.lastWindowState = this.WindowState;
+
+            using StreamWriter sWriter = new StreamWriter(Environment.CurrentDirectory + @"\GameState.mmf", false, Encoding.UTF8);
+            //serialize and write to disk
+            
+            
+        }
+        public void LoadGame()
+        {
+            FileStreamOptions fsOptions = new FileStreamOptions();
+            GameState save;
+            try
+            {
+                fsOptions.Mode = FileMode.Open;
+                using StreamReader sReader = new StreamReader(Environment.CurrentDirectory + @"\GameState.mmf", Encoding.UTF8, false, fsOptions);
+                //read from disk and deserialize
+
+            }
+            catch { return; }
+            this.myItems = save.myItems;
+            this.MainUpgradeList = save.MainUpgradeList;
+            this.upgradeButtons = save.upgradeButtons;
+            this.toolTipVisibleTime = save.toolTipVisibleTime;
+            this.toolTipDelay = save.toolTipDelay;
+            this.prestigeMultiplier = save.prestigeMultiplier;
+            this.clickAmount = save.clickAmount;
+            this.salary = save.salary;
+            this.matsMined = save.matsMined;
+            this.myMoney = save.myMoney;
+            this.incrperclick = save.incrperclick;
+            this.purchAmount = save.purchAmount;
+            this.thislifetimeMoney = save.thislifetimeMoney;
+            this.prestigePoints = save.prestigePoints;
+            this.lastlifetimeMoney = save.lastlifetimeMoney;
+            this.totalGameTime = save.totalgametime;
+            this.thislifeGameTime = save.thislifegametime;
+            this.WindowState = save.lastWindowState;
+            TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
+            this.thislifeGameTime.Add(sincelastsave);
+            this.totalGameTime.Add(sincelastsave);
+            if (sincelastsave.TotalSeconds > 5.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; }
+        }
+    }
+
+    public class GameState
+    {
+        
+        internal ItemView[] myItems;
+        internal List<Upgrade> MainUpgradeList;
+        internal List<UpgradeButton> upgradeButtons;
+        internal int toolTipVisibleTime;
+        internal int toolTipDelay;
+        internal double prestigeMultiplier;
+        internal double clickAmount;
+        internal double salary;
+        internal int matsMined;
+        internal double myMoney;
+        internal int incrperclick;
+        internal int purchAmount;
+        internal double thislifetimeMoney;
+        internal double prestigePoints;
+        internal double lastlifetimeMoney;
+        internal TimeSpan totalgametime;
+        internal TimeSpan thislifegametime;
+        internal DateTime lastsavetimestamp;
+        internal FormWindowState lastWindowState;
+        public GameState()
+        {
+            myItems = new ItemView[0];
+            MainUpgradeList = new List<Upgrade>();
+            upgradeButtons = new List<UpgradeButton>();
+            toolTipVisibleTime = default;
+            toolTipDelay = default;
+            prestigeMultiplier = default;
+            clickAmount = default;
+            salary = default;
+            matsMined = default;
+            myMoney = default;
+            incrperclick = default;
+            purchAmount = default;
+            thislifetimeMoney = default;
+            prestigePoints = default;
+            lastlifetimeMoney = default;
+            totalgametime = default;
+            thislifegametime = default;
+            lastsavetimestamp = DateTime.Now;
+            lastWindowState = default;
         }
     }
     internal struct Upgrade(string description, double cost, int ID, double multiplier)

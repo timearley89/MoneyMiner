@@ -39,6 +39,7 @@
             // 
             // btnBuy
             // 
+            btnBuy.Font = new Font("Segoe UI", 12F);
             btnBuy.Location = new Point(3, 70);
             btnBuy.Name = "btnBuy";
             btnBuy.Size = new Size(291, 45);
@@ -53,6 +54,7 @@
             grpItem.Controls.Add(lblSalPerSec);
             grpItem.Controls.Add(lblCost);
             grpItem.Controls.Add(lblQuantity);
+            grpItem.Font = new Font("Segoe UI", 12F);
             grpItem.Location = new Point(3, 3);
             grpItem.Name = "grpItem";
             grpItem.Size = new Size(291, 61);
@@ -63,7 +65,8 @@
             // lblTotalSal
             // 
             lblTotalSal.AutoSize = true;
-            lblTotalSal.Location = new Point(6, 34);
+            lblTotalSal.Font = new Font("Segoe UI", 9F);
+            lblTotalSal.Location = new Point(6, 43);
             lblTotalSal.Name = "lblTotalSal";
             lblTotalSal.Size = new Size(38, 15);
             lblTotalSal.TabIndex = 3;
@@ -72,7 +75,8 @@
             // lblSalPerSec
             // 
             lblSalPerSec.AutoSize = true;
-            lblSalPerSec.Location = new Point(144, 34);
+            lblSalPerSec.Font = new Font("Segoe UI", 9F);
+            lblSalPerSec.Location = new Point(144, 43);
             lblSalPerSec.Name = "lblSalPerSec";
             lblSalPerSec.Size = new Size(38, 15);
             lblSalPerSec.TabIndex = 2;
@@ -81,7 +85,8 @@
             // lblCost
             // 
             lblCost.AutoSize = true;
-            lblCost.Location = new Point(144, 19);
+            lblCost.Font = new Font("Segoe UI", 9F);
+            lblCost.Location = new Point(144, 25);
             lblCost.Name = "lblCost";
             lblCost.Size = new Size(38, 15);
             lblCost.TabIndex = 1;
@@ -90,7 +95,8 @@
             // lblQuantity
             // 
             lblQuantity.AutoSize = true;
-            lblQuantity.Location = new Point(6, 19);
+            lblQuantity.Font = new Font("Segoe UI", 9F);
+            lblQuantity.Location = new Point(6, 25);
             lblQuantity.Name = "lblQuantity";
             lblQuantity.Size = new Size(38, 15);
             lblQuantity.TabIndex = 0;
