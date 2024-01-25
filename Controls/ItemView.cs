@@ -5,11 +5,15 @@ using System.Data;
 using System.Drawing;
 using System.Linq;
 using System.Text;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace FirstClicker.Controls
 {
+    
+
+    [Serializable]
     public partial class ItemView : UserControl
     {
         public MyColors Colors;
@@ -21,7 +25,6 @@ namespace FirstClicker.Controls
         public double myCostMult;
         public double calculatedCost;
         public double baseCost;
-
         public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary)
         {
             InitializeComponent();
@@ -38,7 +41,20 @@ namespace FirstClicker.Controls
             
             this.UpdateLabels();
         }
-
+        public ItemView(ItemData data)
+        {
+            InitializeComponent();
+            this.myCost = data.myCost;
+            this.myQty = data.myQty;
+            this.mySalary = data.mySalary;
+            this.myID = data.myID;
+            this.purchaseAmount = data.purchaseAmount;
+            this.myCostMult = data.myCostMult;
+            this.calculatedCost = data.calculatedCost;
+            this.baseCost = data.baseCost;
+            this.Colors = data.myColors;
+            this.Name = data.myName;
+        }
         private void ItemView_Load(object sender, EventArgs e)
         {
             
@@ -112,5 +128,46 @@ namespace FirstClicker.Controls
 
         }
         
+    }
+    [Serializable]
+    public class ItemData
+    {
+        public double myCost;
+        public int myQty;
+        public double mySalary;
+        public int myID;
+        public int purchaseAmount;
+        public double myCostMult;
+        public double calculatedCost;
+        public double baseCost;
+        public MyColors myColors;
+        public string myName;
+
+        public ItemData(ItemView item)
+        {
+            this.myCost = item.myCost;
+            this.myQty = item.myQty;
+            this.mySalary = item.mySalary;
+            this.myID = item.myID;
+            this.purchaseAmount = item.purchaseAmount;
+            this.myCostMult = item.myCostMult;
+            this.calculatedCost = item.calculatedCost;
+            this.baseCost = item.baseCost;
+            this.myColors = item.Colors;
+            this.myName = item.Name;
+        }
+        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName)
+        {
+            this.myCost = myCost;
+            this.myQty = myQty;
+            this.mySalary = mySalary;
+            this.myID = myID;
+            this.purchaseAmount = purchaseAmount;
+            this.myCostMult = myCostMult;
+            this.calculatedCost = calculatedCost;
+            this.baseCost = baseCost;
+            this.myColors = myColors;
+            this.myName = myName;
+        }
     }
 }

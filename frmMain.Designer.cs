@@ -203,7 +203,7 @@
             MinimumSize = new Size(1000, 600);
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Show;
-            Text = "First Clicker/Idle Game";
+            Text = "MoneyMiner!";
             FormClosing += frmMain_FormClosing;
             Load += frmMain_Load;
             Click += frmMain_Click;

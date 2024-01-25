@@ -45,10 +45,14 @@ namespace FirstClicker
         public ItemView[] myItems;
         public List<UpgradeButton> upgradeButtons;
         internal List<Upgrade> MainUpgradeList;
+        public System.Windows.Forms.Timer toolTipTimer = new System.Windows.Forms.Timer();
+        public ToolTip? myTip;
+        internal bool PrestigeNextRestart;
 
         public frmMain(double lastlifeMoney = 0.0d, double prestPoints = 0.0d)
         {
             InitializeComponent();
+            PrestigeNextRestart = false;
 
             //set form colors
             this.Colors = new MyColors();
@@ -59,7 +63,7 @@ namespace FirstClicker
             grpMoney.BackColor = Colors.colBorders;
             lblMatsMined.AutoSize = true;
             lblIncrPerClick.AutoSize = true;
-
+            
             //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
             //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
 
@@ -70,7 +74,7 @@ namespace FirstClicker
 
 
             //frmMain constructor now initializes all fields. All we have to do is slip in a loading method to deserialize our custom GameState object, and set each parameter accordingly.
-            //this.LoadGame();
+            this.LoadGame();
 
             if (this.myItems == default || this.myItems.Length==0){
                 myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
@@ -84,64 +88,64 @@ namespace FirstClicker
             }
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
-            //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier). They can only be created or altered through their constructors.
+            //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier, int upgradeID). They can only be created or altered through their constructors.
             if (this.MainUpgradeList == default){ MainUpgradeList =
             [
-                new Upgrade("Double Tap", 1000.0d, 0, 3), //Click Upgrades
-                new Upgrade("Click Amplifier", 25000.0d, 0, 3),
-                new Upgrade("Mega-Clicking", 75000.0d, 0, 3),
-                new Upgrade("Click Physics", 150000.0d, 0, 3),
-                new Upgrade("Parallel Clicking", 500000.0d, 0, 3),
-                new Upgrade("Birch Wood", 250000.0d, 1, 3), //Item1 Upgrades
-                new Upgrade("Pine Wood", 20000000000000.0d, 1, 3),
-                new Upgrade("Oak Wood", 2000000000000000000.0d, 1, 3),
-                new Upgrade("Cherry Wood", 25000000000000000000000.0d, 1, 3),
-                new Upgrade("Sequoia Wood", 1000000000000000000000000000.0d, 1, 7),
-                new Upgrade("Sandstone", 500000.0d, 2, 3), //Item2 Upgrades
-                new Upgrade("Granite", 50000000000000.0d, 2, 3),
-                new Upgrade("Limestone", 5000000000000000000.0d, 2, 3),
-                new Upgrade("Marble", 50000000000000000000000.0d, 2, 3),
-                new Upgrade("Slate", 5000000000000000000000000000.0d, 2, 7),
-                new Upgrade("Picked Iron", 1000000.0d, 3, 3), //Item3 Upgrades
-                new Upgrade("Cast Iron", 100000000000000.0d, 3, 3),
-                new Upgrade("Molded Iron", 7000000000000000000.0d, 3, 3),
-                new Upgrade("Forged Iron", 100000000000000000000000.0d, 3, 3),
-                new Upgrade("Cold-Fused Iron", 25000000000000000000000000000.0d, 3, 7),
-                new Upgrade("Basic Steel", 5000000.0d, 4, 3), //Item4 Upgrades
-                new Upgrade("Tempered Steel", 500000000000000.0d, 4, 3),
-                new Upgrade("Rolled Steel", 10000000000000000000.0d, 4, 3),
-                new Upgrade("Steel Alloy", 200000000000000000000000.0d, 4, 3),
-                new Upgrade("Venutian Steel", 100000000000000000000000000000.0d, 4, 7),
-                new Upgrade("Flawed Diamond", 10000000.0d, 5, 3), //Item5 Upgrades
-                new Upgrade("Improved Diamond", 1000000000000000.0d, 5, 3),
-                new Upgrade("Flawless Diamond", 20000000000000000000.0d, 5, 3),
-                new Upgrade("Synthetic Diamond", 300000000000000000000000.0d, 5, 3),
-                new Upgrade("Quantum Diamond", 250000000000000000000000000000.0d, 5, 7),
-                new Upgrade("Waste Uranium", 25000000.0d, 6, 3), //Item6 Upgrades
-                new Upgrade("Mined Uranium", 2000000000000000.0d, 6, 3),
-                new Upgrade("Refined Uranium", 35000000000000000000.0d, 6, 3),
-                new Upgrade("Synthetic Uranium", 400000000000000000000000.0d, 6, 3),
-                new Upgrade("Quantum Uranium", 500000000000000000000000000000.0d, 6, 7),
-                new Upgrade("Low Yield Antimatter", 500000000.0d, 7, 3), //Item7 Upgrades
-                new Upgrade("Mid Yield Antimatter", 5000000000000000.0d, 7, 3),
-                new Upgrade("High Yield Antimatter", 50000000000000000000.0d, 7, 3),
-                new Upgrade("Perfect Antimatter", 400000000000000000000000.0d, 7, 3),
-                new Upgrade("CPT Reversed Antimatter", 1000000000000000000000000000000.0d, 7, 7),
-                new Upgrade("Plank Black Hole", 10000000000.0d, 8, 3), //Item8 Upgrades
-                new Upgrade("Primordial Black Hole", 7000000000000000.0d, 8, 3),
-                new Upgrade("Rogue Black Hole", 75000000000000000000.0d, 8, 3),
-                new Upgrade("Supermassive Black Hole", 600000000000000000000000.0d, 8, 7),
-                new Upgrade("Universal Black Hole", 5000000000000000000000000000000.0d, 8, 7),
-                new Upgrade("Tax Adjustment", 1000000000000.0d, 15, 3), //All-Item Upgrades
-                new Upgrade("Ledger Spoofing", 50000000000000000.0d, 15, 3),
-                new Upgrade("Illegal Workers", 500000000000000000000.0d, 15, 3),
-                new Upgrade("Off-Shore Mining", 900000000000000000000000.0d, 15, 3),
-                new Upgrade("Cult Following", 1000000000000000000000000000000000.0d, 15, 7),
-                new Upgrade("Material Lobbying", 100000000000000000.0d, 20, 1.01), //Prestige Upgrades
-                new Upgrade("Investor Fraud", 1000000000000000000000.0d, 20, 1.01),
-                new Upgrade("Controlled Striking", 10000000000000000000000000.0d, 20, 1.02),
-                new Upgrade("Space Investing", 1000000000000000000000000000000000000.0d, 20, 1.05),
-                new Upgrade("Planetary Ransom", 1000000000000000000000000000000000000000.0d, 20, 1.06)
+                new Upgrade("Double Tap", 1000.0d, 0, 3, 1), //Click Upgrades
+                new Upgrade("Click Amplifier", 25000.0d, 0, 3, 2),
+                new Upgrade("Mega-Clicking", 75000.0d, 0, 3, 3),
+                new Upgrade("Click Physics", 150000.0d, 0, 3, 4),
+                new Upgrade("Parallel Clicking", 500000.0d, 0, 3, 5),
+                new Upgrade("Birch Wood", 250000.0d, 1, 3, 6), //Item1 Upgrades
+                new Upgrade("Pine Wood", 20000000000000.0d, 1, 3, 7),
+                new Upgrade("Oak Wood", 2000000000000000000.0d, 1, 3, 8),
+                new Upgrade("Cherry Wood", 25000000000000000000000.0d, 1, 3, 9),
+                new Upgrade("Sequoia Wood", 1000000000000000000000000000.0d, 1, 7, 10),
+                new Upgrade("Sandstone", 500000.0d, 2, 3, 11), //Item2 Upgrades
+                new Upgrade("Granite", 50000000000000.0d, 2, 3, 12),
+                new Upgrade("Limestone", 5000000000000000000.0d, 2, 3, 13),
+                new Upgrade("Marble", 50000000000000000000000.0d, 2, 3, 14),
+                new Upgrade("Slate", 5000000000000000000000000000.0d, 2, 7, 15),
+                new Upgrade("Picked Iron", 1000000.0d, 3, 3, 16), //Item3 Upgrades
+                new Upgrade("Cast Iron", 100000000000000.0d, 3, 3, 17),
+                new Upgrade("Molded Iron", 7000000000000000000.0d, 3, 3, 18),
+                new Upgrade("Forged Iron", 100000000000000000000000.0d, 3, 3, 19),
+                new Upgrade("Cold-Fused Iron", 25000000000000000000000000000.0d, 3, 7, 20),
+                new Upgrade("Basic Steel", 5000000.0d, 4, 3, 21), //Item4 Upgrades
+                new Upgrade("Tempered Steel", 500000000000000.0d, 4, 3, 22),
+                new Upgrade("Rolled Steel", 10000000000000000000.0d, 4, 3, 23),
+                new Upgrade("Steel Alloy", 200000000000000000000000.0d, 4, 3, 24),
+                new Upgrade("Venutian Steel", 100000000000000000000000000000.0d, 4, 7, 25),
+                new Upgrade("Flawed Diamond", 10000000.0d, 5, 3, 26), //Item5 Upgrades
+                new Upgrade("Improved Diamond", 1000000000000000.0d, 5, 3, 27),
+                new Upgrade("Flawless Diamond", 20000000000000000000.0d, 5, 3, 28),
+                new Upgrade("Synthetic Diamond", 300000000000000000000000.0d, 5, 3, 29),
+                new Upgrade("Quantum Diamond", 250000000000000000000000000000.0d, 5, 7, 30),
+                new Upgrade("Waste Uranium", 25000000.0d, 6, 3, 31), //Item6 Upgrades
+                new Upgrade("Mined Uranium", 2000000000000000.0d, 6, 3, 32),
+                new Upgrade("Refined Uranium", 35000000000000000000.0d, 6, 3, 33),
+                new Upgrade("Synthetic Uranium", 400000000000000000000000.0d, 6, 3, 34),
+                new Upgrade("Quantum Uranium", 500000000000000000000000000000.0d, 6, 7, 35),
+                new Upgrade("Low Yield Antimatter", 500000000.0d, 7, 3, 36), //Item7 Upgrades
+                new Upgrade("Mid Yield Antimatter", 5000000000000000.0d, 7, 3, 37),
+                new Upgrade("High Yield Antimatter", 50000000000000000000.0d, 7, 3, 38),
+                new Upgrade("Perfect Antimatter", 400000000000000000000000.0d, 7, 3, 39),
+                new Upgrade("CPT Reversed Antimatter", 1000000000000000000000000000000.0d, 7, 7, 40),
+                new Upgrade("Plank Black Hole", 10000000000.0d, 8, 3, 41), //Item8 Upgrades
+                new Upgrade("Primordial Black Hole", 7000000000000000.0d, 8, 3, 42),
+                new Upgrade("Rogue Black Hole", 75000000000000000000.0d, 8, 3, 43),
+                new Upgrade("Supermassive Black Hole", 600000000000000000000000.0d, 8, 7, 44),
+                new Upgrade("Universal Black Hole", 5000000000000000000000000000000.0d, 8, 7, 45),
+                new Upgrade("Tax Adjustment", 1000000000000.0d, 15, 3, 46), //All-Item Upgrades
+                new Upgrade("Ledger Spoofing", 50000000000000000.0d, 15, 3, 47),
+                new Upgrade("Illegal Workers", 500000000000000000000.0d, 15, 3, 48),
+                new Upgrade("Off-Shore Mining", 900000000000000000000000.0d, 15, 3, 49),
+                new Upgrade("Cult Following", 1000000000000000000000000000000000.0d, 15, 7, 50),
+                new Upgrade("Material Lobbying", 100000000000000000.0d, 20, 1.01, 51), //Prestige Upgrades
+                new Upgrade("Investor Fraud", 1000000000000000000000.0d, 20, 1.01, 52),
+                new Upgrade("Controlled Striking", 10000000000000000000000000.0d, 20, 1.02, 53),
+                new Upgrade("Space Investing", 1000000000000000000000000000000000000.0d, 20, 1.05, 54),
+                new Upgrade("Planetary Ransom", 1000000000000000000000000000000000000000.0d, 20, 1.06, 55)
                 ];
             MainUpgradeList = (List<Upgrade>)MainUpgradeList.OrderBy(x => x.Cost).ToList();
         }
@@ -180,16 +184,28 @@ namespace FirstClicker
                 btn.Paint += Btn_Paint;
                 btn.myUpgrade = upgrade;
                 btn.CausesValidation = false;
-                btn.BackColor = Colors.colButtonDisabled;
-                btn.ForeColor = Colors.colTextSecondary;
-                btn.Enabled = false;
+                if (btn.myUpgrade.Purchased == false)
+                {
+                    btn.Enabled = true;
+                    btn.BackColor = Colors.colButtonDisabled;
+                    btn.ForeColor = Colors.colTextSecondary;
+                    btn.Enabled = false;
+                }
+
+                else if (btn.myUpgrade.Purchased == true)
+                {   //if we're loading the game and an upgrade is purchased, configure button accordingly.
+                    btn.Enabled = true;
+                    btn.BackColor = Colors.colButtonPurchased;
+                    btn.ForeColor = Colors.colTextPrimary;
+                    btn.Text = upgrade.Description + $"\nPurchased!";
+                    btn.Enabled = false;
+                }
                 upgradeButtons.Add(btn);
             }
 
         }
 
-        System.Windows.Forms.Timer toolTipTimer = new System.Windows.Forms.Timer();
-        ToolTip? myTip;
+
         private void toolTipTick(object? sender, EventArgs e)
         {
             if (myTip != null) { myTip.Hide(this); }
@@ -327,6 +343,11 @@ namespace FirstClicker
                         myMoney -= btnsender.myUpgrade.Cost;
                         myItems[btnitemID - 1].mySalary *= btnsender.myUpgrade.Multiplier;
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
+
+                        //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
+                        Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
+                        MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
                     }
@@ -350,6 +371,8 @@ namespace FirstClicker
                         clickAmount *= btnsender.myUpgrade.Multiplier;
                         //had to make 'SetPurchased' a static method that returned an object reference. For some reason it wasn't updating the object passed to it before...
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
+                        Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
+                        MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
                     }
@@ -376,6 +399,8 @@ namespace FirstClicker
                             item.mySalary *= btnsender.myUpgrade.Multiplier;
                         }
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
+                        Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
+                        MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
                     else
@@ -397,8 +422,47 @@ namespace FirstClicker
                         btnsender.ForeColor = Colors.colTextPrimary;
                         btnsender.Enabled = false;
                         double newmult = (btnsender.myUpgrade.Multiplier * 100) - 100;
+                        double oldPrestigeMult = prestigeMultiplier;
                         prestigeMultiplier += newmult;
+                        /*recalculate: 
+                         * {
+                                each item.salary for new prestigeMultiplier
+                                clickAmount for new prestigeMultiplier
+                         * }
+                         * without invalidating upgrades already purchased, unlocks obtained(not yet implemented), or any other increases/multipliers obtained.
+                         * Above, it's calculated by:
+                         * this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                         * for clickAmount, and by:
+                         * item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                         * for each item salary.
+                         * 
+                         * 100/3=33.333, 50/33.333 = 1.333, +1 = 2.333, meaning a 133% bonus. Not right, because 50*0.02=100%, so 50*0.03=150%. what about
+                         * (((prestmult / 100)*prestpoints)+1)*salary=salary? 3/100=0.03, *prestpoints=1.5, +1=2.5, so 50 points @ 3% boost gives 150% gain (or 250% of salary)?
+                         * what if it's 100 points? then boost should be 100*3%=300%, or 400% of salary.
+                         * 3/100=0.03, *prestpoints=3, +1=4, which is correct. Lets recalc this.
+                         * 
+                         * first we do need to determine what 100% of salary would be:
+                         * ((oldprestmult / 100)*prestpoints) gives boost percentage.(100%)
+                         * 100/(boost+100) => 100/200=0.5, or 100/250=0.4, or 100/724(624% boost!)=0.138125, so on. multiply that by current salary to get initial, then
+                         * recalc prestigemult with that value. 1/totalmultiplier (1/2.5) would be the same, or even oldsalary = salary * (1 / ((prestigePoints / (100.0d / oldPrestigeMult)) + 1))
+                         * Therefore, 
+                         * 
+                         * item.mySalary = (item.mySalary * (1 / ((prestigePoints / (100.0d / oldPrestigeMult)) + 1)) * ((prestigePoints / (100.0d / prestigeMultiplier)) + 1));
+                         * Can we refactor that equation to reduce it? I might need to dust off some old algebra...
+                         * or just use an online factoring tool.
+                         * item.mySalary = (item.mySalary * ((prestigeMultiplier * prestigePoints) + 100)) / ((oldPrestigeMult * prestigePoints) + 100);
+                         * 
+                         * 
+                         */
+                        foreach (ItemView item in myItems)
+                        {
+                            item.mySalary = (item.mySalary * ((prestigeMultiplier * prestigePoints) + 100)) / ((oldPrestigeMult * prestigePoints) + 100);
+                        }
+                        this.clickAmount = (this.clickAmount * ((prestigeMultiplier * prestigePoints) + 100)) / ((oldPrestigeMult * prestigePoints) + 100);
+
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
+                        Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
+                        MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
                     else
@@ -470,7 +534,7 @@ namespace FirstClicker
                         btn.Enabled = false;
                     }
                 }
-                btn.Refresh();
+                btn.Refresh();  //is this necessary?
 
             }
             //override x coordinate in itemPanel to center ItemViews
@@ -579,14 +643,16 @@ namespace FirstClicker
             {
                 matsMined += incrperclick;
                 incrperclick++;
-                clickAmount = (clickAmount / (incrperclick - 1)) * incrperclick;
+                //clickAmount = (clickAmount / (incrperclick - 1)) * incrperclick;
 
             } //for now, when matsMined reaches another multiple of 100, amountperclick is incremented. clickAmount reflects this.
             //incrperclick has a max of 10 for now.
             else { matsMined += incrperclick; }
-
-            this.myMoney += clickAmount;
-            thislifetimeMoney += clickAmount;
+            
+            //We're only calculating clickAmount for one incrperclick. We can add that amount for multiple clicks, but it shouldn't double clickAmount.
+            //Later we can use visual and audible cues to signify multiple clicks (like floating text saying 'x2' 'x3' etc, and disappearing after a second, with little 'pop' sounds for each incrperclick in quick succession...)
+            this.myMoney += clickAmount * incrperclick;
+            thislifetimeMoney += clickAmount * incrperclick;
             //frmMain_UpdateLabels();
         }
 
@@ -621,7 +687,7 @@ namespace FirstClicker
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
 
-            DialogResult dres = MessageBox.Show($"Current Prestige: {this.prestigePoints:N0}. \nPrestige to Gain: {tempprestige:N0}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
+            DialogResult dres = MessageBox.Show($"Current Prestige: {Stringify(prestigePoints.ToString())}. \nPrestige to Gain: {Stringify(tempprestige.ToString())}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
             if (dres == DialogResult.Yes)
             {
                 this.timerPerSec.Stop();
@@ -632,7 +698,10 @@ namespace FirstClicker
                 this.prestigePoints += tempprestige;
                 this.myItems = new ItemView[0];
                 this.upgradeButtons = new List<UpgradeButton>();
-                this.MainUpgradeList = new List<Upgrade>();
+                for (int i = 0; i < MainUpgradeList.Count; i++)
+                {
+                    MainUpgradeList[i] = Upgrade.UnsetPurchased(MainUpgradeList[i]);
+                }
                 this.salary = default;
                 this.myMoney = default;
                 this.clickAmount = default;
@@ -641,7 +710,8 @@ namespace FirstClicker
                 this.incrperclick = default;
                 this.thislifetimeMoney = default;
                 this.thislifeGameTime = default;
-                //SaveGame();
+                SaveGame();
+                this.PrestigeNextRestart = true;
                 Program.RestartForPrestige = true;
                 this.Close();
             }
@@ -733,8 +803,12 @@ namespace FirstClicker
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
-            //this.SaveGame();
-            Program.RestartForPrestige = false;
+            if (!PrestigeNextRestart)
+            {
+                this.SaveGame();
+                Program.RestartForPrestige = false;
+            }
+            
             
             
         }
@@ -754,13 +828,17 @@ namespace FirstClicker
             lblClickAmount.Left = (this.grpMoney.Width - lblClickAmount.Size.Width) / 2;
         }
 
-        //---TempBelowThisLine---//
         public void SaveGame()
         {
             GameState save = new GameState();
-            save.myItems = this.myItems;
+            
+            List<ItemData> tempitemdatas = new List<ItemData>();
+            for (int i = 0; i < this.myItems.Count(); i++)
+            {
+                tempitemdatas.Add(new ItemData(this.myItems[i]));
+            }
+            save.myItemDatas = tempitemdatas.ToArray();
             save.MainUpgradeList = this.MainUpgradeList;
-            save.upgradeButtons = this.upgradeButtons;
             save.toolTipVisibleTime = this.toolTipVisibleTime;
             save.toolTipDelay = this.toolTipDelay;
             save.prestigeMultiplier = this.prestigeMultiplier;
@@ -778,10 +856,15 @@ namespace FirstClicker
             save.lastsavetimestamp = DateTime.Now;
             save.lastWindowState = this.WindowState;
 
-            using StreamWriter sWriter = new StreamWriter(Environment.CurrentDirectory + @"\GameState.mmf", false, Encoding.UTF8);
+            
+            FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", FileMode.Create);
+
             //serialize and write to disk
-            
-            
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+            BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
+            bformatter.Serialize(fstream, save);
+            fstream.Close();
         }
         public void LoadGame()
         {
@@ -790,14 +873,23 @@ namespace FirstClicker
             try
             {
                 fsOptions.Mode = FileMode.Open;
-                using StreamReader sReader = new StreamReader(Environment.CurrentDirectory + @"\GameState.mmf", Encoding.UTF8, false, fsOptions);
+                using FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", fsOptions);
                 //read from disk and deserialize
-
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+                BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
+                save = (GameState)bformatter.Deserialize(fstream);
+                fstream.Close();
             }
             catch { return; }
-            this.myItems = save.myItems;
+            List<ItemView> tempitemlist = new List<ItemView>();
+            for (int i = 0; i < save.myItemDatas.Count(); i++)
+            {
+                tempitemlist.Add(new ItemView(save.myItemDatas[i]));
+            }
+            this.myItems = tempitemlist.ToArray();
             this.MainUpgradeList = save.MainUpgradeList;
-            this.upgradeButtons = save.upgradeButtons;
+
             this.toolTipVisibleTime = save.toolTipVisibleTime;
             this.toolTipDelay = save.toolTipDelay;
             this.prestigeMultiplier = save.prestigeMultiplier;
@@ -816,16 +908,16 @@ namespace FirstClicker
             TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
             this.thislifeGameTime.Add(sincelastsave);
             this.totalGameTime.Add(sincelastsave);
-            if (sincelastsave.TotalSeconds > 5.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; }
+            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${Stringify((salary * sincelastsave.TotalSeconds).ToString(), StringifyOptions.LongText)} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
         }
     }
-
+    [Serializable]
     public class GameState
     {
-        
-        internal ItemView[] myItems;
+        //ItemData shuffles and stores data for the ItemView object.
+
+        internal ItemData[] myItemDatas;
         internal List<Upgrade> MainUpgradeList;
-        internal List<UpgradeButton> upgradeButtons;
         internal int toolTipVisibleTime;
         internal int toolTipDelay;
         internal double prestigeMultiplier;
@@ -844,9 +936,8 @@ namespace FirstClicker
         internal FormWindowState lastWindowState;
         public GameState()
         {
-            myItems = new ItemView[0];
+            myItemDatas = new ItemData[0];
             MainUpgradeList = new List<Upgrade>();
-            upgradeButtons = new List<UpgradeButton>();
             toolTipVisibleTime = default;
             toolTipDelay = default;
             prestigeMultiplier = default;
@@ -865,19 +956,22 @@ namespace FirstClicker
             lastWindowState = default;
         }
     }
-    internal struct Upgrade(string description, double cost, int ID, double multiplier)
+    [Serializable]
+    internal struct Upgrade(string description, double cost, int ID, double multiplier, int upgradeID)
     {
         //public getters and struct declaration means we can read the struct and it's properties from anywhere, even a different namespace.
         //private fields and internal constructor mean that only the struct can access it's fields, and only this assembly can create new upgrades.
         public string Description { get { return _description; } }
         public double Cost { get { return _cost; } }
         public int itemID { get { return _itemID; } }
+        public int upgradeID { get { return _upgradeID; } }
         public double Multiplier { get { return _multiplier; } }
         public bool Purchased { get { return _purchased; } }
 
         private string _description = description;
         private double _cost = cost;
         private int _itemID = ID;
+        private int _upgradeID = upgradeID;
         private double _multiplier = multiplier;
         public bool _purchased;
 
@@ -886,7 +980,11 @@ namespace FirstClicker
             myUpgrade._purchased = true;
             return myUpgrade;
         }
-
+        internal static Upgrade UnsetPurchased(Upgrade myUpgrade)
+        {
+            myUpgrade._purchased = false;
+            return myUpgrade;
+        }
         
 
         
@@ -896,6 +994,7 @@ namespace FirstClicker
         internal Upgrade myUpgrade { get; set; }
         
     }
+    [Serializable]
     public class MyColors
     {
         public Color colPrimary = Color.Green;
@@ -910,4 +1009,5 @@ namespace FirstClicker
         public Color colTextSecondary = Color.White;
         public Color colBorders = Color.FromArgb(78, 213, 215);//TiffanyBlue
     }
+    
 }
