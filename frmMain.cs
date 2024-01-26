@@ -61,18 +61,7 @@ namespace FirstClicker
         public System.Windows.Forms.Timer toolTipTimer = new System.Windows.Forms.Timer();
         public ToolTip? myTip;
         internal bool PrestigeNextRestart;
-        internal List<SoundPlayer> pickSounds;
-        internal SoundPlayer registerSound;
-        internal SoundPlayer clickSound;
-        internal const double Octoquinquagintillion = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.00d;
-        internal readonly static string[] TextStrings = { "Million", "Billion", "Trillion", "Quadrillion", "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion", "Undecillion", "Duodecillion", "Tredecillion", "Quattordecillion", "Quindecillion", "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion",
-                                                "Unvigintillion", "Duovigintillion", "Tresvigintillion", "Quattorvigintillion", "Quinvigintillion", "Sexvigintillion", "Septenvigintillion", "Octovigintillion", "Novemvigintillion", "Trigintillion", "Untrigintillion", "Duotrigintillion", "Tretrigintillion", "Quattortrigintillion", "Quintrigintillion",
-                                                "Sextrigintillion", "Septentrigintillion", "Octotrigintillion", "Novemtrigintillion", "Quadragintillion", "Unquadragintillion", "Duoquadragintillion", "Trequadragintillion", "Quattorquadragintillion", "Quinquadragintillion", "Sexquadragintillion", "Septenquadragintillion", "Octoquadragintillion", "Novemquadragintillion",
-                                                "Quinquagintillion", "Unquinquagintillion", "Duoquinquagintillion", "Trequinquagintillion", "Quattorquinquagintillion", "Quinquinquagintillion", "Sexquinquagintillion", "Septenquinquagintillion", "Octoquinquagintillion", "Novemquinquagintillion", "Sexagintillion", "Unsexagintillion", "Duosexagintillion",
-                                                "Tresexagintillion", "Quattorsexagintillion", "Quinsexagintillion", "Sexsexagintillion", "Septensexagintillion", "Octosexagintillion", "Novemsexagintillion", "Septuagintillion", "Unseptuagintillion", "Duoseptuagintillion", "Treseptuagintillion", "Quattorseptuagintillion", "Quinseptuagintillion", "Sexseptuagintillion",
-                                                "Septseptuagintillion", "Octoseptuagintillion", "Novemseptuagintillion", "Octogintillion", "Unoctogintillion", "Duooctogintillion", "Treoctogintillion", "Quattoroctogintillion", "Quinoctogintillion", "Sexoctogintillion", "Septoctogintillion", "Octoctogintillion", "Novemoctogintillion", "Nonagintillion",
-                                                "Unnonagintillion", "Duononagintillion", "Trenonagintillion", "Quattornonagintillion", "Quinonagintillion", "Sexnonagintillion", "Septenonagintillion", "Octononagintillion", "Novemnonagintillion", "Centillion", "Uncentillion"};  //handles full size of type 'double'
-
+        //this constant is just here for my sanity, mainly. This is the largest quantity I've seen ingame so far. I need to test further to find our little 'infinity' glitch - I believe it's in prestigeMultiplier Recalculation, within upgradeClicked()...
         internal const double Octoquinquagintillion = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.00d;
         internal readonly static string[] TextStrings = { "Million", "Billion", "Trillion", "Quadrillion", "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion", "Undecillion", "Duodecillion", "Tredecillion", "Quattordecillion", "Quindecillion", "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion",
                                                 "Unvigintillion", "Duovigintillion", "Tresvigintillion", "Quattorvigintillion", "Quinvigintillion", "Sexvigintillion", "Septenvigintillion", "Octovigintillion", "Novemvigintillion", "Trigintillion", "Untrigintillion", "Duotrigintillion", "Tretrigintillion", "Quattortrigintillion", "Quintrigintillion",
@@ -111,17 +100,26 @@ namespace FirstClicker
             lblMatsMined.AutoSize = true;
             lblIncrPerClick.AutoSize = true;
             
+            //Need a 'Pause' menu!
+            
+            //Need a 'Settings' menu!
+            
+            //Need background music!
+            
+            //Need more upgrades!
+            
+            //Need Prestige Upgrades as well - as in upgrades you buy with prestige points.
 
-            //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
-            //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
+            //We should implement unlocks that double individual salaries at ownership thresholds, like, for example:
+            //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, etc
 
-            //Also, a window to keep track of stats, like amount made, upgrades purchased, prestige points, etc
+            //Need to adjust tooltip placement to left of and slightly above cursor. Also need to convert to window-coords instead of screen-coords so tooltips still align when not maximized.
 
-            //Need to implement save states/loading, and calculate time between last save/current load, add to playtime stat, and multiply by $/sec to
-            //add to money, thus making it a true 'idle' game. Right now it's just more of a clicker.
+            //Add full-screen option?
 
+            //Fix behavior where focus of the application is lost after clicking no on prestige msgbox or after prestige restart. Very irritating.
 
-            //frmMain constructor now initializes all fields. All we have to do is slip in a loading method to deserialize our custom GameState object, and set each parameter accordingly.
+            //frmMain constructor now initializes all fields to default IF LoadGame() didn't override them.
             this.LoadGame();
 
             if (this.myItems == default || this.myItems.Length == 0)
@@ -373,7 +371,6 @@ namespace FirstClicker
             }
 
             foreach (ItemView item in myItems) { item.UpdateLabels(); }
-            //frmMain_UpdateLabels();
             this.GameClock = new Stopwatch();
             this.timerPerSec.Start();
             this.timerVisualUpdate.Start();
@@ -407,12 +404,8 @@ namespace FirstClicker
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        //registerSound.Play();
                         mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
                         mciSendString("play registersound", null, 0, IntPtr.Zero);
-                        //mciSendString("stop registersound", null, 0, IntPtr.Zero);
-                        //mciSendString("seek to start registersound", null, 0, IntPtr.Zero);
-                        
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
                     }
@@ -438,7 +431,6 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        //registerSound.Play();
                         mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
                         mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
@@ -469,7 +461,6 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        //registerSound.Play();
                         mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
                         mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
@@ -534,7 +525,6 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        //registerSound.Play();
                         mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
                         mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
@@ -657,20 +647,17 @@ namespace FirstClicker
             {
 
                 myMoney -= sender.calculatedCost;
-                //registerSound.Play();
                 mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
                 mciSendString("play registersound", null, 0, IntPtr.Zero);
                 sender.myQty += sender.purchaseAmount;
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
             }
             sender.UpdateLabels();
-            //frmMain_UpdateLabels();
             sender.ButtonColor(myMoney, sender.purchaseAmount, sender.myCostMult);
         }
 
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
-            //clickSound.Play();
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
             mciSendString("play clicksound", null, 0, IntPtr.Zero);
 
@@ -691,7 +678,6 @@ namespace FirstClicker
             {
                 purchAmount = 1;
             }
-            //frmMain_UpdateLabels(); //this function updates the button text already
 
             if (purchAmount == 1 || purchAmount == 10 || purchAmount == 100)
             {
@@ -726,7 +712,7 @@ namespace FirstClicker
                 incrperclick++;
                 //clickAmount = (clickAmount / (incrperclick - 1)) * incrperclick;
 
-            } //for now, when matsMined reaches another multiple of 100, amountperclick is incremented. clickAmount reflects this.
+            } //for now, when matsMined reaches another multiple of 100, amountperclick is incremented.
             //incrperclick has a max of 10 for now.
             else { matsMined += incrperclick; }
 
@@ -734,13 +720,7 @@ namespace FirstClicker
             //Later we can use visual and audible cues to signify multiple clicks (like floating text saying 'x2' 'x3' etc, and disappearing after a second, with little 'pop' sounds for each incrperclick in quick succession...)
             this.myMoney += clickAmount * incrperclick;
             thislifetimeMoney += clickAmount * incrperclick;
-            /*
-            if (pickSounds != null && pickSounds.Count >= 1)
-            {
-                Random randnumber = new Random();
-                int soundindex = randnumber.Next(0, pickSounds.Count - 1);
-                pickSounds[soundindex].Play();
-            }*/
+
             Random randnumber = new Random();
             int i = randnumber.Next(1, 8);
             mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
@@ -773,7 +753,6 @@ namespace FirstClicker
 
         private void btnPrestige_Click(object sender, EventArgs e)
         {
-            //clickSound.Play();
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
             mciSendString("play clicksound", null, 0, IntPtr.Zero);
 
@@ -1056,7 +1035,6 @@ namespace FirstClicker
 
         private void btnStats_Click(object sender, EventArgs e)
         {
-            //clickSound.Play();
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
             mciSendString("play clicksound", null, 0, IntPtr.Zero);
             //open stats window with current stats, pause timers
