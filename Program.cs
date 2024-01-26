@@ -1,6 +1,7 @@
+using FirstClicker;
 using System.Security.Cryptography.X509Certificates;
 
-namespace FirstClicker
+namespace MoneyMiner
 {
     internal static class Program
     {
@@ -11,17 +12,19 @@ namespace FirstClicker
         [STAThread]
         public static void Main()
         {
-            
+
             // To customize application configuration such as set high DPI settings or default font,
             // see https://aka.ms/applicationconfiguration.
             ApplicationConfiguration.Initialize();
 
             do
             {
-                Application.Run(new frmMain());
+                frmMain currentForm = new frmMain();
+                //currentForm.Focus();
+                Application.Run(currentForm);
             }
             while (RestartForPrestige);
-            
+
         }
     }
 }

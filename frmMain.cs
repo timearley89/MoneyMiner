@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Configuration;
@@ -6,8 +7,12 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.Globalization;
 using System.Linq;
+using System.Media;
 using System.Numerics;
+using System.Reflection;
+using System.Resources;
 using System.Runtime.CompilerServices;
 using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
@@ -18,6 +23,8 @@ using System.Windows.Forms;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using FirstClicker.Controls;
+using MoneyMiner;
+using MoneyMiner.Properties;
 using static FirstClicker.Upgrade;
 
 namespace FirstClicker
@@ -25,6 +32,9 @@ namespace FirstClicker
 
     public partial class frmMain : Form
     {
+        [System.Runtime.InteropServices.DllImport("winmm.dll")]
+        static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
+
 
         public MyColors Colors;
         public double myMoney;
@@ -42,28 +52,57 @@ namespace FirstClicker
         public TimeSpan thislifeGameTime;
         public TimeSpan totalGameTime;
 
+        
+        
+        
         public ItemView[] myItems;
         public List<UpgradeButton> upgradeButtons;
         internal List<Upgrade> MainUpgradeList;
         public System.Windows.Forms.Timer toolTipTimer = new System.Windows.Forms.Timer();
         public ToolTip? myTip;
         internal bool PrestigeNextRestart;
+        internal List<SoundPlayer> pickSounds;
+        internal SoundPlayer registerSound;
+        internal SoundPlayer clickSound;
+        internal const double Octoquinquagintillion = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.00d;
+        internal readonly static string[] TextStrings = { "Million", "Billion", "Trillion", "Quadrillion", "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion", "Undecillion", "Duodecillion", "Tredecillion", "Quattordecillion", "Quindecillion", "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion",
+                                                "Unvigintillion", "Duovigintillion", "Tresvigintillion", "Quattorvigintillion", "Quinvigintillion", "Sexvigintillion", "Septenvigintillion", "Octovigintillion", "Novemvigintillion", "Trigintillion", "Untrigintillion", "Duotrigintillion", "Tretrigintillion", "Quattortrigintillion", "Quintrigintillion",
+                                                "Sextrigintillion", "Septentrigintillion", "Octotrigintillion", "Novemtrigintillion", "Quadragintillion", "Unquadragintillion", "Duoquadragintillion", "Trequadragintillion", "Quattorquadragintillion", "Quinquadragintillion", "Sexquadragintillion", "Septenquadragintillion", "Octoquadragintillion", "Novemquadragintillion",
+                                                "Quinquagintillion", "Unquinquagintillion", "Duoquinquagintillion", "Trequinquagintillion", "Quattorquinquagintillion", "Quinquinquagintillion", "Sexquinquagintillion", "Septenquinquagintillion", "Octoquinquagintillion", "Novemquinquagintillion", "Sexagintillion", "Unsexagintillion", "Duosexagintillion",
+                                                "Tresexagintillion", "Quattorsexagintillion", "Quinsexagintillion", "Sexsexagintillion", "Septensexagintillion", "Octosexagintillion", "Novemsexagintillion", "Septuagintillion", "Unseptuagintillion", "Duoseptuagintillion", "Treseptuagintillion", "Quattorseptuagintillion", "Quinseptuagintillion", "Sexseptuagintillion",
+                                                "Septseptuagintillion", "Octoseptuagintillion", "Novemseptuagintillion", "Octogintillion", "Unoctogintillion", "Duooctogintillion", "Treoctogintillion", "Quattoroctogintillion", "Quinoctogintillion", "Sexoctogintillion", "Septoctogintillion", "Octoctogintillion", "Novemoctogintillion", "Nonagintillion",
+                                                "Unnonagintillion", "Duononagintillion", "Trenonagintillion", "Quattornonagintillion", "Quinonagintillion", "Sexnonagintillion", "Septenonagintillion", "Octononagintillion", "Novemnonagintillion", "Centillion", "Uncentillion"};  //handles full size of type 'double'
+
+        internal Stopwatch GameClock;
 
         public frmMain(double lastlifeMoney = 0.0d, double prestPoints = 0.0d)
         {
             InitializeComponent();
             PrestigeNextRestart = false;
-
+            DoubleBuffered = true;
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\cashregisterpurchase.wav type waveaudio alias registersound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\clickbutton.wav type waveaudio alias clicksound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-01.wav type waveaudio alias pickaxe1sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-02.wav type waveaudio alias pickaxe2sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-03.wav type waveaudio alias pickaxe3sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-04.wav type waveaudio alias pickaxe4sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-05.wav type waveaudio alias pickaxe5sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-06.wav type waveaudio alias pickaxe6sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-07.wav type waveaudio alias pickaxe7sound", null, 0, IntPtr.Zero);
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-08.wav type waveaudio alias pickaxe8sound", null, 0, IntPtr.Zero);
+            
             //set form colors
             this.Colors = new MyColors();
             this.BackColor = Colors.colBackground;
             btnMine.BackColor = Colors.colButtonEnabled;
+            btnStats.BackColor = Colors.colButtonEnabled;
             itemPanel.BackColor = Colors.colBorders;
             UpgradePanel.BackColor = Colors.colBorders;
             grpMoney.BackColor = Colors.colBorders;
             lblMatsMined.AutoSize = true;
             lblIncrPerClick.AutoSize = true;
             
+
             //We should implement autoupgrades that double individual salaries at ownership thresholds, like, for example:
             //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000
 
@@ -76,7 +115,8 @@ namespace FirstClicker
             //frmMain constructor now initializes all fields. All we have to do is slip in a loading method to deserialize our custom GameState object, and set each parameter accordingly.
             this.LoadGame();
 
-            if (this.myItems == default || this.myItems.Length==0){
+            if (this.myItems == default || this.myItems.Length == 0)
+            {
                 myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
                     new ItemView(2, "Stone", 60d, 1.15d, 20d),
                     new ItemView(3, "Iron", 720d, 1.14d, 90d),
@@ -89,7 +129,13 @@ namespace FirstClicker
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
             //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier, int upgradeID). They can only be created or altered through their constructors.
-            if (this.MainUpgradeList == default){ MainUpgradeList =
+            //itemID==0 - ClickAmount
+            //itemID==1-8(14) - Items
+            //itemID==15 - All Items
+            //itemID==20 - Prestige Multiplier
+            if (this.MainUpgradeList == default)
+            {
+                MainUpgradeList =
             [
                 new Upgrade("Double Tap", 1000.0d, 0, 3, 1), //Click Upgrades
                 new Upgrade("Click Amplifier", 25000.0d, 0, 3, 2),
@@ -147,21 +193,26 @@ namespace FirstClicker
                 new Upgrade("Space Investing", 1000000000000000000000000000000000000.0d, 20, 1.05, 54),
                 new Upgrade("Planetary Ransom", 1000000000000000000000000000000000000000.0d, 20, 1.06, 55)
                 ];
-            MainUpgradeList = (List<Upgrade>)MainUpgradeList.OrderBy(x => x.Cost).ToList();
-        }
-            
+                //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier, int upgradeID)
+                MainUpgradeList = (List<Upgrade>)MainUpgradeList.OrderBy(x => x.Cost).ToList();
+            }
+
             if (this.toolTipVisibleTime == default) { toolTipVisibleTime = 2500; }
             if (this.toolTipDelay == default) { toolTipDelay = 500; }
             if (this.prestigeMultiplier == default) { prestigeMultiplier = 2.0d; }
             if (this.clickAmount == default) { clickAmount = 0.25; }
             if (this.salary == default) { salary = 0.0d; }
             if (this.matsMined == default) { matsMined = 0; }
-            if (this.myMoney == default) { myMoney = 0.00d; }
+            if (this.myMoney == default) { myMoney = 0.0d; }
             if (this.incrperclick == default) { incrperclick = 1; }
             if (this.purchAmount == default) { purchAmount = 1; }
-            if (this.thislifetimeMoney == default){this.thislifetimeMoney = lastlifeMoney;}
-            if (this.prestigePoints == default){ this.prestigePoints = prestPoints;}
+            if (this.thislifetimeMoney == default) { this.thislifetimeMoney = lastlifeMoney; }
+            if (this.prestigePoints == default) { this.prestigePoints = prestPoints; }
             if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
+            if (this.GameClock == default) { this.GameClock = new Stopwatch(); }
+            if (this.registerSound == default) { this.registerSound = new(); }
+            if (this.pickSounds == default) { this.pickSounds = new(); }
+            if (this.clickSound == default) { this.clickSound = new(); }
             if (this.prestigePoints > 0.0d)
             {
                 this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
@@ -178,8 +229,8 @@ namespace FirstClicker
             foreach (Upgrade upgrade in MainUpgradeList)
             {
                 UpgradeButton btn = new UpgradeButton();
-                btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString(), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
-                
+                btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString("R"), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
+
                 btn.MouseHover += Btn_Hover;
                 btn.Paint += Btn_Paint;
                 btn.myUpgrade = upgrade;
@@ -215,7 +266,7 @@ namespace FirstClicker
 
         private void Btn_Hover(object? sender, EventArgs e)
         {
-            
+
             toolTipTimer.Interval = toolTipVisibleTime;
             toolTipTimer.Tick += new EventHandler(toolTipTick);
 
@@ -224,7 +275,7 @@ namespace FirstClicker
             if (sender == null) { return; }
             if (myTip != null) { myTip.Hide(this); }
             myTip = new ToolTip();
-            
+
             myTip.InitialDelay = toolTipDelay;
             myTip.IsBalloon = true;
             myTip.AutoPopDelay = toolTipVisibleTime;
@@ -289,8 +340,24 @@ namespace FirstClicker
 
         private void frmMain_Load(object sender, EventArgs e)
         {
+            this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
 
-            //frmMain.LoadState(string defaultSaveFile) -- TODO
+            this.registerSound = new SoundPlayer(Resources.cashregisterpurchase);
+            this.clickSound = new SoundPlayer(Resources.clickbutton);
+            this.pickSounds = new List<SoundPlayer>();
+            
+            //fill list with new soundplayers pointing to each 'clank' sound
+
+            //for now we'll do it manually because I'm not smart enough to figure out how to iterate through assembly resources programmatically!
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_01));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_02));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_03));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_04));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_05));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_06));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_07));
+            this.pickSounds.Add(new SoundPlayer(Resources.pickaxe_clank_08));
+
 
             //Populate form with possible items from array, then update their labels.
             for (int i = 1; i <= myItems.Length; i++)
@@ -317,8 +384,11 @@ namespace FirstClicker
 
             foreach (ItemView item in myItems) { item.UpdateLabels(); }
             //frmMain_UpdateLabels();
+            this.GameClock = new Stopwatch();
             this.timerPerSec.Start();
             this.timerVisualUpdate.Start();
+            this.GameClock.Reset();
+            this.GameClock.Start();
         }
         public void btncolorchanged(Object? sender, EventArgs e)
         {
@@ -347,6 +417,11 @@ namespace FirstClicker
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        //registerSound.Play();
+                        mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound", null, 0, IntPtr.Zero);
+                        //mciSendString("stop registersound", null, 0, IntPtr.Zero);
+                        //mciSendString("seek to start registersound", null, 0, IntPtr.Zero);
                         
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
@@ -373,6 +448,9 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        //registerSound.Play();
+                        mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
                     }
@@ -401,6 +479,9 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        //registerSound.Play();
+                        mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
                     else
@@ -463,6 +544,9 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        //registerSound.Play();
+                        mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound", null, 0, IntPtr.Zero);
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
                     else
@@ -486,9 +570,9 @@ namespace FirstClicker
 
         public void frmMain_UpdateLabels()
         {
-            lblMoney.Text = $"Money: ${(myMoney >= 1000000.0d ? Stringify(myMoney.ToString(), StringifyOptions.LongText) : double.Round(myMoney, 2).ToString("N"))}";
-            lblSalary.Text = $"Salary: ${(salary >= 1000000.0d ? Stringify(salary.ToString(), StringifyOptions.LongText) : double.Round(salary, 2).ToString("N"))} Per Second";
-            lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify(clickAmount.ToString(), StringifyOptions.LongText) : double.Round(clickAmount, 2).ToString("N"))} Per Click";
+            lblMoney.Text = $"Money: ${(myMoney >= 1000000.0d ? Stringify(myMoney.ToString("R"), StringifyOptions.LongText) : double.Round(myMoney, 2).ToString("N"))}";
+            lblSalary.Text = $"Salary: ${(salary >= 1000000.0d ? Stringify(salary.ToString("R"), StringifyOptions.LongText) : double.Round(salary, 2).ToString("N"))} Per Second";
+            lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify(clickAmount.ToString("R"), StringifyOptions.LongText) : double.Round(clickAmount, 2).ToString("N"))} Per Click";
             lblIncrPerClick.Text = $"Mined Per Click: {incrperclick:N0}";
             lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
             if (this.purchAmount == 1 || this.purchAmount == 10 || this.purchAmount == 100)
@@ -581,8 +665,11 @@ namespace FirstClicker
         {
             if (sender.CanAfford(this.myMoney, sender.purchaseAmount, sender.myCostMult))
             {
-                
+
                 myMoney -= sender.calculatedCost;
+                //registerSound.Play();
+                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                mciSendString("play registersound", null, 0, IntPtr.Zero);
                 sender.myQty += sender.purchaseAmount;
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
             }
@@ -593,6 +680,10 @@ namespace FirstClicker
 
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
+            //clickSound.Play();
+            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+
             //purchAmount should be made into an enum. Perfect use-case for it, and reduces possible errors from invalid values.
             if (purchAmount == 1)
             {
@@ -648,12 +739,22 @@ namespace FirstClicker
             } //for now, when matsMined reaches another multiple of 100, amountperclick is incremented. clickAmount reflects this.
             //incrperclick has a max of 10 for now.
             else { matsMined += incrperclick; }
-            
+
             //We're only calculating clickAmount for one incrperclick. We can add that amount for multiple clicks, but it shouldn't double clickAmount.
             //Later we can use visual and audible cues to signify multiple clicks (like floating text saying 'x2' 'x3' etc, and disappearing after a second, with little 'pop' sounds for each incrperclick in quick succession...)
             this.myMoney += clickAmount * incrperclick;
             thislifetimeMoney += clickAmount * incrperclick;
-            //frmMain_UpdateLabels();
+            /*
+            if (pickSounds != null && pickSounds.Count >= 1)
+            {
+                Random randnumber = new Random();
+                int soundindex = randnumber.Next(0, pickSounds.Count - 1);
+                pickSounds[soundindex].Play();
+            }*/
+            Random randnumber = new Random();
+            int i = randnumber.Next(1, 8);
+            mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
+            mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
         }
 
         private void timerVisualUpdate_Tick(object sender, EventArgs e)
@@ -682,17 +783,27 @@ namespace FirstClicker
 
         private void btnPrestige_Click(object sender, EventArgs e)
         {
+            //clickSound.Play();
+            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
+            //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.
             double tempprestige = this.calcPrestige(lastlifetimeMoney, thislifetimeMoney);
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
+            this.GameClock.Stop();
+            this.thislifeGameTime += GameClock.Elapsed;
+            this.totalGameTime += GameClock.Elapsed;
 
-            DialogResult dres = MessageBox.Show($"Current Prestige: {Stringify(prestigePoints.ToString())}. \nPrestige to Gain: {Stringify(tempprestige.ToString())}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
+            DialogResult dres = MessageBox.Show($"Current Prestige: {Stringify(prestigePoints.ToString("R"), StringifyOptions.LongText)}. \nPrestige to Gain: {Stringify(tempprestige.ToString("R"), StringifyOptions.LongText)}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1, MessageBoxOptions.ServiceNotification, false);
             if (dres == DialogResult.Yes)
             {
                 this.timerPerSec.Stop();
                 this.timerVisualUpdate.Stop();
                 this.toolTipTimer.Stop();
+                this.GameClock.Stop();
+                
 
                 this.lastlifetimeMoney = thislifetimeMoney + lastlifetimeMoney;
                 this.prestigePoints += tempprestige;
@@ -719,11 +830,24 @@ namespace FirstClicker
             {
                 timerPerSec.Start();
                 timerVisualUpdate.Start();
+                this.GameClock.Reset();
+                this.GameClock.Start();
+                this.Focus();
+                this.Refresh();
             }
         }
         internal static string Stringify(string input, StringifyOptions option = StringifyOptions.LongText)
         {
-            //IMPORTANT - Currently will not handle non-numerical input. Intended for 'lblMoney.Text = Stringify(myMoney.ToString():N, StringifyOptions.LongText);' or similar!
+            if (input == double.PositiveInfinity.ToString())
+            {
+                throw new ArgumentOutOfRangeException(nameof(input), input, "Positive infinity reached!");
+            }
+            else if (input == double.NegativeInfinity.ToString())
+            {
+                throw new ArgumentOutOfRangeException(nameof(input), input, "Negative Infinity reached!");
+            }
+
+            //IMPORTANT - Currently will not handle non-numerical input. Intended for 'lblMoney.Text = Stringify(myMoney.ToString(), StringifyOptions.LongText);' or similar!
             switch (option)
             {
                 case (StringifyOptions.LongText):
@@ -737,9 +861,7 @@ namespace FirstClicker
                         }
                         //return string using classic long notation (#.### followed by Million, Billion, Trillion, etc)
                         string myOutput = "";
-                        string[] TextStrings = { "Million", "Billion", "Trillion", "Quadrillion", "Quintillion", "Sextillion", "Septillion", "Octillion", "Nonillion", "Decillion", "Undecillion", "Duodecillion", "Tredecillion", "Quattordecillion", "Quindecillion", "Sexdecillion", "Septendecillion", "Octodecillion", "Novemdecillion", "Vigintillion",
-                                                "Unvigintillion", "Duovigintillion", "Trevigintillion", "Quattorvigintillion", "Quinvigintillion", "Sexvigintillion", "Septenvigintillion", "Octovigintillion", "Novemvigintillion", "Trigintillion", "Untrigintillion", "Duotrigintillion", "Tretrigintillion", "Quattortrigintillion", "Quintrigintillion",
-                                                "Sextrigintillion", "Septentrigintillion", "Octotrigintillion", "Novemtrigintillion", "Quadragintillion"};  //currently up to 9.99*10^125
+                        
                         //index 0 = 7-9 length, index 1 = 10-12 length, index 2 = 13-15 length, etc
                         int digitcount = 0;
                         for (int i = 0; i < input.Length; i++)
@@ -803,14 +925,21 @@ namespace FirstClicker
 
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            mciSendString("close clicksound", null, 0, IntPtr.Zero);
+            mciSendString("close registersound", null, 0, IntPtr.Zero);
+            for (int i = 1; i < 8; i++)
+            {
+                mciSendString($"close pickaxe{i}sound", null, 0, IntPtr.Zero);
+            }
+
             if (!PrestigeNextRestart)
             {
                 this.SaveGame();
                 Program.RestartForPrestige = false;
             }
-            
-            
-            
+
+
+
         }
 
         private void lblMoney_SizeChanged(object sender, EventArgs e)
@@ -831,7 +960,7 @@ namespace FirstClicker
         public void SaveGame()
         {
             GameState save = new GameState();
-            
+
             List<ItemData> tempitemdatas = new List<ItemData>();
             for (int i = 0; i < this.myItems.Count(); i++)
             {
@@ -856,7 +985,7 @@ namespace FirstClicker
             save.lastsavetimestamp = DateTime.Now;
             save.lastWindowState = this.WindowState;
 
-            
+
             FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", FileMode.Create);
 
             //serialize and write to disk
@@ -908,7 +1037,60 @@ namespace FirstClicker
             TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
             this.thislifeGameTime.Add(sincelastsave);
             this.totalGameTime.Add(sincelastsave);
-            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${Stringify((salary * sincelastsave.TotalSeconds).ToString(), StringifyOptions.LongText)} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
+            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${Stringify((salary * sincelastsave.TotalSeconds).ToString("R"), StringifyOptions.LongText)} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
+        }
+
+        private void btnMine_MouseDown(object sender, MouseEventArgs e)
+        {
+            if (sender == null) { return; }
+            Button thisbutton = (Button)sender;
+            if (thisbutton != null && thisbutton.BackgroundImage != null)
+            {
+                thisbutton.BackgroundImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
+                //play mine sound
+                SoundPlayer sound = new SoundPlayer();
+                //
+            }
+        }
+
+        private void btnMine_MouseUp(object sender, MouseEventArgs e)
+        {
+            if (sender == null) { return; }
+            Button thisbutton = (Button)sender;
+            if (thisbutton != null && thisbutton.BackgroundImage != null)
+            {
+                thisbutton.BackgroundImage.RotateFlip(RotateFlipType.Rotate90FlipNone);
+                thisbutton.Refresh();
+            }
+        }
+
+        private void btnStats_Click(object sender, EventArgs e)
+        {
+            //clickSound.Play();
+            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            //open stats window with current stats, pause timers
+            timerPerSec.Stop();
+            timerVisualUpdate.Stop();
+            this.GameClock.Stop();
+            this.thislifeGameTime += GameClock.Elapsed;
+            this.totalGameTime += GameClock.Elapsed;
+            DialogResult result = MessageBox.Show(
+                $"Salary: ${Stringify(this.salary.ToString("R"), StringifyOptions.LongText)} Per Second" +
+                $"\nClickAmount: ${Stringify(this.clickAmount.ToString("R"), StringifyOptions.LongText)} Per Click" +
+                $"\nMoney Earned This Lifetime: ${Stringify(this.thislifetimeMoney.ToString("R"), StringifyOptions.LongText)}" +
+                $"\nMoney Earned All Lifetimes: ${Stringify((this.lastlifetimeMoney + this.thislifetimeMoney).ToString("R"), StringifyOptions.LongText)}" +
+                $"\nTime spent this lifetime: ${this.thislifeGameTime.ToString()}" +
+                $"\nTime spent all lifetimes: ${this.totalGameTime.ToString()}" +
+                $"\nPrestige Points: {Stringify(this.prestigePoints.ToString("R"), StringifyOptions.LongText)}" +
+                $"\nPrestige Multiplier: {Stringify(this.prestigeMultiplier.ToString("R"), StringifyOptions.LongText)}% Per Point" +
+                $"\nPrestige Percentage: {Stringify((this.prestigePoints * this.prestigeMultiplier).ToString("R"), StringifyOptions.LongText)}%"
+                ,"MoneyMiner Statistics",MessageBoxButtons.OK
+                );
+            timerPerSec.Start();
+            timerVisualUpdate.Start();
+            this.GameClock.Reset();
+            this.GameClock.Start();
         }
     }
     [Serializable]
