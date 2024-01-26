@@ -42,7 +42,10 @@
             lblClickAmount = new Label();
             lblSalary = new Label();
             lblMoney = new Label();
+            pctCenterBackground = new PictureBox();
+            btnStats = new Button();
             grpMoney.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
             SuspendLayout();
             // 
             // itemPanel
@@ -89,14 +92,22 @@
             // btnMine
             // 
             btnMine.Anchor = AnchorStyles.Bottom;
+            btnMine.BackColor = Color.Transparent;
+            btnMine.BackgroundImage = MoneyMiner.Properties.Resources.pickaxe;
+            btnMine.BackgroundImageLayout = ImageLayout.Stretch;
+            btnMine.CausesValidation = false;
+            btnMine.FlatAppearance.BorderSize = 0;
+            btnMine.FlatStyle = FlatStyle.Flat;
             btnMine.Font = new Font("Segoe UI", 24F);
             btnMine.Location = new Point(414, 169);
             btnMine.Name = "btnMine";
             btnMine.Size = new Size(317, 295);
             btnMine.TabIndex = 6;
-            btnMine.Text = "Mine Materials";
-            btnMine.UseVisualStyleBackColor = true;
+            btnMine.Text = "Mine!";
+            btnMine.UseVisualStyleBackColor = false;
             btnMine.Click += btnMine_Click;
+            btnMine.MouseDown += btnMine_MouseDown;
+            btnMine.MouseUp += btnMine_MouseUp;
             // 
             // lblMatsMined
             // 
@@ -186,20 +197,45 @@
             lblMoney.TextAlign = ContentAlignment.MiddleCenter;
             lblMoney.SizeChanged += lblMoney_SizeChanged;
             // 
+            // pctCenterBackground
+            // 
+            pctCenterBackground.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pctCenterBackground.Image = MoneyMiner.Properties.Resources.mining_miner_cartoon;
+            pctCenterBackground.Location = new Point(373, 151);
+            pctCenterBackground.Name = "pctCenterBackground";
+            pctCenterBackground.Size = new Size(389, 337);
+            pctCenterBackground.SizeMode = PictureBoxSizeMode.StretchImage;
+            pctCenterBackground.TabIndex = 12;
+            pctCenterBackground.TabStop = false;
+            // 
+            // btnStats
+            // 
+            btnStats.Anchor = AnchorStyles.Bottom;
+            btnStats.CausesValidation = false;
+            btnStats.Location = new Point(606, 519);
+            btnStats.Name = "btnStats";
+            btnStats.Size = new Size(75, 30);
+            btnStats.TabIndex = 13;
+            btnStats.Text = "Stats...";
+            btnStats.UseVisualStyleBackColor = true;
+            btnStats.Click += btnStats_Click;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(984, 561);
+            Controls.Add(btnStats);
+            Controls.Add(btnMine);
             Controls.Add(grpMoney);
             Controls.Add(btnPrestige);
             Controls.Add(lblIncrPerClick);
             Controls.Add(lblMatsMined);
-            Controls.Add(btnMine);
             Controls.Add(UpgradePanel);
             Controls.Add(btnPurchAmount);
             Controls.Add(itemPanel);
+            Controls.Add(pctCenterBackground);
             MinimumSize = new Size(1000, 600);
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Show;
@@ -210,6 +246,7 @@
             Paint += frmMain_Paint;
             grpMoney.ResumeLayout(false);
             grpMoney.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)pctCenterBackground).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -229,5 +266,7 @@
         private Label lblSalary;
         private Label lblMoney;
         private Label lblClickAmount;
+        private PictureBox pctCenterBackground;
+        private Button btnStats;
     }
 }
