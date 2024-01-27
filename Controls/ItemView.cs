@@ -25,9 +25,11 @@ namespace FirstClicker.Controls
         public double myCostMult;
         public double calculatedCost;
         public double baseCost;
-        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary)
+        public int latestUnlock;
+        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _latestUnlock = -1)
         {
             InitializeComponent();
+            this.myID = myID;
             this.Colors = new MyColors();            
             this.BackColor = Colors.colBackground;
             this.grpItem.BackColor = Colors.colBackground;
@@ -38,7 +40,7 @@ namespace FirstClicker.Controls
             this.myCostMult = _myCostMult;
             this.Name = myName;
             this.mySalary = _mySalary;
-            
+            this.latestUnlock = _latestUnlock;
             this.UpdateLabels();
         }
         public ItemView(ItemData data)
@@ -54,6 +56,7 @@ namespace FirstClicker.Controls
             this.baseCost = data.baseCost;
             this.Colors = data.myColors;
             this.Name = data.myName;
+            this.latestUnlock = data.latestUnlock;
         }
         private void ItemView_Load(object sender, EventArgs e)
         {
@@ -63,10 +66,10 @@ namespace FirstClicker.Controls
         {
             //no calculations, just update labels/buttons.
             
-            this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), frmMain.StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
+            this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
-            this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), frmMain.StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";//double.Round((this.mySalary * this.myQty), 2):N
-            this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), frmMain.StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary, 2):N
+            this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";//double.Round((this.mySalary * this.myQty), 2):N
+            this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary, 2):N
             this.grpItem.Text = this.Name;
             
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
@@ -122,7 +125,7 @@ namespace FirstClicker.Controls
             }
             else
             {
-                throw new NullReferenceException();
+                throw new NullReferenceException(); //this control has no parent!? WTF!? Luckily haven't seen this one yet, and we never should...
             }
             
 
@@ -142,6 +145,7 @@ namespace FirstClicker.Controls
         public double baseCost;
         public MyColors myColors;
         public string myName;
+        public int latestUnlock;
 
         public ItemData(ItemView item)
         {
@@ -155,8 +159,9 @@ namespace FirstClicker.Controls
             this.baseCost = item.baseCost;
             this.myColors = item.Colors;
             this.myName = item.Name;
+            this.latestUnlock = item.latestUnlock;
         }
-        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName)
+        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int latestUnlock = -1)
         {
             this.myCost = myCost;
             this.myQty = myQty;
@@ -168,6 +173,7 @@ namespace FirstClicker.Controls
             this.baseCost = baseCost;
             this.myColors = myColors;
             this.myName = myName;
+            this.latestUnlock = latestUnlock;
         }
     }
 }

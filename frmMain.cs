@@ -35,6 +35,8 @@ namespace FirstClicker
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
 
+        //Convert purchaseamount to enum, including 1, 10, 100, Next, Max
+
         //Need a 'Pause' menu!
             //-move master volume slider to top of pause menu
             //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
@@ -45,6 +47,7 @@ namespace FirstClicker
                 //-if backgroundmusic is toggled Off, playback should also stop - not just mute.
             //-fullscreen toggle
             //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
+            //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
 
         //Progress bars for items?
 
@@ -65,6 +68,8 @@ namespace FirstClicker
 
         //We should implement unlocks that double individual salaries at ownership thresholds, like, for example:
         //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, etc
+        //not recalculating next() after purchasing, or not updating
+        //skipping first unlock?
 
         public MyColors Colors;
         public double myMoney;
@@ -74,16 +79,15 @@ namespace FirstClicker
         public double lastlifetimeMoney;
         public double prestigePoints;
         public double prestigeMultiplier;
-        private int purchAmount;
         public int matsMined;
         public int incrperclick;
         public int toolTipDelay;
         public int toolTipVisibleTime;
         public TimeSpan thislifeGameTime;
         public TimeSpan totalGameTime;
-        public int MusicVolume = 500; //50% of 1000
-        public int FXVolume = 500; //50% of 1000
-
+        public int MusicVolume; //0 to 1000
+        public int FXVolume; //0 to 1000
+        //need to add matsMinedLifetime here and in gamestate and load/save and btnMine_Click
 
 
         public ItemView[] myItems;
@@ -101,10 +105,11 @@ namespace FirstClicker
                                                 "Tresexagintillion", "Quattorsexagintillion", "Quinsexagintillion", "Sexsexagintillion", "Septensexagintillion", "Octosexagintillion", "Novemsexagintillion", "Septuagintillion", "Unseptuagintillion", "Duoseptuagintillion", "Treseptuagintillion", "Quattorseptuagintillion", "Quinseptuagintillion", "Sexseptuagintillion",
                                                 "Septseptuagintillion", "Octoseptuagintillion", "Novemseptuagintillion", "Octogintillion", "Unoctogintillion", "Duooctogintillion", "Treoctogintillion", "Quattoroctogintillion", "Quinoctogintillion", "Sexoctogintillion", "Septoctogintillion", "Octoctogintillion", "Novemoctogintillion", "Nonagintillion",
                                                 "Unnonagintillion", "Duononagintillion", "Trenonagintillion", "Quattornonagintillion", "Quinonagintillion", "Sexnonagintillion", "Septenonagintillion", "Octononagintillion", "Novemnonagintillion", "Centillion", "Uncentillion"};  //handles full size of type 'double'
-
+        public List<int> unlockList = new List<int> { 10, 25, 50, 100, 200, 300, 400, 500, 600, 666, 700, 777, 800, 900, 1000, 1100, 1111, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2222, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3333, 3400, 3500, 3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700, 4800, 4900, 5000 };
+        public const double unlockMultiplier = 2.0d;
         internal Stopwatch GameClock;
         bool PlayRegisterSound1 = true;
-
+        public PurchaseAmount myPurchaseAmount;
         public void SetAudioVolume(int musicVol, int fxVol)
         {
             if (musicVol < 0) { musicVol = 0; } else if (musicVol > 1000) { musicVol = 1000; }
@@ -157,14 +162,14 @@ namespace FirstClicker
 
             if (this.myItems == default || this.myItems.Length == 0)
             {
-                myItems = [new ItemView(1, "Wood", 3.738d, 1.07d, 1.67d),
-                    new ItemView(2, "Stone", 60d, 1.15d, 20d),
-                    new ItemView(3, "Iron", 720d, 1.14d, 90d),
-                    new ItemView(4, "Steel", 8640d, 1.13d, 360d),
-                    new ItemView(5, "Diamond", 103680d, 1.12d, 2160d),
-                    new ItemView(6, "Uranium", 1244160d, 1.11d, 6480d),
-                    new ItemView(7, "Antimatter", 14929920d, 1.10d, 19440d),
-                    new ItemView(8, "Black Hole", 179159040d, 1.09d, 58320d)];
+                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.67d),
+                    new ItemView(2, "Stone Miner", 60d, 1.15d, 20d),
+                    new ItemView(3, "Iron Miner", 720d, 1.14d, 90d),
+                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 360d),
+                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 2160d),
+                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 6480d),
+                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 19440d),
+                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 58320d)];
             }
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
@@ -245,11 +250,13 @@ namespace FirstClicker
             if (this.matsMined == default) { matsMined = 0; }
             if (this.myMoney == default) { myMoney = 0.0d; }
             if (this.incrperclick == default) { incrperclick = 1; }
-            if (this.purchAmount == default) { purchAmount = 1; }
+            if (this.myPurchaseAmount == default) { myPurchaseAmount = PurchaseAmount.BuyOne; }
             if (this.thislifetimeMoney == default) { this.thislifetimeMoney = lastlifeMoney; }
             if (this.prestigePoints == default) { this.prestigePoints = prestPoints; }
             if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
             if (this.GameClock == default) { this.GameClock = new Stopwatch(); }
+            if (this.MusicVolume == default) { this.MusicVolume = 500; }
+            if (this.FXVolume == default) { this.FXVolume = 500; }
 
             if (this.prestigePoints > 0.0d)
             {
@@ -329,7 +336,7 @@ namespace FirstClicker
             if (btn.myUpgrade.itemID >= 1 && btn.myUpgrade.itemID <= myItems.Length)
             {
                 //upgrade refers to an item
-                myTip.Show($"{btn.myUpgrade.Description} multiplies {myItems[btn.myUpgrade.itemID - 1].Name}'s salary per second by {btn.myUpgrade.Multiplier}!", this, mousepos);
+                myTip.Show($"{btn.myUpgrade.Description} multiplies each {myItems[btn.myUpgrade.itemID - 1].Name}'s salary per second by {btn.myUpgrade.Multiplier}!", this, mousepos);
                 //"Double-Tap multiplies Wood's salary per second by 3!"
             }
             else if (btn.myUpgrade.itemID == 0)
@@ -340,7 +347,7 @@ namespace FirstClicker
             else if (btn.myUpgrade.itemID == 15)
             {
                 //upgrade is for all items
-                myTip.Show($"{btn.myUpgrade.Description} multiplies all item salaries by {btn.myUpgrade.Multiplier}!", this, mousepos);
+                myTip.Show($"{btn.myUpgrade.Description} multiplies all miner salaries by {btn.myUpgrade.Multiplier}!", this, mousepos);
             }
             else if (btn.myUpgrade.itemID == 20)
             {
@@ -384,7 +391,8 @@ namespace FirstClicker
         {
             this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
 
-            sliderVolume.Value = 500;
+            sliderVolume.Value = this.MusicVolume;
+            SetAudioVolume(MusicVolume, FXVolume);
             //if we're loading after a prestige, find a way to get the previous position so it doesn't restart!
             mciSendString("play backgroundmusic01 repeat", null, 0, IntPtr.Zero);
 
@@ -439,7 +447,10 @@ namespace FirstClicker
                         btnsender.BackColor = Colors.colButtonPurchased;
                         btnsender.ForeColor = Colors.colTextPrimary;
                         myMoney -= btnsender.myUpgrade.Cost;
-                        myItems[btnitemID - 1].mySalary *= btnsender.myUpgrade.Multiplier;
+
+                        //previously threw an exception when trying to just cast it to 'ItemView'. '.Where' returns an Enumerable of type T (inferred or specified), so being that
+                        //an enumerable is just a list that meets the requirements of IEnumerable, we have to return the first item. We need to figure out how to handle btnitemID not found though...
+                        myItems.Where(x => x.myID == btnitemID).First<ItemView>().mySalary *= btnsender.myUpgrade.Multiplier;
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
 
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
@@ -643,13 +654,17 @@ namespace FirstClicker
             lblClickAmount.Text = $"Mining: ${(clickAmount >= 1000000.0d ? Stringify(clickAmount.ToString("R"), StringifyOptions.LongText) : double.Round(clickAmount, 2).ToString("N"))} Per Click";
             lblIncrPerClick.Text = $"Mined Per Click: {incrperclick:N0}";
             lblMatsMined.Text = $"Materials Mined: {matsMined:N0}";
-            if (this.purchAmount == 1 || this.purchAmount == 10 || this.purchAmount == 100)
+            if (this.myPurchaseAmount == PurchaseAmount.BuyOne || this.myPurchaseAmount == PurchaseAmount.BuyTen || this.myPurchaseAmount == PurchaseAmount.Buy100)
             {
-                btnPurchAmount.Text = $"Buy: x{this.purchAmount}";
+                btnPurchAmount.Text = $"Buy: x{(int)myPurchaseAmount}";
             }
-            else
+            else if (this.myPurchaseAmount == PurchaseAmount.BuyMax)
             {
                 btnPurchAmount.Text = "Buy: Max";
+            }
+            else if (this.myPurchaseAmount == PurchaseAmount.BuyNext)
+            {
+                btnPurchAmount.Text = "Buy: Next";
             }
 
             foreach (UpgradeButton btn in upgradeButtons)
@@ -729,7 +744,7 @@ namespace FirstClicker
             myMoney += salary;
             thislifetimeMoney += salary;
         }
-        public void BuyClicked(ItemView sender)
+        public void BuyClicked(ItemView sender)     //--TEST UNLOCKS!!!--//
         {
             if (sender.CanAfford(this.myMoney, sender.purchaseAmount, sender.myCostMult))
             {
@@ -749,51 +764,134 @@ namespace FirstClicker
                 }
                 sender.myQty += sender.purchaseAmount;
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
+
+                int highestunlockindex = sender.latestUnlock;
+                do
+                {
+                    highestunlockindex++;
+                }
+                while (sender.myQty >= unlockList[highestunlockindex]);
+                highestunlockindex--;   //since we're checking condition after iteration, we need to back down by 1 to get the last valid result. If we're in this routine, we just bought at least 1. HUI is 0 now.
+                if (highestunlockindex > sender.latestUnlock)     //0 > -1 == true
+                {
+                    //we reached a milestone!
+                    do
+                    {
+                        sender.latestUnlock++;        //-1 + 1 = 0;
+                        sender.mySalary *= unlockMultiplier;  //apply the bonus
+                        bool allOthersHave = true;
+                        for (int i = 0; i < myItems.Length; i++)
+                        {
+                            if (myItems[i].myID != sender.myID)   //don't need to check this one again...
+                            {
+                                if (myItems[i].myQty < unlockList[sender.latestUnlock])       //if qty < UL[0]==1, then we don't own at least 1 of everything else!
+                                {
+                                    allOthersHave = false;
+                                    break;      //if any one of them fails, exit the loop - it would be computationally wasteful not to.
+                                }
+                            }
+                        }
+                        if (allOthersHave)
+                        {
+                            for (int i = 0; i < myItems.Length; i++)
+                            {
+                                myItems[i].mySalary *= unlockMultiplier;
+                            }
+                        }
+                    }
+                    while (sender.latestUnlock < highestunlockindex); //bonus will be applied, and latestunlock will be set afterwards to equal highestunlockindex.
+                    //0 < 0 == false, so execution falls out of loop and continues elsewhere.
+                    }
+                else
+                {
+                    //they're the same, so we didn't reach a new milestone.
+                }
+            }
+            if (this.myPurchaseAmount == PurchaseAmount.BuyNext)
+            {
+                //calculate next
+                int temppurchamount;
+                if (sender.latestUnlock + 1 < unlockList.Count && sender.latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
+                {
+                    temppurchamount = unlockList[sender.latestUnlock + 1] - sender.myQty;
+                }
+                else
+                {
+                    temppurchamount = 1;    //when in doubt, set it to 1. If we've bought all unlocks, we only need to calculate for 1 item purchase.
+                }
+                sender.calculatedCost = this.costcalcnew(sender, temppurchamount);
+                sender.purchaseAmount = temppurchamount;
             }
             sender.UpdateLabels();
             sender.ButtonColor(myMoney, sender.purchaseAmount, sender.myCostMult);
         }
 
+        
+
+        
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
             mciSendString("play clicksound", null, 0, IntPtr.Zero);
 
             //purchAmount should be made into an enum. Perfect use-case for it, and reduces possible errors from invalid values.
-            if (purchAmount == 1)
+            if (myPurchaseAmount == PurchaseAmount.BuyOne)
             {
-                purchAmount = 10;
+                myPurchaseAmount = PurchaseAmount.BuyTen;
             }
-            else if (purchAmount == 10)
+            else if (myPurchaseAmount == PurchaseAmount.BuyTen)
             {
-                purchAmount = 100;
+                myPurchaseAmount = PurchaseAmount.Buy100;
             }
-            else if (purchAmount == 100)
+            else if (myPurchaseAmount == PurchaseAmount.Buy100)
             {
-                purchAmount = -1;
+                myPurchaseAmount = PurchaseAmount.BuyNext;
             }
-            else if (purchAmount == -1)
+            else if (myPurchaseAmount == PurchaseAmount.BuyNext)
             {
-                purchAmount = 1;
+                myPurchaseAmount = PurchaseAmount.BuyMax;
+            }
+            else if (myPurchaseAmount == PurchaseAmount.BuyMax)
+            {
+                myPurchaseAmount = PurchaseAmount.BuyOne;
             }
 
-            if (purchAmount == 1 || purchAmount == 10 || purchAmount == 100)
+            if (myPurchaseAmount == PurchaseAmount.BuyOne || myPurchaseAmount == PurchaseAmount.BuyTen || myPurchaseAmount == PurchaseAmount.Buy100)
             {
                 for (int i = 0; i < myItems.Length; i++)
                 {
                     //we just need to update the item with the new amount, and then update the labels and colors.
-                    myItems[i].purchaseAmount = purchAmount;
+                    myItems[i].purchaseAmount = (int)myPurchaseAmount;
                     myItems[i].CalcCost(myItems[i].purchaseAmount, myItems[i].myCostMult);
                     myItems[i].ButtonColor(myMoney, myItems[i].purchaseAmount, myItems[i].myCostMult);
                     myItems[i].UpdateLabels();
                 }
             }
-            else
+            else if (myPurchaseAmount == PurchaseAmount.BuyMax)
             {
                 for (int i = 0; i < myItems.Length; i++)
                 {
                     int temppurchamount = (int)calcMax(myMoney, myItems[i]);
                     //myItems[i].CalcCost(temppurchamount, myItems[i].myCostMult);
+                    myItems[i].calculatedCost = this.costcalcnew(myItems[i], temppurchamount);
+                    myItems[i].purchaseAmount = temppurchamount;
+                    myItems[i].ButtonColor(myMoney, myItems[i].purchaseAmount, myItems[i].myCostMult);
+                    myItems[i].UpdateLabels();
+                }
+            }
+            else if (myPurchaseAmount == PurchaseAmount.BuyNext)
+            {
+                for (int i = 0; i < myItems.Length; i++)
+                {
+                    int temppurchamount;
+                    if (myItems[i].latestUnlock + 1 < unlockList.Count && myItems[i].latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
+                    {
+                        temppurchamount = unlockList[myItems[i].latestUnlock + 1] - myItems[i].myQty;
+                    }
+                    else
+                    {
+                        temppurchamount = 1;    //when in doubt, set it to 1. If we've bought all unlocks, we only need to calculate for 1 item purchase.
+                    }
                     myItems[i].calculatedCost = this.costcalcnew(myItems[i], temppurchamount);
                     myItems[i].purchaseAmount = temppurchamount;
                     myItems[i].ButtonColor(myMoney, myItems[i].purchaseAmount, myItems[i].myCostMult);
@@ -829,7 +927,7 @@ namespace FirstClicker
         {
             foreach (ItemView item in myItems)
             {
-                if (this.purchAmount == -1) { item.purchaseAmount = (int)calcMax(myMoney, item); }  //only used for max calculation updates
+                if (this.myPurchaseAmount == PurchaseAmount.BuyMax) { item.purchaseAmount = (int)calcMax(myMoney, item); }  //only used for max calculation updates
                 item.ButtonColor(myMoney, item.purchaseAmount, item.myCostMult);
                 if (item.calculatedCost == 0.00d) { item.calculatedCost = costcalcnew(item, 1); }   //prevent showing $0 in item cost field
                 item.UpdateLabels();
@@ -963,12 +1061,7 @@ namespace FirstClicker
                     }
             }
         }
-        internal enum StringifyOptions
-        {
-            LongText = 32,
-            ShortText = 64,
-            ScientificNotation = 128
-        }
+        
 
         internal static string ReBig(string input)
         {
@@ -1045,7 +1138,7 @@ namespace FirstClicker
             save.matsMined = this.matsMined;
             save.myMoney = this.myMoney;
             save.incrperclick = this.incrperclick;
-            save.purchAmount = this.purchAmount;
+            save.myPurchaseAmount = this.myPurchaseAmount;
             save.thislifetimeMoney = this.thislifetimeMoney;
             save.prestigePoints = this.prestigePoints;
             save.lastlifetimeMoney = this.lastlifetimeMoney;
@@ -1053,6 +1146,8 @@ namespace FirstClicker
             save.thislifegametime = this.thislifeGameTime;
             save.lastsavetimestamp = DateTime.Now;
             save.lastWindowState = this.WindowState;
+            save.MusicVol = this.MusicVolume;
+            save.FXVol = this.FXVolume;
             if (this.PrestigeNextRestart)
             {
                 save.PrestigeSaveFlag = true;
@@ -1088,6 +1183,8 @@ namespace FirstClicker
                 save = (GameState)bformatter.Deserialize(fstream);
                 fstream.Close();
             }
+            //If there's a problem or we can't find the file, just skip loading altogether. The constructor will initialize to default, and next time
+            //the game is closed it will save a new file, overwriting the corrupted one if it exists.
             catch { return; }
             List<ItemView> tempitemlist = new List<ItemView>();
             for (int i = 0; i < save.myItemDatas.Count(); i++)
@@ -1105,21 +1202,23 @@ namespace FirstClicker
             this.matsMined = save.matsMined;
             this.myMoney = save.myMoney;
             this.incrperclick = save.incrperclick;
-            this.purchAmount = save.purchAmount;
+            this.myPurchaseAmount = save.myPurchaseAmount;
             this.thislifetimeMoney = save.thislifetimeMoney;
             this.prestigePoints = save.prestigePoints;
             this.lastlifetimeMoney = save.lastlifetimeMoney;
             this.totalGameTime = save.totalgametime;
             this.thislifeGameTime = save.thislifegametime;
             this.WindowState = save.lastWindowState;
+            this.MusicVolume = save.MusicVol;
+            this.FXVolume = save.FXVol;
             TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
             this.thislifeGameTime.Add(sincelastsave);
             this.totalGameTime.Add(sincelastsave);
-            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${Stringify((salary * sincelastsave.TotalSeconds).ToString("R"), StringifyOptions.LongText)} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
+            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salary * sincelastsave.TotalSeconds) >= 1000000.0d ? Stringify((salary * sincelastsave.TotalSeconds).ToString("R"), StringifyOptions.LongText) : (salary * sincelastsave.TotalSeconds).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
             if (save.PrestigeSaveFlag)
             {
                 //show message displaying amount of prestige earned?
-                MessageBox.Show($"You gained {(save.PrestigePointsGained > 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
+                MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
                 //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
                 save.PrestigeSaveFlag = false;
                 SaveGame();
@@ -1167,8 +1266,8 @@ namespace FirstClicker
                 $"\nMoney Earned This Lifetime: ${(thislifetimeMoney > 1000000.0d ? Stringify(this.thislifetimeMoney.ToString("R"), StringifyOptions.LongText) : this.thislifetimeMoney.ToString("N"))}" +
                 $"\nMoney Earned All Lifetimes: ${(lastlifetimeMoney + thislifetimeMoney > 1000000.0d ? Stringify((this.lastlifetimeMoney + this.thislifetimeMoney).ToString("R"), StringifyOptions.LongText) : (this.thislifetimeMoney + this.lastlifetimeMoney).ToString("N"))}" +
                 $"\nMoney Earned Last Lifetime: ${(lastlifetimeMoney > 1000000.0d ? Stringify(this.lastlifetimeMoney.ToString("R"), StringifyOptions.LongText) : this.lastlifetimeMoney.ToString("N"))}" +
-                $"\nTime spent this lifetime: ${this.thislifeGameTime.ToString()}" +
-                $"\nTime spent all lifetimes: ${this.totalGameTime.ToString()}" +
+                $"\nTime spent this lifetime: {this.thislifeGameTime.ToString(@"h\:mm\:ss")}" +
+                $"\nTime spent all lifetimes: {this.totalGameTime.ToString(@"h\:mm\:ss")}" +
                 $"\nPrestige Points: {Stringify(this.prestigePoints.ToString("R"), StringifyOptions.LongText)}" +
                 $"\nPrestige Multiplier: {Stringify(this.prestigeMultiplier.ToString("R"), StringifyOptions.LongText)}% Per Point" +
                 $"\nPrestige Percentage: {(prestigePoints * prestigeMultiplier > 1000000.0d ? Stringify((this.prestigePoints * this.prestigeMultiplier).ToString("R"), StringifyOptions.LongText) : (prestigePoints * prestigeMultiplier).ToString("N0"))} %"
@@ -1197,7 +1296,7 @@ namespace FirstClicker
         internal int matsMined;
         internal double myMoney;
         internal int incrperclick;
-        internal int purchAmount;
+        internal PurchaseAmount myPurchaseAmount;
         internal double thislifetimeMoney;
         internal double prestigePoints;
         internal double lastlifetimeMoney;
@@ -1207,6 +1306,8 @@ namespace FirstClicker
         internal FormWindowState lastWindowState;
         internal bool PrestigeSaveFlag;
         internal double PrestigePointsGained;
+        internal int MusicVol;
+        internal int FXVol;
         public GameState()
         {
             myItemDatas = new ItemData[0];
@@ -1219,7 +1320,7 @@ namespace FirstClicker
             matsMined = default;
             myMoney = default;
             incrperclick = default;
-            purchAmount = default;
+            myPurchaseAmount = default;
             thislifetimeMoney = default;
             prestigePoints = default;
             lastlifetimeMoney = default;
@@ -1229,6 +1330,8 @@ namespace FirstClicker
             lastWindowState = default;
             PrestigeSaveFlag = false;
             PrestigePointsGained = 0.0d;
+            MusicVol = 500;
+            FXVol = 500;
         }
     }
     [Serializable]
@@ -1284,5 +1387,90 @@ namespace FirstClicker
         public Color colTextSecondary = Color.White;
         public Color colBorders = Color.FromArgb(78, 213, 215);//TiffanyBlue
     }
-    
+
+    /// <summary>
+    /// Represents available purchase amounts using button switch. Default value is BuyOne.
+    /// </summary>
+    [DefaultValue(PurchaseAmount.BuyOne)]
+    public enum PurchaseAmount
+    {
+        BuyOne = 1,
+        BuyTen = 10,
+        Buy100 = 100,
+        BuyNext = 200,
+        BuyMax = -1
+    }
+    public enum StringifyOptions
+    {
+        LongText = 32,
+        ShortText = 64,
+        ScientificNotation = 128
+    }
+    /*  How should unlocks work? 
+     *  Idea 1:
+     *  -When buy button is clicked, check the current quantity of item against a sorted list of predefined quantities, starting with the smallest. The first one 
+     *      where item.myQty < unlocklist[i] is the next unlock index, and so unlocklist[i] is the next unlock quantity. costcalcnew(item, item.nextunlockqty - item.myqty)
+     *      item.purchaseAmount = item.nextUnlockQty - item.myQty;
+     *      item.calculatedCost = costcalcnew(item, item.purchaseAmount);
+     *      
+     *  Idea 2:     I like idea 2... if I wanted to later, I could define separate unlocklists for each item, and maybe define a list<int> that holds multipliers too...
+     *  -item stores an int reflecting latest unlock (largest unlocklist index) achieved. Each time an item is purchased, check the new quantity against the unlocklist,
+     *      and see if the last index where item.myqty >= unlocklist[i] == true is equal to the stored index. If it is, then no unlock was achieved. If it is larger, then
+     *      starting at unlocklist[latestunlock], iterate (i++) through unlocklist until reaching the new index, applying each unlock bonus along the way.
+     *      After any unlock/milestone is reached, while iterating, check all other items to see if they have reached the same milestone. If they have, then this was the last
+     *      one waiting to reach it, so apply global bonus to all items.
+     *      when purchamount is clicked and equals purchaseamount.next, use costcalcnew() to determine the cost of reaching the milestone unlocklist[item.latestunlock+1] (assuming it exists).
+     *      List<int> unlockList = new List<int> { 10, 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
+     *      buy_clicked, canAfford==true, item(s) purchased:
+     *      {
+     *          //item.latestUnlock = -1; (we owned between 0 of them before this purchase)
+     *          //for now, unlockMultiplier = 2;
+     *          int highestunlockindex = item.latestUnlock;
+     *          do
+     *          {
+     *              highestunlockindex++;
+     *          }
+     *          while (item.myQty >= unlocklist[highestunlockindex])
+     *          highestunlockindex--;   //since we're checking condition after iteration, we need to back down by 1 to get the last valid result. If we're in this routine, we just bought at least 1. HUI is 0 now.
+     *          if (highestunlockindex > item.latestUnlock)     //0 > -1 == true
+     *          {
+     *              //we reached a milestone!
+     *              do
+     *              {
+     *                  item.latestUnlock++;        //-1 + 1 = 0;
+     *                  item.mySalary *= unlockMultiplier;  //apply the bonus
+     *                  bool allOthersHave = true;
+     *                  for (int i = 0; i < myItems.Count; i++)
+     *                  {
+     *                      if (myItems[i].itemID != item.itemID)   //don't need to check this one again...
+     *                      {
+     *                          if (myItems[i].myQty < unlocklist[item.latestUnlock])       //if qty < UL[0]==1, then we don't own at least 1 of everything else!
+     *                          {
+     *                              allOthersHave = false;
+     *                              break;      //if any one of them fails, exit the loop - it would be computationally wasteful not to.
+     *                          }
+     *                      }
+     *                  }
+     *                  if (allOthersHave)
+     *                  {
+     *                      for (int i = 0; i < myItems.Count; i++)
+     *                      {
+     *                          myItems[i].mySalary *= unlockMultiplier;
+     *                      }
+     *                  }
+     *              }
+     *              while (item.latestUnlock < highestunlockindex) //bonus will be applied, and latestunlock will be set afterwards to equal highestunlockindex.
+     *              //0 < 0 == false, so execution falls out of loop and continues elsewhere.
+     *          }
+     *          else
+     *          {
+     *              //they're the same, so we didn't reach a new milestone.
+     *          }
+     *      }
+     *      
+     *      purchamount_click, purchamount==purchamount.next:
+     *      {
+     *          //use the same method that exists for 1, 10, and 100, but purchase quantity for each one is unlockList[item.latestUnlock] - item.myQty. Feed that into costcalcnew() to get cost.
+     *      }
+     */
 }
