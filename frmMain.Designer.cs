@@ -44,8 +44,10 @@
             lblMoney = new Label();
             pctCenterBackground = new PictureBox();
             btnStats = new Button();
+            sliderVolume = new TrackBar();
             grpMoney.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)sliderVolume).BeginInit();
             SuspendLayout();
             // 
             // itemPanel
@@ -220,12 +222,26 @@
             btnStats.UseVisualStyleBackColor = true;
             btnStats.Click += btnStats_Click;
             // 
+            // sliderVolume
+            // 
+            sliderVolume.Anchor = AnchorStyles.Bottom;
+            sliderVolume.LargeChange = 50;
+            sliderVolume.Location = new Point(496, 519);
+            sliderVolume.Maximum = 1000;
+            sliderVolume.Name = "sliderVolume";
+            sliderVolume.Size = new Size(104, 45);
+            sliderVolume.SmallChange = 10;
+            sliderVolume.TabIndex = 14;
+            sliderVolume.TickFrequency = 50;
+            sliderVolume.Scroll += sliderVolume_Scroll;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(984, 561);
+            Controls.Add(sliderVolume);
             Controls.Add(btnStats);
             Controls.Add(btnMine);
             Controls.Add(grpMoney);
@@ -247,6 +263,7 @@
             grpMoney.ResumeLayout(false);
             grpMoney.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).EndInit();
+            ((System.ComponentModel.ISupportInitialize)sliderVolume).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -268,5 +285,6 @@
         private Label lblClickAmount;
         private PictureBox pctCenterBackground;
         private Button btnStats;
+        private TrackBar sliderVolume;
     }
 }

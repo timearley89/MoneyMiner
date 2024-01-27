@@ -61,11 +61,30 @@ namespace MoneyMiner.Properties {
         }
         
         /// <summary>
+        ///   Looks up a localized resource of type System.Byte[].
+        /// </summary>
+        internal static byte[] BackgroundMusic01 {
+            get {
+                object obj = ResourceManager.GetObject("BackgroundMusic01", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
         /// </summary>
         internal static System.IO.UnmanagedMemoryStream cashregisterpurchase {
             get {
                 return ResourceManager.GetStream("cashregisterpurchase", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.IO.UnmanagedMemoryStream similar to System.IO.MemoryStream.
+        /// </summary>
+        internal static System.IO.UnmanagedMemoryStream cashregisterpurchase2 {
+            get {
+                return ResourceManager.GetStream("cashregisterpurchase2", resourceCulture);
             }
         }
         
