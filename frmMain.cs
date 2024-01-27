@@ -34,13 +34,15 @@ namespace FirstClicker
     {
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
-
-        //Convert purchaseamount to enum, including 1, 10, 100, Next, Max
+        //NOTES & TODO
+        //Convert purchaseamount to enum, including 1, 10, 100, Next, Max - DONE!
 
         //Need a 'Pause' menu!
             //-move master volume slider to top of pause menu
             //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
             //-add link to stats window
+            //-Save/Load buttons?
+            
 
         //Need a 'Settings' menu!
             //-add checkboxes for backgroundmusic and soundFX toggles
@@ -48,6 +50,11 @@ namespace FirstClicker
             //-fullscreen toggle
             //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
             //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
+            //-Autosave Interval Setting
+
+        //Autosave Feature
+
+        //Floating indicators when clicking btnMine that show total $ gained --DONE!
 
         //Progress bars for items?
 
@@ -55,7 +62,7 @@ namespace FirstClicker
 
         //Add "Quick-Buy" button to buy all upgrades affordable, starting with least expensive
 
-        //Add 'Buy: Next" option to btnPurchAmount to purchase item to next unlock amount
+        //Add 'Buy: Next" option to btnPurchAmount to purchase item to next unlock amount   --DONE!
 
         //Need a proper 'Stats' window!
 
@@ -67,9 +74,7 @@ namespace FirstClicker
         //Need Prestige Upgrades as well - as in upgrades you buy with prestige points. -Maybe, Maybe not...
 
         //We should implement unlocks that double individual salaries at ownership thresholds, like, for example:
-        //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, etc
-        //not recalculating next() after purchasing, or not updating
-        //skipping first unlock?
+        //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, etc      --DONE!
 
         public MyColors Colors;
         public double myMoney;
@@ -425,6 +430,11 @@ namespace FirstClicker
             this.timerVisualUpdate.Start();
             this.GameClock.Reset();
             this.GameClock.Start();
+            if (this.myPurchaseAmount == PurchaseAmount.BuyNext)
+            {
+                myPurchaseAmount = PurchaseAmount.Buy100;
+                btnPurchAmount_Click(this, e);
+            }
         }
         public void btncolorchanged(Object? sender, EventArgs e)
         {
@@ -921,6 +931,9 @@ namespace FirstClicker
             int i = randnumber.Next(1, 8);
             mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
             mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
+
+            //testing...
+            FloatText();
         }
 
         private void timerVisualUpdate_Tick(object sender, EventArgs e)
@@ -934,6 +947,19 @@ namespace FirstClicker
             }
             //TODO: Add upgrade labelupdates and buttoncolor updates
             frmMain_UpdateLabels();
+            foreach (Label lbl in floatlabels)
+            {
+                lbl.Location = new Point(lbl.Location.X, lbl.Location.Y - 40);
+            }
+            foreach (Label lbl in floatlabeldeletelist)
+            {
+                if (floatlabels.Contains(lbl))
+                {
+                    floatlabels.Remove(lbl);
+                    lbl.Dispose();
+                }
+            }
+            floatlabeldeletelist.Clear();
         }
 
         public long calcMax(double balance, ItemView item)
@@ -1280,6 +1306,59 @@ namespace FirstClicker
         {
             SetAudioVolume(sliderVolume.Value, sliderVolume.Value);
         }
+
+        List<Label> floatlabels = new List<Label>();
+        List<Label> floatlabeldeletelist = new List<Label>();
+        public void FloatText()
+        {
+            //get center x coord of btnMine
+
+            //create a label just above btnMine
+
+            //add label to list of floatlabels?
+
+            //each visualupdatetick move each label in the list up by some small amount of px
+
+            //create eventhandler for label.locationchanged that changes forecolor to a bit lighter if not transparent
+
+            //if it is transparent, dispose of it
+            int mousex = PointToClient(MousePosition).X;
+            int centerxofbtn = btnMine.Location.X + (btnMine.Size.Width / 2);
+            Label lblNew = new Label();
+            lblNew.Location = new Point(mousex, btnMine.Location.Y - 30);
+            lblNew.LocationChanged += new EventHandler(floatlabelmoved);
+            lblNew.AutoSize = true;
+            lblNew.Parent = this;
+            lblNew.BringToFront();
+            lblNew.Name = $"lblFloat{floatlabels.Count+1}";
+            lblNew.Text = $"${(clickAmount * incrperclick >= 1000000.0d ? Stringify((clickAmount * incrperclick).ToString()) : double.Round(clickAmount * incrperclick, 2).ToString("N"))}";
+            lblNew.ForeColor = Color.FromArgb(255, Colors.colTextPrimary);
+            lblNew.BackColor = Color.FromArgb(0, Colors.colTextSecondary);
+            lblNew.Visible = true;
+            lblNew.Enabled = true;
+            lblNew.Show();
+            floatlabels.Add(lblNew);
+        }
+        private void floatlabelmoved(object? sender, EventArgs e)
+        {
+            int dimmingamount = 40;
+            Label thislbl;
+            if (sender != null)
+            {
+                thislbl = (Label)sender;
+            }
+            else { return; }
+            if (thislbl.ForeColor.A > 0)
+            {   //subtract 20 from alpha value
+                
+                int alphaval = thislbl.ForeColor.A - dimmingamount >= 0 ? thislbl.ForeColor.A - dimmingamount : 0;
+                thislbl.ForeColor = Color.FromArgb(alphaval, Colors.colTextPrimary);
+            }
+            else
+            {
+                floatlabeldeletelist.Add(thislbl);
+            }
+        }
     }
     [Serializable]
     public class GameState
@@ -1406,71 +1485,6 @@ namespace FirstClicker
         ShortText = 64,
         ScientificNotation = 128
     }
-    /*  How should unlocks work? 
-     *  Idea 1:
-     *  -When buy button is clicked, check the current quantity of item against a sorted list of predefined quantities, starting with the smallest. The first one 
-     *      where item.myQty < unlocklist[i] is the next unlock index, and so unlocklist[i] is the next unlock quantity. costcalcnew(item, item.nextunlockqty - item.myqty)
-     *      item.purchaseAmount = item.nextUnlockQty - item.myQty;
-     *      item.calculatedCost = costcalcnew(item, item.purchaseAmount);
-     *      
-     *  Idea 2:     I like idea 2... if I wanted to later, I could define separate unlocklists for each item, and maybe define a list<int> that holds multipliers too...
-     *  -item stores an int reflecting latest unlock (largest unlocklist index) achieved. Each time an item is purchased, check the new quantity against the unlocklist,
-     *      and see if the last index where item.myqty >= unlocklist[i] == true is equal to the stored index. If it is, then no unlock was achieved. If it is larger, then
-     *      starting at unlocklist[latestunlock], iterate (i++) through unlocklist until reaching the new index, applying each unlock bonus along the way.
-     *      After any unlock/milestone is reached, while iterating, check all other items to see if they have reached the same milestone. If they have, then this was the last
-     *      one waiting to reach it, so apply global bonus to all items.
-     *      when purchamount is clicked and equals purchaseamount.next, use costcalcnew() to determine the cost of reaching the milestone unlocklist[item.latestunlock+1] (assuming it exists).
-     *      List<int> unlockList = new List<int> { 10, 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000 };
-     *      buy_clicked, canAfford==true, item(s) purchased:
-     *      {
-     *          //item.latestUnlock = -1; (we owned between 0 of them before this purchase)
-     *          //for now, unlockMultiplier = 2;
-     *          int highestunlockindex = item.latestUnlock;
-     *          do
-     *          {
-     *              highestunlockindex++;
-     *          }
-     *          while (item.myQty >= unlocklist[highestunlockindex])
-     *          highestunlockindex--;   //since we're checking condition after iteration, we need to back down by 1 to get the last valid result. If we're in this routine, we just bought at least 1. HUI is 0 now.
-     *          if (highestunlockindex > item.latestUnlock)     //0 > -1 == true
-     *          {
-     *              //we reached a milestone!
-     *              do
-     *              {
-     *                  item.latestUnlock++;        //-1 + 1 = 0;
-     *                  item.mySalary *= unlockMultiplier;  //apply the bonus
-     *                  bool allOthersHave = true;
-     *                  for (int i = 0; i < myItems.Count; i++)
-     *                  {
-     *                      if (myItems[i].itemID != item.itemID)   //don't need to check this one again...
-     *                      {
-     *                          if (myItems[i].myQty < unlocklist[item.latestUnlock])       //if qty < UL[0]==1, then we don't own at least 1 of everything else!
-     *                          {
-     *                              allOthersHave = false;
-     *                              break;      //if any one of them fails, exit the loop - it would be computationally wasteful not to.
-     *                          }
-     *                      }
-     *                  }
-     *                  if (allOthersHave)
-     *                  {
-     *                      for (int i = 0; i < myItems.Count; i++)
-     *                      {
-     *                          myItems[i].mySalary *= unlockMultiplier;
-     *                      }
-     *                  }
-     *              }
-     *              while (item.latestUnlock < highestunlockindex) //bonus will be applied, and latestunlock will be set afterwards to equal highestunlockindex.
-     *              //0 < 0 == false, so execution falls out of loop and continues elsewhere.
-     *          }
-     *          else
-     *          {
-     *              //they're the same, so we didn't reach a new milestone.
-     *          }
-     *      }
-     *      
-     *      purchamount_click, purchamount==purchamount.next:
-     *      {
-     *          //use the same method that exists for 1, 10, and 100, but purchase quantity for each one is unlockList[item.latestUnlock] - item.myQty. Feed that into costcalcnew() to get cost.
-     *      }
-     */
+    
+    
 }
