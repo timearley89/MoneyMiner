@@ -34,15 +34,16 @@
             lblSalPerSec = new Label();
             lblCost = new Label();
             lblQuantity = new Label();
+            progressMining = new ProgressBar();
             grpItem.SuspendLayout();
             SuspendLayout();
             // 
             // btnBuy
             // 
             btnBuy.Font = new Font("Segoe UI", 12F);
-            btnBuy.Location = new Point(3, 70);
+            btnBuy.Location = new Point(3, 127);
             btnBuy.Name = "btnBuy";
-            btnBuy.Size = new Size(291, 45);
+            btnBuy.Size = new Size(291, 32);
             btnBuy.TabIndex = 0;
             btnBuy.Text = "Purchase x1";
             btnBuy.UseVisualStyleBackColor = true;
@@ -57,63 +58,82 @@
             grpItem.Font = new Font("Segoe UI", 12F);
             grpItem.Location = new Point(3, 3);
             grpItem.Name = "grpItem";
-            grpItem.Size = new Size(291, 61);
+            grpItem.Size = new Size(291, 122);
             grpItem.TabIndex = 1;
             grpItem.TabStop = false;
             grpItem.Text = "groupBox1";
             // 
             // lblTotalSal
             // 
-            lblTotalSal.AutoSize = true;
-            lblTotalSal.Font = new Font("Segoe UI", 9F);
-            lblTotalSal.Location = new Point(6, 43);
+            lblTotalSal.BackColor = SystemColors.ActiveCaption;
+            lblTotalSal.Font = new Font("Segoe UI", 12F);
+            lblTotalSal.Location = new Point(6, 88);
             lblTotalSal.Name = "lblTotalSal";
-            lblTotalSal.Size = new Size(38, 15);
+            lblTotalSal.Size = new Size(279, 31);
             lblTotalSal.TabIndex = 3;
             lblTotalSal.Text = "label1";
+            lblTotalSal.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // lblSalPerSec
             // 
-            lblSalPerSec.AutoSize = true;
+            lblSalPerSec.BackColor = SystemColors.ActiveCaption;
             lblSalPerSec.Font = new Font("Segoe UI", 9F);
-            lblSalPerSec.Location = new Point(144, 43);
+            lblSalPerSec.Location = new Point(144, 54);
             lblSalPerSec.Name = "lblSalPerSec";
-            lblSalPerSec.Size = new Size(38, 15);
+            lblSalPerSec.Size = new Size(141, 28);
             lblSalPerSec.TabIndex = 2;
             lblSalPerSec.Text = "label1";
+            lblSalPerSec.TextAlign = ContentAlignment.MiddleLeft;
+            lblSalPerSec.Click += lblSalPerSec_Click;
             // 
             // lblCost
             // 
-            lblCost.AutoSize = true;
+            lblCost.BackColor = SystemColors.ActiveCaption;
             lblCost.Font = new Font("Segoe UI", 9F);
-            lblCost.Location = new Point(144, 25);
+            lblCost.Location = new Point(144, 16);
             lblCost.Name = "lblCost";
-            lblCost.Size = new Size(38, 15);
+            lblCost.Size = new Size(141, 32);
             lblCost.TabIndex = 1;
             lblCost.Text = "label1";
+            lblCost.TextAlign = ContentAlignment.MiddleLeft;
             // 
             // lblQuantity
             // 
-            lblQuantity.AutoSize = true;
-            lblQuantity.Font = new Font("Segoe UI", 9F);
-            lblQuantity.Location = new Point(6, 25);
+            lblQuantity.BackColor = SystemColors.ActiveCaption;
+            lblQuantity.Font = new Font("Segoe UI", 11F);
+            lblQuantity.Location = new Point(6, 35);
             lblQuantity.Name = "lblQuantity";
-            lblQuantity.Size = new Size(38, 15);
+            lblQuantity.Size = new Size(78, 38);
             lblQuantity.TabIndex = 0;
             lblQuantity.Text = "label1";
+            lblQuantity.TextAlign = ContentAlignment.MiddleLeft;
+            // 
+            // progressMining
+            // 
+            progressMining.Anchor = AnchorStyles.Bottom;
+            progressMining.Location = new Point(3, 160);
+            progressMining.MarqueeAnimationSpeed = 10;
+            progressMining.Name = "progressMining";
+            progressMining.Size = new Size(291, 18);
+            progressMining.Step = 1;
+            progressMining.Style = ProgressBarStyle.Continuous;
+            progressMining.TabIndex = 4;
             // 
             // ItemView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
+            AutoValidate = AutoValidate.Disable;
+            BorderStyle = BorderStyle.Fixed3D;
+            CausesValidation = false;
+            Controls.Add(progressMining);
             Controls.Add(grpItem);
             Controls.Add(btnBuy);
             Name = "ItemView";
-            Size = new Size(297, 118);
+            Size = new Size(301, 181);
             Load += ItemView_Load;
             Paint += ItemView_Paint;
             grpItem.ResumeLayout(false);
-            grpItem.PerformLayout();
             ResumeLayout(false);
         }
 
@@ -125,5 +145,6 @@
         private Label lblQuantity;
         private Label lblSalPerSec;
         private Label lblTotalSal;
+        public ProgressBar progressMining;
     }
 }

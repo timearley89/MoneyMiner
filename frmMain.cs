@@ -38,21 +38,43 @@ namespace FirstClicker
         //Convert purchaseamount to enum, including 1, 10, 100, Next, Max - DONE!
 
         //Need a 'Pause' menu!
-            //-move master volume slider to top of pause menu
-            //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
-            //-add link to stats window
-            //-Save/Load buttons?
-            
+        //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
+        //-add link to stats window
+        //-Save/Load buttons?
+
 
         //Need a 'Settings' menu!
-            //-add checkboxes for backgroundmusic and soundFX toggles
-                //-if backgroundmusic is toggled Off, playback should also stop - not just mute.
-            //-fullscreen toggle
-            //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
-            //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
-            //-Autosave Interval Setting
+        //-master volume slider
+        //-add checkboxes for backgroundmusic and soundFX toggles
+        //-if backgroundmusic is toggled Off, playback should also stop - not just mute.
+        //-fullscreen toggle
+        //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
+        //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
+        //-Autosave Interval Setting
 
         //Autosave Feature
+
+        //Money needs to 'do' something, or be used for something. Would add some depth, but what?
+
+        //Prestige button should change color (or overlays an exclamation point or something) when prestigepoints to be earned >= current prestigepoints (or > if at 0)
+
+        //sliderVolume not setting MusicVol and FXVol, but instead calling SetAudioVolume(int, int). Needs to set properties so saving will enable persistent state on load. -FIXED!
+
+        //We shouldn't need to actually close the application to prestige - should be able to savegame() and then set this = new frmMain(lastlifemoney, prestigePoints); and then this.Show();
+
+        //In addition, since we're using GameState to store and update all parameters related to prestige, we shouldn't need those constructor params either, meaning frmMain() should suffice. --DONE
+
+        //Achievements
+
+        //Unlocks sorted into button/per type which update to the next related upgrade after buying one?
+
+        //New stats:
+        //Money earned by clicking
+        //Money earned by clicking lifetime
+        //Money earned by miners
+        //Money earned by miners lifetime
+        //Highest clickAmount lifetime
+        //Highest salary lifetime
 
         //Floating indicators when clicking btnMine that show total $ gained --DONE!
 
@@ -67,7 +89,7 @@ namespace FirstClicker
         //Need a proper 'Stats' window!
 
         //Need more background music? If so, we'll need a callback method for when playback is finished that triggers next song in list. I guess List<string> would work for holding
-                //track names, and the callback method would iterate to the next string in the list, open it's file, seek to 0L, and play.
+        //track names, and the callback method would iterate to the next string in the list, open it's file, seek to 0L, and play.
 
         //Need more upgrades!
 
@@ -126,10 +148,10 @@ namespace FirstClicker
             for (int i = 1; i <= 8; i++)
             {
                 mciSendString($"setaudio pickaxe{i}sound volume to {fxVol}", null, 0, IntPtr.Zero);
-        }
+            }
         }
 
-        public frmMain(double lastlifeMoney = 0.0d, double prestPoints = 0.0d)
+        public frmMain()
         {
             InitializeComponent();
             PrestigeNextRestart = false;
@@ -256,9 +278,9 @@ namespace FirstClicker
             if (this.myMoney == default) { myMoney = 0.0d; }
             if (this.incrperclick == default) { incrperclick = 1; }
             if (this.myPurchaseAmount == default) { myPurchaseAmount = PurchaseAmount.BuyOne; }
-            if (this.thislifetimeMoney == default) { this.thislifetimeMoney = lastlifeMoney; }
-            if (this.prestigePoints == default) { this.prestigePoints = prestPoints; }
-            if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = lastlifeMoney; }
+            if (this.thislifetimeMoney == default) { this.thislifetimeMoney = 0.0d; }   //if they're default here, then we couldn't load from the last save. Set to 0.
+            if (this.prestigePoints == default) { this.prestigePoints = 0.0d; }
+            if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = 0.0d; }
             if (this.GameClock == default) { this.GameClock = new Stopwatch(); }
             if (this.MusicVolume == default) { this.MusicVolume = 500; }
             if (this.FXVolume == default) { this.FXVolume = 500; }
@@ -424,7 +446,16 @@ namespace FirstClicker
                 UpgradePanel.Controls.Add(upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
 
-            foreach (ItemView item in myItems) { item.UpdateLabels(); }
+            foreach (ItemView item in myItems) 
+            { 
+                item.UpdateLabels(); 
+                if (item.myQty > 0) 
+                { 
+                    item.progressMining.Enabled = true; 
+                    item.myTimer.Start();   //If we loaded a game, should we save and calculate interval time vs elapsed real time to get amount of fires to feed to salary?
+                    //item.mystopwatch.Restart();
+                } 
+            }
             this.GameClock = new Stopwatch();
             this.timerPerSec.Start();
             this.timerVisualUpdate.Start();
@@ -435,6 +466,9 @@ namespace FirstClicker
                 myPurchaseAmount = PurchaseAmount.Buy100;
                 btnPurchAmount_Click(this, e);
             }
+            itemPanel_Resize(this, e);  //make sure items are centered
+            UpgradePanel_Resize(this, e);   //make sure upgrade buttons are centered
+
         }
         public void btncolorchanged(Object? sender, EventArgs e)
         {
@@ -460,7 +494,9 @@ namespace FirstClicker
 
                         //previously threw an exception when trying to just cast it to 'ItemView'. '.Where' returns an Enumerable of type T (inferred or specified), so being that
                         //an enumerable is just a list that meets the requirements of IEnumerable, we have to return the first item. We need to figure out how to handle btnitemID not found though...
-                        myItems.Where(x => x.myID == btnitemID).First<ItemView>().mySalary *= btnsender.myUpgrade.Multiplier;
+                        ItemView tempItem = myItems.Where(x => x.myID == btnitemID).First<ItemView>();
+                        tempItem.mySalary *= btnsender.myUpgrade.Multiplier;
+                        
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
 
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
@@ -711,22 +747,10 @@ namespace FirstClicker
                         btn.Enabled = false;
                     }
                 }
-                btn.Refresh();  //is this necessary?
+                //btn.Refresh();  //is this necessary?
 
             }
-            //override x coordinate in itemPanel to center ItemViews
-            for (int i = 0; i < itemPanel.Controls.Count; i++)
-            {
-                itemPanel.Controls[i].Anchor = AnchorStyles.None;
-                //get left x coord of itempanel, add half of itempanel.width to find center of itempanel, then subtract half of item.width to find it's left x coord. Y remains unchanged.
-                int xLocation = (itemPanel.Location.X + ((itemPanel.Size.Width - System.Windows.Forms.SystemInformation.VerticalScrollBarWidth) / 2)) - (itemPanel.Controls[i].Size.Width / 2);
-
-                Point newLocation = new Point(xLocation, itemPanel.Controls[i].Location.Y);
-                //subtract itemPanel.X from xLocation to prevent adding extra padding due to distance of itemPanel from edge of form.
-                Padding padding = new Padding(xLocation - itemPanel.Location.X, 10, 10, 10);
-                itemPanel.Controls[i].Margin = padding;
-                //itemPanel.Controls[i].Location = newLocation; Not needed afterall, causes flickering due to different locations anyway. Parent Control forces location anyway.
-            }
+            
         }
 
         private void frmMain_Click(object sender, EventArgs e)
@@ -751,8 +775,8 @@ namespace FirstClicker
                 tempsal += (view.mySalary * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             salary = tempsal;
-            myMoney += salary;
-            thislifetimeMoney += salary;
+            //myMoney += salary;
+            //thislifetimeMoney += salary;
         }
         public void BuyClicked(ItemView sender)     //--TEST UNLOCKS!!!--//
         {
@@ -773,6 +797,12 @@ namespace FirstClicker
                     PlayRegisterSound1 = true;
                 }
                 sender.myQty += sender.purchaseAmount;
+                if (sender.myQty > 0)
+                {
+                    sender.progressMining.Enabled = true;
+                    sender.myTimer.Start();
+                    sender.mystopwatch.Start();
+                }
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
 
                 int highestunlockindex = sender.latestUnlock;
@@ -810,8 +840,8 @@ namespace FirstClicker
                         }
                     }
                     while (sender.latestUnlock < highestunlockindex); //bonus will be applied, and latestunlock will be set afterwards to equal highestunlockindex.
-                    //0 < 0 == false, so execution falls out of loop and continues elsewhere.
-                    }
+                                                                      //0 < 0 == false, so execution falls out of loop and continues elsewhere.
+                }
                 else
                 {
                     //they're the same, so we didn't reach a new milestone.
@@ -836,9 +866,9 @@ namespace FirstClicker
             sender.ButtonColor(myMoney, sender.purchaseAmount, sender.myCostMult);
         }
 
-        
 
-        
+
+
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
@@ -981,6 +1011,11 @@ namespace FirstClicker
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
             //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.
             double tempprestige = this.calcPrestige(lastlifetimeMoney, thislifetimeMoney);
+            foreach (ItemView item in myItems)
+            {
+                item.myTimer.Stop();
+                item.mystopwatch.Stop();
+            }
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
             this.GameClock.Stop();
@@ -994,7 +1029,11 @@ namespace FirstClicker
                 this.timerVisualUpdate.Stop();
                 this.toolTipTimer.Stop();
                 this.GameClock.Stop();
-
+                foreach (ItemView item in myItems)
+                {
+                    item.myTimer.Stop();
+                    item.mystopwatch.Stop();
+                }
 
                 this.lastlifetimeMoney = thislifetimeMoney + lastlifetimeMoney;
                 this.prestigePoints += tempprestige;
@@ -1015,10 +1054,16 @@ namespace FirstClicker
                 Program.RestartForPrestige = true;
                 this.PrestigeNextRestart = true;
                 SaveGame(tempprestige);
+                
                 this.Close();
             }
             else if (dres == DialogResult.No)
             {
+                foreach (ItemView item in myItems)
+                {
+                    item.mystopwatch.Start();   //start stopwatch without resetting
+                    item.myTimer.Start();
+                }
                 timerPerSec.Start();
                 timerVisualUpdate.Start();
                 this.GameClock.Reset();
@@ -1087,7 +1132,7 @@ namespace FirstClicker
                     }
             }
         }
-        
+
 
         internal static string ReBig(string input)
         {
@@ -1304,7 +1349,9 @@ namespace FirstClicker
 
         private void sliderVolume_Scroll(object sender, EventArgs e)
         {
-            SetAudioVolume(sliderVolume.Value, sliderVolume.Value);
+            this.MusicVolume = sliderVolume.Value;
+            this.FXVolume = sliderVolume.Value;
+            SetAudioVolume(MusicVolume, FXVolume);
         }
 
         List<Label> floatlabels = new List<Label>();
@@ -1330,7 +1377,7 @@ namespace FirstClicker
             lblNew.AutoSize = true;
             lblNew.Parent = this;
             lblNew.BringToFront();
-            lblNew.Name = $"lblFloat{floatlabels.Count+1}";
+            lblNew.Name = $"lblFloat{floatlabels.Count + 1}";
             lblNew.Text = $"${(clickAmount * incrperclick >= 1000000.0d ? Stringify((clickAmount * incrperclick).ToString()) : double.Round(clickAmount * incrperclick, 2).ToString("N"))}";
             lblNew.ForeColor = Color.FromArgb(255, Colors.colTextPrimary);
             lblNew.BackColor = Color.FromArgb(0, Colors.colTextSecondary);
@@ -1350,7 +1397,7 @@ namespace FirstClicker
             else { return; }
             if (thislbl.ForeColor.A > 0)
             {   //subtract 20 from alpha value
-                
+
                 int alphaval = thislbl.ForeColor.A - dimmingamount >= 0 ? thislbl.ForeColor.A - dimmingamount : 0;
                 thislbl.ForeColor = Color.FromArgb(alphaval, Colors.colTextPrimary);
             }
@@ -1358,6 +1405,67 @@ namespace FirstClicker
             {
                 floatlabeldeletelist.Add(thislbl);
             }
+        }
+
+        private void UpgradePanel_Resize(object sender, EventArgs e)
+        {
+            //calculate and recenter each button within panel
+            //do this at frmload as well after buttons are added in
+            int truecenterx = UpgradePanel.Location.X + ((UpgradePanel.Width - SystemInformation.VerticalScrollBarWidth) / 2);
+            for (int i = 0; i < UpgradePanel.Controls.Count; i++)
+            {
+                UpgradePanel.Controls[i].Location = new Point((truecenterx - (UpgradePanel.Controls[i].Width / 2)) + UpgradePanel.Margin.Left, UpgradePanel.Controls[i].Location.Y);
+            }
+            //refresh panel to redraw it and it's controls
+            UpgradePanel.Refresh();
+        }
+
+        private void itemPanel_Resize(object sender, EventArgs e)
+        {
+            //override x coordinate in itemPanel to center ItemViews
+            for (int i = 0; i < itemPanel.Controls.Count; i++)
+            {
+                itemPanel.Controls[i].Anchor = AnchorStyles.None;
+                //get left x coord of itempanel, add half of itempanel.width to find center of itempanel, then subtract half of item.width to find it's left x coord. Y remains unchanged.
+                int xLocation = (itemPanel.Location.X + ((itemPanel.Size.Width - System.Windows.Forms.SystemInformation.VerticalScrollBarWidth) / 2)) - (itemPanel.Controls[i].Size.Width / 2);
+
+                Point newLocation = new Point(xLocation, itemPanel.Controls[i].Location.Y);
+                //subtract itemPanel.X from xLocation to prevent adding extra padding due to distance of itemPanel from edge of form.
+                Padding padding = new Padding(xLocation - itemPanel.Location.X, 10, 10, 10);
+                itemPanel.Controls[i].Margin = padding;
+                //itemPanel.Controls[i].Location = newLocation; Not needed afterall, causes flickering due to different locations anyway. Parent Control forces location anyway.
+            }
+        }
+
+        public void itemTimer_Tick(object? sender, EventArgs e)
+        {
+            //sender is the ItemView that contains the timer that 'ticked'. Execution is caught by itemview.salarytimer_tick, and thrown here.
+            if (sender == null) { return; }
+            ItemView senderview = (ItemView)sender;
+            senderview.myTimer.Stop();
+            if (senderview.progressMining.Value == 0)
+            {
+                //force draw, then iterate
+                senderview.progressMining.Value++;
+                senderview.progressMining.Value--;
+                senderview.progressMining.Increment(senderview.mySalaryTimeMS / 10);
+            }
+            else if (senderview.progressMining.Value < senderview.progressMining.Maximum)
+            {
+                senderview.progressMining.Value++;
+                senderview.progressMining.Value--;
+                senderview.progressMining.Value += senderview.mySalaryTimeMS / 10;
+            }
+            else if (senderview.progressMining.Value == senderview.progressMining.Maximum)
+            {
+                senderview.progressMining.Value--;
+                senderview.progressMining.Value++;
+                senderview.progressMining.Update();
+                myMoney += senderview.mySalary * senderview.myQty;
+                thislifetimeMoney += senderview.mySalary * senderview.myQty;
+                senderview.progressMining.Value = 0;
+            }
+            senderview.myTimer.Start();
         }
     }
     [Serializable]

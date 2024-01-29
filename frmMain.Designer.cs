@@ -45,6 +45,7 @@
             pctCenterBackground = new PictureBox();
             btnStats = new Button();
             sliderVolume = new TrackBar();
+            lblVolume = new Label();
             grpMoney.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
             ((System.ComponentModel.ISupportInitialize)sliderVolume).BeginInit();
@@ -61,6 +62,7 @@
             itemPanel.Size = new Size(353, 537);
             itemPanel.TabIndex = 0;
             itemPanel.WrapContents = false;
+            itemPanel.Resize += itemPanel_Resize;
             // 
             // timerPerSec
             // 
@@ -90,6 +92,7 @@
             UpgradePanel.Size = new Size(196, 537);
             UpgradePanel.TabIndex = 5;
             UpgradePanel.WrapContents = false;
+            UpgradePanel.Resize += UpgradePanel_Resize;
             // 
             // btnMine
             // 
@@ -235,12 +238,23 @@
             sliderVolume.TickFrequency = 50;
             sliderVolume.Scroll += sliderVolume_Scroll;
             // 
+            // lblVolume
+            // 
+            lblVolume.Anchor = AnchorStyles.Bottom;
+            lblVolume.AutoSize = true;
+            lblVolume.Location = new Point(522, 537);
+            lblVolume.Name = "lblVolume";
+            lblVolume.Size = new Size(50, 15);
+            lblVolume.TabIndex = 15;
+            lblVolume.Text = "Volume ";
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(984, 561);
+            Controls.Add(lblVolume);
             Controls.Add(sliderVolume);
             Controls.Add(btnStats);
             Controls.Add(btnMine);
@@ -286,5 +300,6 @@
         private PictureBox pctCenterBackground;
         private Button btnStats;
         private TrackBar sliderVolume;
+        private Label lblVolume;
     }
 }

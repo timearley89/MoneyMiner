@@ -2,16 +2,19 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using System.Timers;
 using System.Windows.Forms;
 
 namespace FirstClicker.Controls
 {
-    
+
 
     [Serializable]
     public partial class ItemView : UserControl
@@ -26,11 +29,15 @@ namespace FirstClicker.Controls
         public double calculatedCost;
         public double baseCost;
         public int latestUnlock;
+        public System.Windows.Forms.Timer myTimer;
+        public Stopwatch mystopwatch;
+        public int mySalaryTimeMS = 1000;
+        
         public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _latestUnlock = -1)
         {
             InitializeComponent();
             this.myID = myID;
-            this.Colors = new MyColors();            
+            this.Colors = new MyColors();
             this.BackColor = Colors.colBackground;
             this.grpItem.BackColor = Colors.colBackground;
             this.ForeColor = Colors.colTextPrimary;
@@ -60,18 +67,50 @@ namespace FirstClicker.Controls
         }
         private void ItemView_Load(object sender, EventArgs e)
         {
+            myTimer = new System.Windows.Forms.Timer();
+            mystopwatch = new Stopwatch();
+            myTimer.Interval = mySalaryTimeMS / 10;
+            progressMining.Value = 0;
+            progressMining.Maximum = (mySalaryTimeMS / 10) * 9; //if max==salarytime, we go through 11 cycles and either 1st or last update don't get drawn.
+            progressMining.Minimum = 0;
+            progressMining.Enabled = false;
+            if (this.Parent != null && (this.Parent).Parent != null)
+            {
+                myTimer.Tick += new EventHandler(salaryTimer_Tick);
+                
+            }
+
+            lblTotalSal.BackColor = Colors.colButtonEnabled;
+            lblTotalSal.BorderStyle = BorderStyle.FixedSingle;
+            lblQuantity.BackColor = Colors.colButtonEnabled;
+            lblQuantity.BorderStyle = BorderStyle.FixedSingle;
+            lblCost.BackColor = Colors.colButtonEnabled;
+            lblCost.BorderStyle = BorderStyle.FixedSingle;
+            lblSalPerSec.BackColor = Colors.colButtonEnabled;
+            lblSalPerSec.BorderStyle = BorderStyle.FixedSingle;
+            grpItem.BackColor = Colors.colBorders;
+            BackColor = Colors.colBackground;
+            lblTotalSal.ForeColor = Colors.colTextPrimary;    //black
+            lblQuantity.ForeColor = Colors.colTextPrimary;
+            lblCost.ForeColor = Colors.colTextPrimary;
+            lblSalPerSec.ForeColor = Colors.colTextPrimary;
+            grpItem.ForeColor = Colors.colTextPrimary;
+        }
+        private void salaryTimer_Tick(object? sender, EventArgs e)
+        {
+            ((frmMain)((this.Parent).Parent)).itemTimer_Tick(this, e);
             
         }
         public void UpdateLabels()
         {
             //no calculations, just update labels/buttons.
-            
+
             this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
             this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";//double.Round((this.mySalary * this.myQty), 2):N
             this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary, 2):N
             this.grpItem.Text = this.Name;
-            
+
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
         }
 
@@ -93,10 +132,10 @@ namespace FirstClicker.Controls
         public double CalcCost(int purchaseQty, double costMultiplier)
         {
             //just returns the cost for purchasing x amount of this item and updates internal variables accordingly.
-            if (purchaseQty <= 0) 
+            if (purchaseQty <= 0)
             {
-                this.calculatedCost = 0.00d; 
-                this.purchaseAmount = 0; 
+                this.calculatedCost = 0.00d;
+                this.purchaseAmount = 0;
             }
             else
             {
@@ -127,10 +166,14 @@ namespace FirstClicker.Controls
             {
                 throw new NullReferenceException(); //this control has no parent!? WTF!? Luckily haven't seen this one yet, and we never should...
             }
-            
+
 
         }
-        
+
+        private void lblSalPerSec_Click(object sender, EventArgs e)
+        {
+
+        }
     }
     [Serializable]
     public class ItemData
@@ -146,6 +189,7 @@ namespace FirstClicker.Controls
         public MyColors myColors;
         public string myName;
         public int latestUnlock;
+        public int timeRemainingMS;
 
         public ItemData(ItemView item)
         {
@@ -160,6 +204,7 @@ namespace FirstClicker.Controls
             this.myColors = item.Colors;
             this.myName = item.Name;
             this.latestUnlock = item.latestUnlock;
+            //this.timeRemainingMS = item.mySalaryTimeMS - (int)((double)item.progressMining.Value / ((double)item.progressMining.Maximum));
         }
         public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int latestUnlock = -1)
         {
@@ -176,4 +221,6 @@ namespace FirstClicker.Controls
             this.latestUnlock = latestUnlock;
         }
     }
+
+    
 }
