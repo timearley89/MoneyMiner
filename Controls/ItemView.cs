@@ -122,6 +122,8 @@ namespace FirstClicker.Controls
             lblCost.ForeColor = Colors.colTextPrimary;
             lblSalPerSec.ForeColor = Colors.colTextPrimary;
             grpItem.ForeColor = Colors.colTextPrimary;
+            lblTimeLeft.BackColor = Colors.colButtonEnabled;
+            lblTimeLeft.ForeColor = Colors.colTextPrimary;
         }
         /// <summary>
         /// Calculates and sets the properties in the given item for it's salary per timeinterval.
@@ -149,7 +151,7 @@ namespace FirstClicker.Controls
             this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";//double.Round((this.mySalary * this.myQty), 2):N
             this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary, 2):N
             this.grpItem.Text = this.Name;
-
+            this.lblTimeLeft.Text = $"Time: {double.Round(((1.0d - ((double)this.myprogressvalue / (double)this.mySalaryTimeMS)) * this.mySalaryTimeMS) / 1000, 1).ToString("N1")}s";
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
         }
 

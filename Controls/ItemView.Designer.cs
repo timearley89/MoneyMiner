@@ -30,6 +30,7 @@
         {
             btnBuy = new Button();
             grpItem = new GroupBox();
+            lblTimeLeft = new Label();
             lblTotalSal = new Label();
             lblSalPerSec = new Label();
             lblCost = new Label();
@@ -51,6 +52,7 @@
             // 
             // grpItem
             // 
+            grpItem.Controls.Add(lblTimeLeft);
             grpItem.Controls.Add(lblTotalSal);
             grpItem.Controls.Add(lblSalPerSec);
             grpItem.Controls.Add(lblCost);
@@ -62,6 +64,17 @@
             grpItem.TabIndex = 1;
             grpItem.TabStop = false;
             grpItem.Text = "groupBox1";
+            // 
+            // lblTimeLeft
+            // 
+            lblTimeLeft.Anchor = AnchorStyles.Left;
+            lblTimeLeft.BackColor = SystemColors.ActiveCaption;
+            lblTimeLeft.Font = new Font("Segoe UI", 11F);
+            lblTimeLeft.Location = new Point(6, 58);
+            lblTimeLeft.Name = "lblTimeLeft";
+            lblTimeLeft.Size = new Size(132, 24);
+            lblTimeLeft.TabIndex = 4;
+            lblTimeLeft.Text = "Time: 0.0s";
             // 
             // lblTotalSal
             // 
@@ -101,9 +114,9 @@
             // 
             lblQuantity.BackColor = SystemColors.ActiveCaption;
             lblQuantity.Font = new Font("Segoe UI", 11F);
-            lblQuantity.Location = new Point(6, 35);
+            lblQuantity.Location = new Point(6, 24);
             lblQuantity.Name = "lblQuantity";
-            lblQuantity.Size = new Size(78, 38);
+            lblQuantity.Size = new Size(132, 24);
             lblQuantity.TabIndex = 0;
             lblQuantity.Text = "label1";
             lblQuantity.TextAlign = ContentAlignment.MiddleLeft;
@@ -146,5 +159,6 @@
         private Label lblSalPerSec;
         private Label lblTotalSal;
         public ProgressBar progressMining;
+        private Label lblTimeLeft;
     }
 }
