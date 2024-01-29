@@ -30,10 +30,10 @@ namespace FirstClicker.Controls
         public double baseCost;
         public int latestUnlock;
         public System.Windows.Forms.Timer myTimer;
-        public Stopwatch mystopwatch;
-        public int mySalaryTimeMS = 1000;
+        public int mySalaryTimeMS;
+        public int myprogressvalue;
         
-        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _latestUnlock = -1)
+        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _salaryTime, int _latestUnlock = -1, int progressvalue = 0)
         {
             InitializeComponent();
             this.myID = myID;
@@ -48,6 +48,16 @@ namespace FirstClicker.Controls
             this.Name = myName;
             this.mySalary = _mySalary;
             this.latestUnlock = _latestUnlock;
+            this.mySalaryTimeMS = _salaryTime;
+            this.progressMining.Maximum = _salaryTime;
+            if (progressvalue > this.progressMining.Maximum)
+            {
+                this.myprogressvalue = _salaryTime;
+            }
+            else
+            {
+                this.myprogressvalue = progressvalue;
+            }
             this.UpdateLabels();
         }
         public ItemView(ItemData data)
@@ -64,15 +74,32 @@ namespace FirstClicker.Controls
             this.Colors = data.myColors;
             this.Name = data.myName;
             this.latestUnlock = data.latestUnlock;
+            this.mySalaryTimeMS = data.mySalaryTimeMS;
+            this.progressMining.Maximum = this.mySalaryTimeMS;
+            if (data.progressvalueMS > this.progressMining.Maximum)
+            {
+                this.myprogressvalue = this.progressMining.Maximum;
+            }
+            else
+            {
+                this.myprogressvalue = data.progressvalueMS;
+            }
         }
         private void ItemView_Load(object sender, EventArgs e)
         {
             myTimer = new System.Windows.Forms.Timer();
-            mystopwatch = new Stopwatch();
-            myTimer.Interval = mySalaryTimeMS / 10;
-            progressMining.Value = 0;
-            progressMining.Maximum = (mySalaryTimeMS / 10) * 9; //if max==salarytime, we go through 11 cycles and either 1st or last update don't get drawn.
+            myTimer.Interval = 100;
             progressMining.Minimum = 0;
+            progressMining.Maximum = mySalaryTimeMS; //if max==salarytime, we go through 11 cycles and either 1st or last update don't get drawn.
+            if (mySalaryTimeMS < myTimer.Interval)
+            {
+                NormalizeSalary(this, myTimer.Interval);
+            }
+            if (this.myprogressvalue > 0 && this.myQty > 0)
+            {
+                progressMining.Value = this.myprogressvalue <= progressMining.Maximum ? this.myprogressvalue : progressMining.Maximum;
+            }
+            else { this.myprogressvalue = 0; }
             progressMining.Enabled = false;
             if (this.Parent != null && (this.Parent).Parent != null)
             {
@@ -95,6 +122,18 @@ namespace FirstClicker.Controls
             lblCost.ForeColor = Colors.colTextPrimary;
             lblSalPerSec.ForeColor = Colors.colTextPrimary;
             grpItem.ForeColor = Colors.colTextPrimary;
+        }
+        /// <summary>
+        /// Calculates and sets the properties in the given item for it's salary per timeinterval.
+        /// Use this when an item's salarytimeMS is less than 100mS to prevent updating too quickly and blocking the UI thread.
+        /// </summary>
+        /// <param name="item">The ItemView item to be normalized.</param>
+        /// <param name="timeinMS">Time period to earn salary, default 100mS.</param>
+        public static void NormalizeSalary(ItemView item, int timeinMS = 100)
+        {
+            //salary / time = salpersec
+            item.mySalary = (item.mySalary / (item.mySalaryTimeMS / 1000.0d)) * (timeinMS / 1000);
+            item.mySalaryTimeMS = timeinMS;
         }
         private void salaryTimer_Tick(object? sender, EventArgs e)
         {
@@ -189,7 +228,8 @@ namespace FirstClicker.Controls
         public MyColors myColors;
         public string myName;
         public int latestUnlock;
-        public int timeRemainingMS;
+        public int mySalaryTimeMS;
+        public int progressvalueMS;
 
         public ItemData(ItemView item)
         {
@@ -204,9 +244,10 @@ namespace FirstClicker.Controls
             this.myColors = item.Colors;
             this.myName = item.Name;
             this.latestUnlock = item.latestUnlock;
-            //this.timeRemainingMS = item.mySalaryTimeMS - (int)((double)item.progressMining.Value / ((double)item.progressMining.Maximum));
+            this.mySalaryTimeMS = item.mySalaryTimeMS;
+            this.progressvalueMS = item.myprogressvalue;
         }
-        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int latestUnlock = -1)
+        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
         {
             this.myCost = myCost;
             this.myQty = myQty;
@@ -219,6 +260,8 @@ namespace FirstClicker.Controls
             this.myColors = myColors;
             this.myName = myName;
             this.latestUnlock = latestUnlock;
+            this.mySalaryTimeMS = mySalaryTimeMS;
+            this.progressvalueMS = myprogressvalue;
         }
     }
 

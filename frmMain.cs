@@ -189,14 +189,14 @@ namespace FirstClicker
 
             if (this.myItems == default || this.myItems.Length == 0)
             {
-                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.67d),
-                    new ItemView(2, "Stone Miner", 60d, 1.15d, 20d),
-                    new ItemView(3, "Iron Miner", 720d, 1.14d, 90d),
-                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 360d),
-                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 2160d),
-                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 6480d),
-                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 19440d),
-                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 58320d)];
+                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.0d, 600),
+                    new ItemView(2, "Stone Miner", 60d, 1.15d, 60d, 3000),
+                    new ItemView(3, "Iron Miner", 720d, 1.14d, 540d, 6000),
+                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 4320d, 12000),
+                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 51840d, 24000),
+                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000),
+                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000),
+                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000)];
             }
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
@@ -285,18 +285,8 @@ namespace FirstClicker
             if (this.MusicVolume == default) { this.MusicVolume = 500; }
             if (this.FXVolume == default) { this.FXVolume = 500; }
 
-            if (this.prestigePoints > 0.0d)
-            {
-                this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
-            }
-            foreach (var item in myItems)
-            {
-                //upgradeButtons.Add(new UpgradeButton());
-                if (this.prestigePoints > 0.0d)
-                {
-                    item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
-                }
-            } //add upgrade button for each item and adjust salary for prestigepoints.
+             
+            //add upgrade button for each item and adjust salary for prestigepoints.
 
             foreach (Upgrade upgrade in MainUpgradeList)
             {
@@ -451,7 +441,9 @@ namespace FirstClicker
                 item.UpdateLabels(); 
                 if (item.myQty > 0) 
                 { 
-                    item.progressMining.Enabled = true; 
+                    item.progressMining.Enabled = true;
+                    item.progressMining.Value = item.myprogressvalue <= item.progressMining.Maximum ? item.myprogressvalue : item.progressMining.Maximum;
+                    
                     item.myTimer.Start();   //If we loaded a game, should we save and calculate interval time vs elapsed real time to get amount of fires to feed to salary?
                     //item.mystopwatch.Restart();
                 } 
@@ -772,7 +764,7 @@ namespace FirstClicker
             double tempsal = 0.00d;    //iterate through items owned and calculate total salary per cycle.
             foreach (ItemView view in myItems)
             {
-                tempsal += (view.mySalary * view.myQty);    //if qty is 0, salary increment will be 0.
+                tempsal += ((view.mySalary / ((double)view.mySalaryTimeMS / 1000.0d)) * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             salary = tempsal;
             //myMoney += salary;
@@ -801,7 +793,6 @@ namespace FirstClicker
                 {
                     sender.progressMining.Enabled = true;
                     sender.myTimer.Start();
-                    sender.mystopwatch.Start();
                 }
                 sender.myCost = sender.myCost * Math.Pow(sender.myCostMult, sender.purchaseAmount);
 
@@ -862,6 +853,7 @@ namespace FirstClicker
                 sender.calculatedCost = this.costcalcnew(sender, temppurchamount);
                 sender.purchaseAmount = temppurchamount;
             }
+            if (sender.mySalaryTimeMS < sender.myTimer.Interval) { ItemView.NormalizeSalary(sender, sender.myTimer.Interval); }
             sender.UpdateLabels();
             sender.ButtonColor(myMoney, sender.purchaseAmount, sender.myCostMult);
         }
@@ -1014,7 +1006,6 @@ namespace FirstClicker
             foreach (ItemView item in myItems)
             {
                 item.myTimer.Stop();
-                item.mystopwatch.Stop();
             }
             this.timerPerSec.Stop();
             this.timerVisualUpdate.Stop();
@@ -1032,7 +1023,7 @@ namespace FirstClicker
                 foreach (ItemView item in myItems)
                 {
                     item.myTimer.Stop();
-                    item.mystopwatch.Stop();
+                    item.myprogressvalue = item.progressMining.Value;
                 }
 
                 this.lastlifetimeMoney = thislifetimeMoney + lastlifetimeMoney;
@@ -1061,8 +1052,11 @@ namespace FirstClicker
             {
                 foreach (ItemView item in myItems)
                 {
-                    item.mystopwatch.Start();   //start stopwatch without resetting
-                    item.myTimer.Start();
+                    if (item.progressMining.Enabled)
+                    {
+                        item.myTimer.Start();
+                    }
+
                 }
                 timerPerSec.Start();
                 timerVisualUpdate.Start();
@@ -1285,12 +1279,40 @@ namespace FirstClicker
             TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
             this.thislifeGameTime.Add(sincelastsave);
             this.totalGameTime.Add(sincelastsave);
-            if (sincelastsave.TotalSeconds > 1.0d) { myMoney += salary * sincelastsave.TotalSeconds; thislifetimeMoney += salary * sincelastsave.TotalSeconds; MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salary * sincelastsave.TotalSeconds) >= 1000000.0d ? Stringify((salary * sincelastsave.TotalSeconds).ToString("R"), StringifyOptions.LongText) : (salary * sincelastsave.TotalSeconds).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); }
+            if (sincelastsave.TotalSeconds > 1.0d) 
+            { 
+                //myMoney += salary * sincelastsave.TotalSeconds; 
+                //thislifetimeMoney += salary * sincelastsave.TotalSeconds;
+
+                double salearned = 0.0d;
+                for (int i = 0; i < myItems.Length; i++)
+                {
+                    int thisremainingMS;
+                    salearned += (progressCompletedIterations(sincelastsave, myItems[i], out thisremainingMS) * myItems[i].mySalary * myItems[i].myQty);
+                    myItems[i].myprogressvalue = thisremainingMS;
+                }
+                myMoney += salearned;
+                thislifetimeMoney += salearned;
+
+                MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); 
+            }
             if (save.PrestigeSaveFlag)
             {
                 //show message displaying amount of prestige earned?
                 MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
                 //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
+                if (this.prestigePoints > 0.0d)
+                {
+                    this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                }
+                foreach (var item in myItems)
+                {
+                    //upgradeButtons.Add(new UpgradeButton());
+                    if (this.prestigePoints > 0.0d)
+                    {
+                        item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                    }
+                }
                 save.PrestigeSaveFlag = false;
                 SaveGame();
             }
@@ -1442,30 +1464,54 @@ namespace FirstClicker
             //sender is the ItemView that contains the timer that 'ticked'. Execution is caught by itemview.salarytimer_tick, and thrown here.
             if (sender == null) { return; }
             ItemView senderview = (ItemView)sender;
-            senderview.myTimer.Stop();
-            if (senderview.progressMining.Value == 0)
+            //senderview.myTimer.Stop();
+            if (senderview.progressMining.Value == senderview.progressMining.Maximum)
             {
-                //force draw, then iterate
-                senderview.progressMining.Value++;
+                //payout, force draw, then iterate
+                myMoney += senderview.mySalary * senderview.myQty;
+                thislifetimeMoney += senderview.mySalary * senderview.myQty;
+                senderview.progressMining.Value = 1;
+                senderview.progressMining.Value = 0;
+                senderview.progressMining.Value += senderview.myTimer.Interval;
                 senderview.progressMining.Value--;
-                senderview.progressMining.Increment(senderview.mySalaryTimeMS / 10);
             }
             else if (senderview.progressMining.Value < senderview.progressMining.Maximum)
             {
-                senderview.progressMining.Value++;
+                if (senderview.progressMining.Value + senderview.myTimer.Interval >= senderview.progressMining.Maximum)
+                {
+                    senderview.progressMining.Value = senderview.progressMining.Maximum;
+                }
+                else
+                {
+                senderview.progressMining.Value += senderview.myTimer.Interval;
+                }
                 senderview.progressMining.Value--;
-                senderview.progressMining.Value += senderview.mySalaryTimeMS / 10;
+                senderview.progressMining.Value++;
             }
-            else if (senderview.progressMining.Value == senderview.progressMining.Maximum)
+            senderview.myprogressvalue = senderview.progressMining.Value;
+            /*
+             * if max, payout, set to 0 then increment
+             * else, increment
+             */
+
+            //senderview.myTimer.Start();
+        }
+
+        public int progressCompletedIterations(TimeSpan elapsed, ItemView item, out int remainingMS)
+        {
+            //calculate how many complete iterations have passed
+            if (item.myprogressvalue + elapsed.TotalMilliseconds < item.mySalaryTimeMS)
             {
-                senderview.progressMining.Value--;
-                senderview.progressMining.Value++;
-                senderview.progressMining.Update();
-                myMoney += senderview.mySalary * senderview.myQty;
-                thislifetimeMoney += senderview.mySalary * senderview.myQty;
-                senderview.progressMining.Value = 0;
+                remainingMS = item.mySalaryTimeMS - (item.myprogressvalue + (int)Math.Floor(elapsed.TotalMilliseconds));
+                return 0;
             }
-            senderview.myTimer.Start();
+            else
+            {
+                //return will be (int)Math.Floor((elapsed + progressvalue) / saltime)
+                //remainingMS will be (elapsed + progressvalue) % saltime
+                remainingMS = ((int)elapsed.TotalMilliseconds + item.myprogressvalue) % item.mySalaryTimeMS;
+                return (int)Math.Floor((double)((int)elapsed.TotalMilliseconds + item.myprogressvalue) / item.mySalaryTimeMS);
+            }
         }
     }
     [Serializable]
