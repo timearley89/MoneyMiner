@@ -740,8 +740,6 @@ namespace FirstClicker
                         btn.Enabled = false;
                     }
                 }
-                //btn.Refresh();  //is this necessary?
-
             }
 
         }
@@ -1117,6 +1115,38 @@ namespace FirstClicker
                         myOutput = trimmedinput + TextStrings[wordindex];
                         return myOutput;
                     }
+                case (StringifyOptions.SecondsToHourMinSec):
+                    {
+                        //input should be a number representing an amount of seconds, as a double. eg.'13528.6'. 
+                        //calibrated for at least 999999 seconds.
+                        //Note: Exception handling not in place yet!
+                        int houraccum = 0;
+                        int minaccum = 0;
+                        double parsedinput = double.Parse(input);
+                        while (parsedinput >= 3600.0d)
+                        {
+                            parsedinput -= 3600.0d;
+                            houraccum++;
+                        }
+                        while (parsedinput >= 60.0d)
+                        {
+                            parsedinput -= 60.0d;
+                            minaccum++;
+                        }
+                        return $"{houraccum.ToString("#00")}:{minaccum.ToString("00")}:{parsedinput.ToString("00.0")}";
+                    }
+                case (StringifyOptions.SecondsToMinSec):
+                {
+                        //Calibrated for at least 999999 seconds.
+                    int minaccum = 0;
+                    double parsedinput = double.Parse(input);
+                    while (parsedinput >= 60.0d)
+                    {
+                        parsedinput -= 60.0d;
+                        minaccum++;
+                    }
+                    return $"{minaccum.ToString("###00")}:{parsedinput.ToString("00.0")}";
+                }
                 default:
                     {
                         return input;
@@ -1595,7 +1625,13 @@ namespace FirstClicker
         private void btnPause_Click(object sender, EventArgs e)
         {
             PauseMenu pauseMenu = new PauseMenu(this as frmMain);
-            pauseMenu.Show();
+            int centeroffrmmainx;
+            int centeroffrmmainy;
+            centeroffrmmainx = this.Location.X + (this.Width / 2);
+            centeroffrmmainy = this.Location.Y + (this.Height / 2);
+            Point pauseLoc = new Point(centeroffrmmainx - (pauseMenu.Width / 2), centeroffrmmainy - (pauseMenu.Height / 2));
+            pauseMenu.Location = pauseLoc;
+            pauseMenu.ShowDialog();
         }
     }
     [Serializable]
@@ -1725,7 +1761,9 @@ namespace FirstClicker
     {
         LongText = 32,
         ShortText = 64,
-        ScientificNotation = 128
+        ScientificNotation = 128,
+        SecondsToMinSec = 256,
+        SecondsToHourMinSec = 512
     }
     
     

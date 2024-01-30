@@ -161,7 +161,8 @@ namespace FirstClicker.Controls
             this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
             this.grpItem.Text = this.Name;
-            this.lblTimeLeft.Text = $"Time: {double.Round(((1.0d - ((double)this.myprogressvalue / (double)this.mySalaryTimeMS)) * this.mySalaryTimeMS) / 1000, 1).ToString("N1")}s";
+            string timeleftsec = double.Round(((1.0d - ((double)this.myprogressvalue / (double)this.mySalaryTimeMS)) * this.mySalaryTimeMS) / 1000, 1).ToString("N1");
+            this.lblTimeLeft.Text = $"Time: {frmMain.Stringify(timeleftsec, StringifyOptions.SecondsToMinSec)}";
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
             if (this.displaySalPerSec)
             {
@@ -174,6 +175,8 @@ namespace FirstClicker.Controls
                 //Display total salary per payout period
                 this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";
                 this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary,
+                
+                
             }
         }
 
