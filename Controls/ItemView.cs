@@ -32,7 +32,8 @@ namespace FirstClicker.Controls
         public System.Windows.Forms.Timer myTimer;
         public int mySalaryTimeMS;
         public int myprogressvalue;
-        
+        public bool displaySalPerSec;
+
         public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _salaryTime, int _latestUnlock = -1, int progressvalue = 0)
         {
             InitializeComponent();
@@ -50,6 +51,7 @@ namespace FirstClicker.Controls
             this.latestUnlock = _latestUnlock;
             this.mySalaryTimeMS = _salaryTime;
             this.progressMining.Maximum = _salaryTime;
+            this.displaySalPerSec = false;
             if (progressvalue > this.progressMining.Maximum)
             {
                 this.myprogressvalue = _salaryTime;
@@ -76,6 +78,7 @@ namespace FirstClicker.Controls
             this.latestUnlock = data.latestUnlock;
             this.mySalaryTimeMS = data.mySalaryTimeMS;
             this.progressMining.Maximum = this.mySalaryTimeMS;
+            this.displaySalPerSec = data.displaySalPerSec;
             if (data.progressvalueMS > this.progressMining.Maximum)
             {
                 this.myprogressvalue = this.progressMining.Maximum;
@@ -87,6 +90,7 @@ namespace FirstClicker.Controls
         }
         private void ItemView_Load(object sender, EventArgs e)
         {
+            tooltipTotalSal.SetToolTip(lblTotalSal, "Toggle between Total Salary & Total Salary Per Second");
             myTimer = new System.Windows.Forms.Timer();
             myTimer.Interval = 100;
             progressMining.Minimum = 0;
@@ -104,7 +108,7 @@ namespace FirstClicker.Controls
             if (this.Parent != null && (this.Parent).Parent != null)
             {
                 myTimer.Tick += new EventHandler(salaryTimer_Tick);
-                
+
             }
 
             lblTotalSal.BackColor = Colors.colButtonEnabled;
@@ -137,10 +141,14 @@ namespace FirstClicker.Controls
             item.mySalary = (item.mySalary / (item.mySalaryTimeMS / 1000.0d)) * (timeinMS / 1000);
             item.mySalaryTimeMS = timeinMS;
         }
+        public static double GetTotalSalPerSec(ItemView item)
+        {
+            return (item.mySalary / (item.mySalaryTimeMS / 1000.0d)) * item.myQty;
+        }
         private void salaryTimer_Tick(object? sender, EventArgs e)
         {
             ((frmMain)((this.Parent).Parent)).itemTimer_Tick(this, e);
-            
+
         }
         public void UpdateLabels()
         {
@@ -148,11 +156,20 @@ namespace FirstClicker.Controls
 
             this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
-            this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";//double.Round((this.mySalary * this.myQty), 2):N
             this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary, 2):N
             this.grpItem.Text = this.Name;
             this.lblTimeLeft.Text = $"Time: {double.Round(((1.0d - ((double)this.myprogressvalue / (double)this.mySalaryTimeMS)) * this.mySalaryTimeMS) / 1000, 1).ToString("N1")}s";
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
+            if (this.displaySalPerSec)
+            {
+                //Display calculated salary per second
+                this.lblTotalSal.Text = $"Salary / Sec: ${(ItemView.GetTotalSalPerSec(this) > 1000000.0d ? frmMain.Stringify((ItemView.GetTotalSalPerSec(this)).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetTotalSalPerSec(this), 2).ToString("N"))}";
+            }
+            else
+            {
+                //Display total salary per payout period
+                this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";
+            }
         }
 
         private void ItemView_Paint(object sender, PaintEventArgs e)
@@ -215,6 +232,15 @@ namespace FirstClicker.Controls
         {
 
         }
+
+        private void lblTotalSal_Click(object sender, EventArgs e)
+        {
+            //simple toggle
+            //this.displaySalPerSec = !this.displaySalPerSec;
+            ((frmMain)(this.Parent).Parent).ToggleItemSalaryDisplays();
+        }
+
+        
     }
     [Serializable]
     public class ItemData
@@ -232,6 +258,7 @@ namespace FirstClicker.Controls
         public int latestUnlock;
         public int mySalaryTimeMS;
         public int progressvalueMS;
+        public bool displaySalPerSec;
 
         public ItemData(ItemView item)
         {
@@ -248,6 +275,7 @@ namespace FirstClicker.Controls
             this.latestUnlock = item.latestUnlock;
             this.mySalaryTimeMS = item.mySalaryTimeMS;
             this.progressvalueMS = item.myprogressvalue;
+            this.displaySalPerSec = item.displaySalPerSec;
         }
         public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
         {
@@ -264,6 +292,7 @@ namespace FirstClicker.Controls
             this.latestUnlock = latestUnlock;
             this.mySalaryTimeMS = mySalaryTimeMS;
             this.progressvalueMS = myprogressvalue;
+            this.displaySalPerSec = false;
         }
     }
 

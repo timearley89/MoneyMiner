@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            components = new System.ComponentModel.Container();
             btnBuy = new Button();
             grpItem = new GroupBox();
             lblTimeLeft = new Label();
@@ -36,6 +37,7 @@
             lblCost = new Label();
             lblQuantity = new Label();
             progressMining = new ProgressBar();
+            tooltipTotalSal = new ToolTip(components);
             grpItem.SuspendLayout();
             SuspendLayout();
             // 
@@ -86,6 +88,7 @@
             lblTotalSal.TabIndex = 3;
             lblTotalSal.Text = "label1";
             lblTotalSal.TextAlign = ContentAlignment.MiddleCenter;
+            lblTotalSal.Click += lblTotalSal_Click;
             // 
             // lblSalPerSec
             // 
@@ -132,6 +135,10 @@
             progressMining.Style = ProgressBarStyle.Continuous;
             progressMining.TabIndex = 4;
             // 
+            // tooltipTotalSal
+            // 
+            tooltipTotalSal.IsBalloon = true;
+            // 
             // ItemView
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -160,5 +167,6 @@
         private Label lblTotalSal;
         public ProgressBar progressMining;
         private Label lblTimeLeft;
+        private ToolTip tooltipTotalSal;
     }
 }

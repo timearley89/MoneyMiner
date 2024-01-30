@@ -293,8 +293,8 @@ namespace FirstClicker
             if (this.prestigePoints == default) { this.prestigePoints = 0.0d; }
             if (this.lastlifetimeMoney == default) { this.lastlifetimeMoney = 0.0d; }
             if (this.GameClock == default) { this.GameClock = new Stopwatch(); }
-            if (this.MusicVolume == default) { this.MusicVolume = 500; }
-            if (this.FXVolume == default) { this.FXVolume = 500; }
+            //if (this.MusicVolume == default) { this.MusicVolume = 500; }
+            //if (this.FXVolume == default) { this.FXVolume = 500; }
 
              
             //add upgrade button for each item and adjust salary for prestigepoints.
@@ -1336,6 +1336,14 @@ namespace FirstClicker
             }
         }
 
+        public void ToggleItemSalaryDisplays()
+        {
+            //Toggle all item displays
+            foreach (ItemView item in myItems)
+            {
+                item.displaySalPerSec = !item.displaySalPerSec;
+            }
+        }
         private void btnMine_MouseDown(object sender, MouseEventArgs e)
         {
             if (sender == null) { return; }
