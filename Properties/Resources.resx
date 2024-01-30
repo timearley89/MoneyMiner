@@ -160,4 +160,8 @@
   <data name="pickaxe-clank-08" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\pickaxe-clank-08.wav;System.IO.MemoryStream, mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
+  <data name="SaveFileLocation" xml:space="preserve">
+    <value>"\"</value>
+    <comment>Default save location is the current directory. Users can change this, and it should be stored persistently.</comment>
+  </data>
 </root>

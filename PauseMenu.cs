@@ -76,13 +76,37 @@ namespace MoneyMiner
             this.Location = this.myLocation;
         }
 
-        private void PauseMenu_KeyDown(object sender, KeyEventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (e.KeyCode == Keys.Escape)
+            if (keyData == Keys.Escape)
             {
                 this.Close();
+                return true;
             }
-            
+            return base.ProcessCmdKey(ref msg, keyData);
+        }
+
+        private void btnSaveGame_Click(object sender, EventArgs e)
+        {
+            //temp for testing
+            saveDialog.InitialDirectory = Environment.CurrentDirectory;
+            DialogResult saveresult = saveDialog.ShowDialog();
+            if (saveresult == DialogResult.OK)
+            {
+                //user selected a valid save location and file
+                FrmMainObj.SaveGame(Path.GetFullPath(saveDialog.FileName));
+            }
+        }
+
+        private void btnLoadGame_Click(object sender, EventArgs e)
+        {
+            //temp for testing
+            loadDialog.InitialDirectory = Environment.CurrentDirectory;
+            DialogResult loadresult = loadDialog.ShowDialog();
+            if (loadresult == DialogResult.OK)
+            {
+                FrmMainObj.LoadGame(Path.GetFullPath(loadDialog.FileName));
+            }
         }
     }
 }

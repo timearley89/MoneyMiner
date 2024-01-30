@@ -188,5 +188,14 @@ namespace MoneyMiner.Properties {
                 return ResourceManager.GetStream("pickaxe-clank-08", resourceCulture);
             }
         }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to &quot;\&quot;.
+        /// </summary>
+        internal static string SaveFileLocation {
+            get {
+                return ResourceManager.GetString("SaveFileLocation", resourceCulture);
+            }
+        }
     }
 }

@@ -1286,6 +1286,49 @@ namespace FirstClicker
             bformatter.Serialize(fstream, save);
             fstream.Close();
         }
+        public void SaveGame(string saveLocation)
+        {
+            GameState save = new GameState();
+
+            List<ItemData> tempitemdatas = new List<ItemData>();
+            for (int i = 0; i < this.myItems.Count(); i++)
+            {
+                tempitemdatas.Add(new ItemData(this.myItems[i]));
+            }
+            save.myItemDatas = tempitemdatas.ToArray();
+            save.MainUpgradeList = this.MainUpgradeList;
+            save.toolTipVisibleTime = this.toolTipVisibleTime;
+            save.toolTipDelay = this.toolTipDelay;
+            save.prestigeMultiplier = this.prestigeMultiplier;
+            save.clickAmount = this.clickAmount;
+            save.salary = this.salary;
+            save.matsMined = this.matsMined;
+            save.myMoney = this.myMoney;
+            save.incrperclick = this.incrperclick;
+            save.myPurchaseAmount = this.myPurchaseAmount;
+            save.thislifetimeMoney = this.thislifetimeMoney;
+            save.prestigePoints = this.prestigePoints;
+            save.lastlifetimeMoney = this.lastlifetimeMoney;
+            save.totalgametime = this.totalGameTime;
+            save.thislifegametime = this.thislifeGameTime;
+            save.lastsavetimestamp = DateTime.Now;
+            save.lastWindowState = this.WindowState;
+            save.MusicVol = this.MusicVolume;
+            save.FXVol = this.FXVolume;
+            save.MusicEn = this.MusicEnabled;
+            save.FXEn = this.FXEnabled;
+            save.PrestigeSaveFlag = false;
+            save.PrestigePointsGained = 0.0d;
+
+            FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", FileMode.Create);
+
+            //serialize and write to disk
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+            BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
+            bformatter.Serialize(fstream, save);
+            fstream.Close();
+        }
         public void LoadGame()
         {
             FileStreamOptions fsOptions = new FileStreamOptions();
@@ -1387,7 +1430,107 @@ namespace FirstClicker
                 SaveGame();
             }
         }
+        public void LoadGame(string loadLocation)
+        {
+            FileStreamOptions fsOptions = new FileStreamOptions();
+            GameState save = new GameState();
+            try
+            {
+                fsOptions.Mode = FileMode.Open;
+                using FileStream fstream = new FileStream(loadLocation, fsOptions);
+                //read from disk and deserialize
+#pragma warning disable SYSLIB0011 // Type or member is obsolete
+                BinaryFormatter bformatter = new BinaryFormatter();
+#pragma warning restore SYSLIB0011 // Type or member is obsolete
+                save = (GameState)bformatter.Deserialize(fstream);
+                fstream.Close();
+            }
+            //If there's a problem or we can't find the file, just skip loading altogether. The constructor will initialize to default, and next time
+            //the game is closed it will save a new file, overwriting the corrupted one if it exists.
+            catch
+            {
+                this.MusicVolume = 500;
+                this.FXVolume = 500;
+                this.MusicEnabled = true;
+                this.FXEnabled = true;
+                this.WindowState = FormWindowState.Maximized;
+                return;
+            }
+            List<ItemView> tempitemlist = new List<ItemView>();
+            for (int i = 0; i < save.myItemDatas.Count(); i++)
+            {
+                tempitemlist.Add(new ItemView(save.myItemDatas[i]));
+            }
+            //only overwrite list if we actually loaded items from the save. Otherwise, keep defaults.
+            if (tempitemlist.Count != 0)
+            {
+                this.myItems = tempitemlist.ToArray();
+            }
+            this.MainUpgradeList = save.MainUpgradeList;
 
+            this.toolTipVisibleTime = save.toolTipVisibleTime;
+            this.toolTipDelay = save.toolTipDelay;
+            this.prestigeMultiplier = save.prestigeMultiplier;
+            this.clickAmount = save.clickAmount;
+            this.salary = save.salary;
+            this.matsMined = save.matsMined;
+            this.myMoney = save.myMoney;
+            this.incrperclick = save.incrperclick;
+            this.myPurchaseAmount = save.myPurchaseAmount;
+            this.thislifetimeMoney = save.thislifetimeMoney;
+            this.prestigePoints = save.prestigePoints;
+            this.lastlifetimeMoney = save.lastlifetimeMoney;
+            this.totalGameTime = save.totalgametime;
+            this.thislifeGameTime = save.thislifegametime;
+            this.WindowState = save.lastWindowState;
+            this.MusicVolume = save.MusicVol;
+            this.FXVolume = save.FXVol;
+            this.MusicEnabled = save.MusicEn;
+            this.FXEnabled = save.FXEn;
+            TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
+            this.thislifeGameTime.Add(sincelastsave);
+            this.totalGameTime.Add(sincelastsave);
+            if (sincelastsave.TotalSeconds > 1.0d)
+            {
+                //myMoney += salary * sincelastsave.TotalSeconds; 
+                //thislifetimeMoney += salary * sincelastsave.TotalSeconds;
+
+                double salearned = 0.0d;
+                for (int i = 0; i < myItems.Length; i++)
+                {
+                    int thisremainingMS;
+                    salearned += (progressCompletedIterations(sincelastsave, myItems[i], out thisremainingMS) * myItems[i].mySalary * myItems[i].myQty);
+                    myItems[i].myprogressvalue = thisremainingMS;
+                }
+                myMoney += salearned;
+                thislifetimeMoney += salearned;
+
+                MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false);
+            }
+            if (save.PrestigeSaveFlag || (save.clickAmount == 0.25d && this.prestigePoints > 0.0d))
+            {
+                //We know that clickAmount and myItems are empty right now - we need to initialize these to default before loading.
+                //Find out why MusicVol and FXVol didn't save.
+                //show message displaying amount of prestige earned?
+                MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
+                //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
+                if (this.prestigePoints > 0.0d)
+                {
+                    //we got here, but clickamount and myItems were default/null. Reevaluate save method and loading/initialization order.
+                    this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                }
+                foreach (var item in myItems)
+                {
+                    //upgradeButtons.Add(new UpgradeButton());
+                    if (this.prestigePoints > 0.0d)
+                    {
+                        item.mySalary *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
+                    }
+                }
+                save.PrestigeSaveFlag = false;
+                SaveGame();
+            }
+        }
         public void ToggleItemSalaryDisplays()
         {
             //Play click sound
@@ -1667,12 +1810,15 @@ namespace FirstClicker
             pauseMenu.ShowDialog();
         }
 
-        private void frmMain_KeyDown(object sender, KeyEventArgs e)
+        protected override bool ProcessCmdKey(ref Message msg, Keys keyData)
         {
-            if (e.KeyCode == Keys.Escape)
+            if (keyData == Keys.Escape)
             {
-                btnPause_Click(sender, e);
+                // Handle key at form level.
+                btnPause_Click(this, EventArgs.Empty);
+                return true;
             }
+            return base.ProcessCmdKey(ref msg, keyData);
         }
     }
     [Serializable]

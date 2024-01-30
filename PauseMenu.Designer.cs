@@ -43,6 +43,8 @@
             btnExit = new Button();
             btnStats = new Button();
             btnAbout = new Button();
+            loadDialog = new OpenFileDialog();
+            saveDialog = new SaveFileDialog();
             ((System.ComponentModel.ISupportInitialize)sliderVolume).BeginInit();
             grpVolume.SuspendLayout();
             panel1.SuspendLayout();
@@ -179,6 +181,7 @@
             btnLoadGame.TabIndex = 1;
             btnLoadGame.Text = "Load Game...";
             btnLoadGame.UseVisualStyleBackColor = false;
+            btnLoadGame.Click += btnLoadGame_Click;
             // 
             // btnSaveGame
             // 
@@ -190,8 +193,9 @@
             btnSaveGame.Name = "btnSaveGame";
             btnSaveGame.Size = new Size(115, 45);
             btnSaveGame.TabIndex = 0;
-            btnSaveGame.Text = "Save Game";
+            btnSaveGame.Text = "Save Game...";
             btnSaveGame.UseVisualStyleBackColor = false;
+            btnSaveGame.Click += btnSaveGame_Click;
             // 
             // btnMasterReset
             // 
@@ -260,6 +264,21 @@
             btnAbout.Text = "About...";
             btnAbout.UseVisualStyleBackColor = false;
             // 
+            // loadDialog
+            // 
+            loadDialog.DefaultExt = "mmf";
+            loadDialog.FileName = "GameState.mmf";
+            loadDialog.Filter = "MoneyMiner Saves|*.mmf|All Files|*.*";
+            loadDialog.RestoreDirectory = true;
+            loadDialog.Title = "Load MoneyMiner From:";
+            // 
+            // saveDialog
+            // 
+            saveDialog.DefaultExt = "mmf";
+            saveDialog.FileName = "GameState.mmf";
+            saveDialog.Filter = "MoneyMiner Saves|*.mmf|All Files|*.*";
+            saveDialog.Title = "Save MoneyMiner To:";
+            // 
             // PauseMenu
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -282,7 +301,6 @@
             SizeGripStyle = SizeGripStyle.Hide;
             Text = "MoneyMiner";
             TopMost = true;
-            KeyDown += PauseMenu_KeyDown;
             Move += PauseMenu_Move;
             Resize += PauseMenu_Resize;
             ((System.ComponentModel.ISupportInitialize)sliderVolume).EndInit();
@@ -310,5 +328,7 @@
         private Button btnExit;
         private Button btnStats;
         private Button btnAbout;
+        private OpenFileDialog loadDialog;
+        private SaveFileDialog saveDialog;
     }
 }
