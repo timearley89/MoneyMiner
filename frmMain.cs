@@ -1261,7 +1261,13 @@ namespace FirstClicker
             }
             //If there's a problem or we can't find the file, just skip loading altogether. The constructor will initialize to default, and next time
             //the game is closed it will save a new file, overwriting the corrupted one if it exists.
-            catch { return; }
+            catch 
+            {
+                this.MusicVolume = 500;
+                this.FXVolume = 500;
+                this.WindowState = FormWindowState.Maximized;
+                return; 
+            }
             List<ItemView> tempitemlist = new List<ItemView>();
             for (int i = 0; i < save.myItemDatas.Count(); i++)
             {
