@@ -42,13 +42,13 @@ namespace FirstClicker
         //-add link to stats window
         //-Save/Load buttons?
 
-        //Prestige is broken again - points accumulate fine, but first load after prestige isn't changing salaries/clickamount
+        //Prestige is broken again - points accumulate fine, but first load after prestige isn't changing salaries/clickamount --FIXED!
 
         //Need a 'Settings' menu!
         //-master volume slider
         //-add checkboxes for backgroundmusic and soundFX toggles
         //-if backgroundmusic is toggled Off, playback should also stop - not just mute.
-        //-fullscreen toggle
+        //-fullscreen toggle?
         //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
         //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
         //-Autosave Interval Setting
@@ -67,7 +67,7 @@ namespace FirstClicker
 
         //Achievements
 
-        //Unlocks sorted into button/per type which update to the next related upgrade after buying one?
+        //Upgrades sorted into button/per type which update to the next related upgrade after buying one?
 
         //New stats:
         //Money earned by clicking
@@ -79,15 +79,19 @@ namespace FirstClicker
 
         //Floating indicators when clicking btnMine that show total $ gained --DONE!
 
-        //Progress bars for items?
+        //Progress bars for items? --DONE!
 
-        //Individual item salary timing?
+        //Individual item salary timing? --DONE!
 
         //Add "Quick-Buy" button to buy all upgrades affordable, starting with least expensive
 
         //Add 'Buy: Next" option to btnPurchAmount to purchase item to next unlock amount   --DONE!
 
         //Need a proper 'Stats' window!
+
+        //Need Prestige Earned window!
+
+        //Need 'Welcome Back' window!
 
         //Need more background music? If so, we'll need a callback method for when playback is finished that triggers next song in list. I guess List<string> would work for holding
         //track names, and the callback method would iterate to the next string in the list, open it's file, seek to 0L, and play.
