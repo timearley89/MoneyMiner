@@ -1160,17 +1160,17 @@ namespace FirstClicker
                         return $"{houraccum.ToString("#00")}:{minaccum.ToString("00")}:{parsedinput.ToString("00.0")}";
                     }
                 case (StringifyOptions.SecondsToMinSec):
-                {
-                        //Calibrated for at least 999999 seconds.
-                    int minaccum = 0;
-                    double parsedinput = double.Parse(input);
-                    while (parsedinput >= 60.0d)
                     {
-                        parsedinput -= 60.0d;
-                        minaccum++;
+                        //Calibrated for at least 999999 seconds.
+                        int minaccum = 0;
+                        double parsedinput = double.Parse(input);
+                        while (parsedinput >= 60.0d)
+                        {
+                            parsedinput -= 60.0d;
+                            minaccum++;
+                        }
+                        return $"{minaccum.ToString("###00")}:{parsedinput.ToString("00.0")}";
                     }
-                    return $"{minaccum.ToString("###00")}:{parsedinput.ToString("00.0")}";
-                }
                 default:
                     {
                         return input;
@@ -1456,7 +1456,7 @@ namespace FirstClicker
 
         }
 
-        
+
         public void ToggleMusic(bool enabled)
         {
             if (enabled)
@@ -1663,8 +1663,16 @@ namespace FirstClicker
                 mciSendString("play clicksound", null, 0, IntPtr.Zero);
             }
             PauseMenu pauseMenu = new PauseMenu(this as frmMain);
-                        
+
             pauseMenu.ShowDialog();
+        }
+
+        private void frmMain_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                btnPause_Click(sender, e);
+            }
         }
     }
     [Serializable]

@@ -260,6 +260,7 @@
             Load += frmMain_Load;
             Click += frmMain_Click;
             Paint += frmMain_Paint;
+            KeyDown += frmMain_KeyDown;
             grpMoney.ResumeLayout(false);
             grpMoney.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).EndInit();

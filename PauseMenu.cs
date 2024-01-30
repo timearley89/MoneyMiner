@@ -29,8 +29,8 @@ namespace MoneyMiner
             centeroffrmmainx = Obj.Location.X + (Obj.Width / 2);
             centeroffrmmainy = Obj.Location.Y + (Obj.Height / 2);
             Point pauseLoc = new Point(centeroffrmmainx - (this.Width / 2), centeroffrmmainy - (this.Height / 2));
-            this.Location = pauseLoc;
-            myLocation = this.Location;
+            myLocation = pauseLoc;
+            this.Location = myLocation; //fire the move event which will set the window location to myLocation.
             this.sliderVolume.Value = FrmMainObj.MusicVolume;
             this.checkMusicEnabled.Checked = FrmMainObj.MusicEnabled;
             this.checkEffectsEnabled.Checked = FrmMainObj.FXEnabled;
@@ -74,6 +74,15 @@ namespace MoneyMiner
         private void PauseMenu_Move(object sender, EventArgs e)
         {
             this.Location = this.myLocation;
+        }
+
+        private void PauseMenu_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+            {
+                this.Close();
+            }
+            
         }
     }
 }
