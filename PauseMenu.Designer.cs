@@ -31,13 +31,13 @@
             lblHeader = new Label();
             sliderVolume = new TrackBar();
             grpVolume = new GroupBox();
-            checkMusicEnabled = new CheckBox();
-            checkEffectsEnabled = new CheckBox();
             panel1 = new Panel();
+            checkEffectsEnabled = new CheckBox();
+            checkMusicEnabled = new CheckBox();
             grpLoadSave = new GroupBox();
             panel2 = new Panel();
-            btnSaveGame = new Button();
             btnLoadGame = new Button();
+            btnSaveGame = new Button();
             btnMasterReset = new Button();
             btnResume = new Button();
             btnExit = new Button();
@@ -76,6 +76,7 @@
             sliderVolume.SmallChange = 25;
             sliderVolume.TabIndex = 1;
             sliderVolume.TickFrequency = 50;
+            sliderVolume.Scroll += sliderVolume_Scroll;
             // 
             // grpVolume
             // 
@@ -90,23 +91,18 @@
             grpVolume.TabStop = false;
             grpVolume.Text = "Audio Settings";
             // 
-            // checkMusicEnabled
+            // panel1
             // 
-            checkMusicEnabled.Anchor = AnchorStyles.Top;
-            checkMusicEnabled.BackColor = Color.PaleTurquoise;
-            checkMusicEnabled.CheckAlign = ContentAlignment.BottomCenter;
-            checkMusicEnabled.Checked = true;
-            checkMusicEnabled.CheckState = CheckState.Checked;
-            checkMusicEnabled.Font = new Font("Impact", 13F);
-            checkMusicEnabled.ImageAlign = ContentAlignment.BottomCenter;
-            checkMusicEnabled.Location = new Point(32, 49);
-            checkMusicEnabled.Name = "checkMusicEnabled";
-            checkMusicEnabled.Size = new Size(120, 39);
-            checkMusicEnabled.TabIndex = 4;
-            checkMusicEnabled.Text = "Enable Music";
-            checkMusicEnabled.TextAlign = ContentAlignment.TopCenter;
-            checkMusicEnabled.TextImageRelation = TextImageRelation.TextAboveImage;
-            checkMusicEnabled.UseVisualStyleBackColor = false;
+            panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            panel1.BackColor = Color.PaleTurquoise;
+            panel1.BorderStyle = BorderStyle.Fixed3D;
+            panel1.Controls.Add(checkEffectsEnabled);
+            panel1.Controls.Add(checkMusicEnabled);
+            panel1.Controls.Add(sliderVolume);
+            panel1.Location = new Point(26, 28);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(315, 104);
+            panel1.TabIndex = 3;
             // 
             // checkEffectsEnabled
             // 
@@ -125,19 +121,26 @@
             checkEffectsEnabled.TextAlign = ContentAlignment.TopCenter;
             checkEffectsEnabled.TextImageRelation = TextImageRelation.TextAboveImage;
             checkEffectsEnabled.UseVisualStyleBackColor = false;
+            checkEffectsEnabled.CheckedChanged += checkEffectsEnabled_CheckedChanged;
             // 
-            // panel1
+            // checkMusicEnabled
             // 
-            panel1.Anchor = AnchorStyles.Left | AnchorStyles.Right;
-            panel1.BackColor = Color.PaleTurquoise;
-            panel1.BorderStyle = BorderStyle.Fixed3D;
-            panel1.Controls.Add(checkEffectsEnabled);
-            panel1.Controls.Add(checkMusicEnabled);
-            panel1.Controls.Add(sliderVolume);
-            panel1.Location = new Point(26, 28);
-            panel1.Name = "panel1";
-            panel1.Size = new Size(315, 104);
-            panel1.TabIndex = 3;
+            checkMusicEnabled.Anchor = AnchorStyles.Top;
+            checkMusicEnabled.BackColor = Color.PaleTurquoise;
+            checkMusicEnabled.CheckAlign = ContentAlignment.BottomCenter;
+            checkMusicEnabled.Checked = true;
+            checkMusicEnabled.CheckState = CheckState.Checked;
+            checkMusicEnabled.Font = new Font("Impact", 13F);
+            checkMusicEnabled.ImageAlign = ContentAlignment.BottomCenter;
+            checkMusicEnabled.Location = new Point(32, 49);
+            checkMusicEnabled.Name = "checkMusicEnabled";
+            checkMusicEnabled.Size = new Size(120, 39);
+            checkMusicEnabled.TabIndex = 4;
+            checkMusicEnabled.Text = "Enable Music";
+            checkMusicEnabled.TextAlign = ContentAlignment.TopCenter;
+            checkMusicEnabled.TextImageRelation = TextImageRelation.TextAboveImage;
+            checkMusicEnabled.UseVisualStyleBackColor = false;
+            checkMusicEnabled.CheckedChanged += checkMusicEnabled_CheckedChanged;
             // 
             // grpLoadSave
             // 
@@ -164,19 +167,6 @@
             panel2.Size = new Size(315, 55);
             panel2.TabIndex = 0;
             // 
-            // btnSaveGame
-            // 
-            btnSaveGame.Anchor = AnchorStyles.Left;
-            btnSaveGame.BackColor = Color.Cyan;
-            btnSaveGame.FlatStyle = FlatStyle.Popup;
-            btnSaveGame.Font = new Font("Impact", 14F);
-            btnSaveGame.Location = new Point(3, 3);
-            btnSaveGame.Name = "btnSaveGame";
-            btnSaveGame.Size = new Size(115, 45);
-            btnSaveGame.TabIndex = 0;
-            btnSaveGame.Text = "Save Game";
-            btnSaveGame.UseVisualStyleBackColor = false;
-            // 
             // btnLoadGame
             // 
             btnLoadGame.Anchor = AnchorStyles.Right;
@@ -189,6 +179,19 @@
             btnLoadGame.TabIndex = 1;
             btnLoadGame.Text = "Load Game...";
             btnLoadGame.UseVisualStyleBackColor = false;
+            // 
+            // btnSaveGame
+            // 
+            btnSaveGame.Anchor = AnchorStyles.Left;
+            btnSaveGame.BackColor = Color.Cyan;
+            btnSaveGame.FlatStyle = FlatStyle.Popup;
+            btnSaveGame.Font = new Font("Impact", 14F);
+            btnSaveGame.Location = new Point(3, 3);
+            btnSaveGame.Name = "btnSaveGame";
+            btnSaveGame.Size = new Size(115, 45);
+            btnSaveGame.TabIndex = 0;
+            btnSaveGame.Text = "Save Game";
+            btnSaveGame.UseVisualStyleBackColor = false;
             // 
             // btnMasterReset
             // 
@@ -213,8 +216,9 @@
             btnResume.Name = "btnResume";
             btnResume.Size = new Size(174, 36);
             btnResume.TabIndex = 5;
-            btnResume.Text = "Resume";
+            btnResume.Text = "Return";
             btnResume.UseVisualStyleBackColor = false;
+            btnResume.Click += btnResume_Click;
             // 
             // btnExit
             // 
@@ -228,6 +232,7 @@
             btnExit.TabIndex = 6;
             btnExit.Text = "Exit Game";
             btnExit.UseVisualStyleBackColor = false;
+            btnExit.Click += btnExit_Click;
             // 
             // btnStats
             // 

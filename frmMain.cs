@@ -35,14 +35,11 @@ namespace FirstClicker
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
         //NOTES & TODO
-        //Convert purchaseamount to enum, including 1, 10, 100, Next, Max - DONE!
 
         //Need a 'Pause' menu!
         //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
         //-add link to stats window
         //-Save/Load buttons?
-
-        //Prestige is broken again - points accumulate fine, but first load after prestige isn't changing salaries/clickamount --FIXED!
 
         //Need a 'Settings' menu!
         //-master volume slider
@@ -57,13 +54,9 @@ namespace FirstClicker
 
         //Money needs to 'do' something, or be used for something. Would add some depth, but what?
 
-        //Prestige button should change color (or overlays an exclamation point or something) when prestigepoints to be earned >= current prestigepoints (or > if at 0)
+        //Prestige button should change color (or overlays an exclamation point or something) when prestigepoints to be earned >= current prestigepoints (or > 0 if at 0)
 
-        //sliderVolume not setting MusicVol and FXVol, but instead calling SetAudioVolume(int, int). Needs to set properties so saving will enable persistent state on load. -FIXED!
-
-        //We shouldn't need to actually close the application to prestige - should be able to savegame() and then set this = new frmMain(lastlifemoney, prestigePoints); and then this.Show();
-
-        //In addition, since we're using GameState to store and update all parameters related to prestige, we shouldn't need those constructor params either, meaning frmMain() should suffice. --DONE
+        //We shouldn't need to actually close the application to prestige - should be able to savegame() and then use a ResetfrmMain() function.
 
         //Achievements
 
@@ -75,17 +68,8 @@ namespace FirstClicker
         //Money earned by miners
         //Money earned by miners lifetime
         //Highest clickAmount lifetime
-        //Highest salary lifetime
-
-        //Floating indicators when clicking btnMine that show total $ gained --DONE!
-
-        //Progress bars for items? --DONE!
-
-        //Individual item salary timing? --DONE!
 
         //Add "Quick-Buy" button to buy all upgrades affordable, starting with least expensive
-
-        //Add 'Buy: Next" option to btnPurchAmount to purchase item to next unlock amount   --DONE!
 
         //Need a proper 'Stats' window!
 
@@ -96,12 +80,11 @@ namespace FirstClicker
         //Need more background music? If so, we'll need a callback method for when playback is finished that triggers next song in list. I guess List<string> would work for holding
         //track names, and the callback method would iterate to the next string in the list, open it's file, seek to 0L, and play.
 
-        //Need more upgrades!
+        //Need more upgrades! & Rebalance upgrades. Add more clickAmount upgrades and change multipliers to keep items relevant.
 
         //Need Prestige Upgrades as well - as in upgrades you buy with prestige points. -Maybe, Maybe not...
 
-        //We should implement unlocks that double individual salaries at ownership thresholds, like, for example:
-        //double when qty = 25, 50, 100, 200, 300, 400, 500, 600, 700, 800, 900, 1000, etc      --DONE!
+        //Maybe we should add an upgradeID for item.mySalaryTimeMS / upgrade.Multiplier...
 
         public MyColors Colors;
         public double myMoney;
@@ -119,6 +102,8 @@ namespace FirstClicker
         public TimeSpan totalGameTime;
         public int MusicVolume; //0 to 1000
         public int FXVolume; //0 to 1000
+        public bool MusicEnabled;
+        public bool FXEnabled;
         //need to add matsMinedLifetime here and in gamestate and load/save and btnMine_Click
 
 
@@ -175,10 +160,11 @@ namespace FirstClicker
                 this.clickAmount = 0.25;
             }
         }
-        
+
         public frmMain()
         {
             InitializeComponent();
+            btnPause.Parent = this;
             PrestigeNextRestart = false;
             DoubleBuffered = true;
             mciSendString($@"open {Environment.CurrentDirectory}\Resources\cashregisterpurchase.wav type mpegvideo alias registersound", null, 0, IntPtr.Zero);
@@ -206,13 +192,14 @@ namespace FirstClicker
             grpMoney.BackColor = Colors.colBorders;
             lblMatsMined.AutoSize = true;
             lblIncrPerClick.AutoSize = true;
+            btnPause.BackColor = Colors.colButtonEnabled;
 
             //initialize default item list before loading to fix prestige issue. If not prestige load, make sure to overwrite them.
             initItemsDefault();
 
             //frmMain constructor now initializes all fields to default IF LoadGame() didn't override them.
             this.LoadGame();
-            
+
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
             //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier, int upgradeID). They can only be created or altered through their constructors.
@@ -300,7 +287,7 @@ namespace FirstClicker
             //if (this.MusicVolume == default) { this.MusicVolume = 500; }
             //if (this.FXVolume == default) { this.FXVolume = 500; }
 
-             
+
             //add upgrade button for each item and adjust salary for prestigepoints.
 
             foreach (Upgrade upgrade in MainUpgradeList)
@@ -423,7 +410,6 @@ namespace FirstClicker
         {
             this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
 
-            sliderVolume.Value = this.MusicVolume;
             SetAudioVolume(MusicVolume, FXVolume);
             //if we're loading after a prestige, find a way to get the previous position so it doesn't restart!
             mciSendString("play backgroundmusic01 repeat", null, 0, IntPtr.Zero);
@@ -451,17 +437,17 @@ namespace FirstClicker
                 UpgradePanel.Controls.Add(upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
 
-            foreach (ItemView item in myItems) 
-            { 
-                item.UpdateLabels(); 
-                if (item.myQty > 0) 
-                { 
+            foreach (ItemView item in myItems)
+            {
+                item.UpdateLabels();
+                if (item.myQty > 0)
+                {
                     item.progressMining.Enabled = true;
                     item.progressMining.Value = item.myprogressvalue <= item.progressMining.Maximum ? item.myprogressvalue : item.progressMining.Maximum;
-                    
+
                     item.myTimer.Start();   //If we loaded a game, should we save and calculate interval time vs elapsed real time to get amount of fires to feed to salary?
                     //item.mystopwatch.Restart();
-                } 
+                }
             }
             this.GameClock = new Stopwatch();
             this.timerPerSec.Start();
@@ -503,7 +489,7 @@ namespace FirstClicker
                         //an enumerable is just a list that meets the requirements of IEnumerable, we have to return the first item. We need to figure out how to handle btnitemID not found though...
                         ItemView tempItem = myItems.Where(x => x.myID == btnitemID).First<ItemView>();
                         tempItem.mySalary *= btnsender.myUpgrade.Multiplier;
-                        
+
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
 
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
@@ -757,7 +743,7 @@ namespace FirstClicker
                 //btn.Refresh();  //is this necessary?
 
             }
-            
+
         }
 
         private void frmMain_Click(object sender, EventArgs e)
@@ -872,10 +858,6 @@ namespace FirstClicker
             sender.UpdateLabels();
             sender.ButtonColor(myMoney, sender.purchaseAmount, sender.myCostMult);
         }
-
-
-
-
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
             mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
@@ -1060,7 +1042,7 @@ namespace FirstClicker
                 Program.RestartForPrestige = true;
                 this.PrestigeNextRestart = true;
                 SaveGame(tempprestige);
-                
+
                 this.Close();
             }
             else if (dres == DialogResult.No)
@@ -1228,6 +1210,8 @@ namespace FirstClicker
             save.lastWindowState = this.WindowState;
             save.MusicVol = this.MusicVolume;
             save.FXVol = this.FXVolume;
+            save.MusicEn = this.MusicEnabled;
+            save.FXEn = this.FXEnabled;
             if (this.PrestigeNextRestart)
             {
                 save.PrestigeSaveFlag = true;
@@ -1265,12 +1249,14 @@ namespace FirstClicker
             }
             //If there's a problem or we can't find the file, just skip loading altogether. The constructor will initialize to default, and next time
             //the game is closed it will save a new file, overwriting the corrupted one if it exists.
-            catch 
+            catch
             {
                 this.MusicVolume = 500;
                 this.FXVolume = 500;
+                this.MusicEnabled = true;
+                this.FXEnabled = true;
                 this.WindowState = FormWindowState.Maximized;
-                return; 
+                return;
             }
             List<ItemView> tempitemlist = new List<ItemView>();
             for (int i = 0; i < save.myItemDatas.Count(); i++)
@@ -1301,11 +1287,13 @@ namespace FirstClicker
             this.WindowState = save.lastWindowState;
             this.MusicVolume = save.MusicVol;
             this.FXVolume = save.FXVol;
+            this.MusicEnabled = save.MusicEn;
+            this.FXEnabled = save.FXEn;
             TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
             this.thislifeGameTime.Add(sincelastsave);
             this.totalGameTime.Add(sincelastsave);
-            if (sincelastsave.TotalSeconds > 1.0d) 
-            { 
+            if (sincelastsave.TotalSeconds > 1.0d)
+            {
                 //myMoney += salary * sincelastsave.TotalSeconds; 
                 //thislifetimeMoney += salary * sincelastsave.TotalSeconds;
 
@@ -1319,7 +1307,7 @@ namespace FirstClicker
                 myMoney += salearned;
                 thislifetimeMoney += salearned;
 
-                MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); 
+                MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false);
             }
             if (save.PrestigeSaveFlag || (save.clickAmount == 0.25d && this.prestigePoints > 0.0d))
             {
@@ -1405,11 +1393,65 @@ namespace FirstClicker
 
         }
 
-        private void sliderVolume_Scroll(object sender, EventArgs e)
+        
+        public void ToggleMusic(bool enabled)
         {
-            this.MusicVolume = sliderVolume.Value;
-            this.FXVolume = sliderVolume.Value;
-            SetAudioVolume(MusicVolume, FXVolume);
+            if (enabled)
+            {
+                if (!this.MusicEnabled)
+                {
+                    //if it wasn't already enabled, then seek to start and play.
+                    mciSendString($"seek backgroundmusic01 to start", null, 0, IntPtr.Zero);
+                    mciSendString($"play backgroundmusic01 repeat", null, 0, IntPtr.Zero);
+                    this.MusicEnabled = true;
+                }
+            }
+            else
+            {
+                if (this.MusicEnabled)
+                {
+                    //if it was enabled, then stop it
+                    mciSendString($"stop backgroundmusic01", null, 0, IntPtr.Zero);
+                    this.MusicEnabled = false;
+                }
+            }
+        }
+        public void ToggleFX(bool enabled)
+        {
+            if (enabled)
+            {
+                if (!this.FXEnabled)
+                {
+                    //if it wasn't already enabled, then set each to on
+                    //pickaxe{i}sound   1-8
+                    //registersound
+                    //registersound2
+                    //clicksound
+                    mciSendString($"setaudio clicksound on", null, 0, IntPtr.Zero);
+                    mciSendString($"setaudio registersound on", null, 0, IntPtr.Zero);
+                    mciSendString($"setaudio registersound2 on", null, 0, IntPtr.Zero);
+                    for (int i = 1; i <= 8; i++)
+                    {
+                        mciSendString($"setaudio pickaxe{i}sound on", null, 0, IntPtr.Zero);
+                    }
+                    this.FXEnabled = true;
+                }
+            }
+            else
+            {
+                if (this.FXEnabled)
+                {
+                    //if it was enabled, then stop it
+                    mciSendString($"setaudio clicksound off", null, 0, IntPtr.Zero);
+                    mciSendString($"setaudio registersound off", null, 0, IntPtr.Zero);
+                    mciSendString($"setaudio registersound2 off", null, 0, IntPtr.Zero);
+                    for (int i = 1; i <= 8; i++)
+                    {
+                        mciSendString($"setaudio pickaxe{i}sound off", null, 0, IntPtr.Zero);
+                    }
+                    this.FXEnabled = false;
+                }
+            }
         }
 
         List<Label> floatlabels = new List<Label>();
@@ -1519,7 +1561,7 @@ namespace FirstClicker
                 }
                 else
                 {
-                senderview.progressMining.Value += senderview.myTimer.Interval;
+                    senderview.progressMining.Value += senderview.myTimer.Interval;
                 }
                 senderview.progressMining.Value--;
                 senderview.progressMining.Value++;
@@ -1549,6 +1591,12 @@ namespace FirstClicker
                 return (int)Math.Floor((double)((int)elapsed.TotalMilliseconds + item.myprogressvalue) / item.mySalaryTimeMS);
             }
         }
+
+        private void btnPause_Click(object sender, EventArgs e)
+        {
+            PauseMenu pauseMenu = new PauseMenu(this as frmMain);
+            pauseMenu.Show();
+        }
     }
     [Serializable]
     public class GameState
@@ -1577,6 +1625,8 @@ namespace FirstClicker
         internal double PrestigePointsGained;
         internal int MusicVol;
         internal int FXVol;
+        internal bool MusicEn;
+        internal bool FXEn;
         public GameState()
         {
             myItemDatas = new ItemData[0];
@@ -1601,6 +1651,8 @@ namespace FirstClicker
             PrestigePointsGained = 0.0d;
             MusicVol = 500;
             FXVol = 500;
+            MusicEn = true;
+            FXEn = true;
         }
     }
     [Serializable]
