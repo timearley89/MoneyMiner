@@ -282,6 +282,8 @@
             SizeGripStyle = SizeGripStyle.Hide;
             Text = "MoneyMiner";
             TopMost = true;
+            Move += PauseMenu_Move;
+            Resize += PauseMenu_Resize;
             ((System.ComponentModel.ISupportInitialize)sliderVolume).EndInit();
             grpVolume.ResumeLayout(false);
             panel1.ResumeLayout(false);

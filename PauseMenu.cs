@@ -14,11 +14,23 @@ namespace MoneyMiner
     public partial class PauseMenu : Form
     {
         private frmMain FrmMainObj;
+        private int mySizeX;
+        private int mySizeY;
+        private Point myLocation;
         public PauseMenu(frmMain Obj)
         {
             InitializeComponent();
             //get a reference to the active main form
             FrmMainObj = Obj;
+            mySizeX = this.Size.Width;
+            mySizeY = this.Size.Height;
+            int centeroffrmmainx;
+            int centeroffrmmainy;
+            centeroffrmmainx = Obj.Location.X + (Obj.Width / 2);
+            centeroffrmmainy = Obj.Location.Y + (Obj.Height / 2);
+            Point pauseLoc = new Point(centeroffrmmainx - (this.Width / 2), centeroffrmmainy - (this.Height / 2));
+            this.Location = pauseLoc;
+            myLocation = this.Location;
             this.sliderVolume.Value = FrmMainObj.MusicVolume;
             this.checkMusicEnabled.Checked = FrmMainObj.MusicEnabled;
             this.checkEffectsEnabled.Checked = FrmMainObj.FXEnabled;
@@ -50,6 +62,18 @@ namespace MoneyMiner
         private void btnResume_Click(object sender, EventArgs e)
         {
             this.Close();
+        }
+
+        private void PauseMenu_Resize(object sender, EventArgs e)
+        {
+            //don't need resizing happening
+            Size newsize = new Size(this.mySizeX, this.mySizeY);
+            this.Size = newsize;
+        }
+
+        private void PauseMenu_Move(object sender, EventArgs e)
+        {
+            this.Location = this.myLocation;
         }
     }
 }

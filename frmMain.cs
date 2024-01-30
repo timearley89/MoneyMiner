@@ -412,7 +412,7 @@ namespace FirstClicker
 
             SetAudioVolume(MusicVolume, FXVolume);
             //if we're loading after a prestige, find a way to get the previous position so it doesn't restart!
-            mciSendString("play backgroundmusic01 repeat", null, 0, IntPtr.Zero);
+            if (this.MusicEnabled) { mciSendString("play backgroundmusic01 repeat", null, 0, IntPtr.Zero); }
 
             //Populate form with possible items from array, then update their labels.
             for (int i = 1; i <= myItems.Length; i++)
@@ -495,17 +495,20 @@ namespace FirstClicker
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (PlayRegisterSound1)
+                        if (this.FXEnabled)
                         {
-                            mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = false;
-                        }
-                        else
-                        {
-                            mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = true;
+                            if (PlayRegisterSound1)
+                            {
+                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = false;
+                            }
+                            else
+                            {
+                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = true;
+                            }
                         }
 
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
@@ -533,17 +536,20 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (PlayRegisterSound1)
+                        if (this.FXEnabled)
                         {
-                            mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = false;
-                        }
-                        else
-                        {
-                            mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = true;
+                            if (PlayRegisterSound1)
+                            {
+                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = false;
+                            }
+                            else
+                            {
+                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = true;
+                            }
                         }
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                         btnsender.Enabled = false;
@@ -573,17 +579,20 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (PlayRegisterSound1)
+                        if (this.FXEnabled)
                         {
-                            mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = false;
-                        }
-                        else
-                        {
-                            mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = true;
+                            if (PlayRegisterSound1)
+                            {
+                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = false;
+                            }
+                            else
+                            {
+                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = true;
+                            }
                         }
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
@@ -647,17 +656,20 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         MainUpgradeList[MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (PlayRegisterSound1)
+                        if (this.FXEnabled)
                         {
-                            mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = false;
-                        }
-                        else
-                        {
-                            mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                            mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                            PlayRegisterSound1 = true;
+                            if (PlayRegisterSound1)
+                            {
+                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = false;
+                            }
+                            else
+                            {
+                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                                PlayRegisterSound1 = true;
+                            }
                         }
                         btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
                     }
@@ -775,17 +787,20 @@ namespace FirstClicker
             {
 
                 myMoney -= sender.calculatedCost;
-                if (PlayRegisterSound1)
+                if (this.FXEnabled)
                 {
-                    mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                    mciSendString("play registersound", null, 0, IntPtr.Zero);
-                    PlayRegisterSound1 = false;
-                }
-                else
-                {
-                    mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                    mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                    PlayRegisterSound1 = true;
+                    if (PlayRegisterSound1)
+                    {
+                        mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound", null, 0, IntPtr.Zero);
+                        PlayRegisterSound1 = false;
+                    }
+                    else
+                    {
+                        mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                        mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                        PlayRegisterSound1 = true;
+                    }
                 }
                 sender.myQty += sender.purchaseAmount;
                 if (sender.myQty > 0)
@@ -858,8 +873,11 @@ namespace FirstClicker
         }
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
-            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
-            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            if (this.FXEnabled)
+            {
+                mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            }
 
             //purchAmount should be made into an enum. Perfect use-case for it, and reduces possible errors from invalid values.
             if (myPurchaseAmount == PurchaseAmount.BuyOne)
@@ -946,8 +964,11 @@ namespace FirstClicker
 
             Random randnumber = new Random();
             int i = randnumber.Next(1, 8);
-            mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
-            mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
+            if (this.FXEnabled)
+            {
+                mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
+                mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
+            }
 
             //testing...
             FloatText();
@@ -992,8 +1013,11 @@ namespace FirstClicker
 
         private void btnPrestige_Click(object sender, EventArgs e)
         {
-            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
-            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            if (this.FXEnabled)
+            {
+                mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            }
 
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
             //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.
@@ -1366,6 +1390,12 @@ namespace FirstClicker
 
         public void ToggleItemSalaryDisplays()
         {
+            //Play click sound
+            if (this.FXEnabled)
+            {
+                mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            }
             //Toggle all item displays
             foreach (ItemView item in myItems)
             {
@@ -1398,8 +1428,11 @@ namespace FirstClicker
 
         private void btnStats_Click(object sender, EventArgs e)
         {
-            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
-            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            if (this.FXEnabled)
+            {
+                mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            }
             //open stats window with current stats, update times and restart gameclock
 
             this.thislifeGameTime += GameClock.Elapsed;
@@ -1624,13 +1657,13 @@ namespace FirstClicker
 
         private void btnPause_Click(object sender, EventArgs e)
         {
+            if (this.FXEnabled)
+            {
+                mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                mciSendString("play clicksound", null, 0, IntPtr.Zero);
+            }
             PauseMenu pauseMenu = new PauseMenu(this as frmMain);
-            int centeroffrmmainx;
-            int centeroffrmmainy;
-            centeroffrmmainx = this.Location.X + (this.Width / 2);
-            centeroffrmmainy = this.Location.Y + (this.Height / 2);
-            Point pauseLoc = new Point(centeroffrmmainx - (pauseMenu.Width / 2), centeroffrmmainy - (pauseMenu.Height / 2));
-            pauseMenu.Location = pauseLoc;
+                        
             pauseMenu.ShowDialog();
         }
     }
