@@ -42,6 +42,7 @@ namespace FirstClicker
         //-add link to stats window
         //-Save/Load buttons?
 
+        //Prestige is broken again - points accumulate fine, but first load after prestige isn't changing salaries/clickamount
 
         //Need a 'Settings' menu!
         //-master volume slider
@@ -1303,6 +1304,7 @@ namespace FirstClicker
                 //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
                 if (this.prestigePoints > 0.0d)
                 {
+                    //we got here, but clickamount and myItems were default/null. Reevaluate save method and loading/initialization order.
                     this.clickAmount *= ((prestigePoints / (100.0d / prestigeMultiplier)) + 1);
                 }
                 foreach (var item in myItems)
