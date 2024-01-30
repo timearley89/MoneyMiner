@@ -152,6 +152,26 @@ namespace FirstClicker
             }
         }
 
+        public void initItemsDefault()
+        {
+            //items should be initialized to defaults before game is loaded
+            if (this.myItems == default || this.myItems.Length == 0)
+            {
+                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.0d, 600),
+                    new ItemView(2, "Stone Miner", 60d, 1.15d, 60d, 3000),
+                    new ItemView(3, "Iron Miner", 720d, 1.14d, 540d, 6000),
+                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 4320d, 12000),
+                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 51840d, 24000),
+                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000),
+                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000),
+                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000)];
+            }
+            if (this.clickAmount == default)
+            {
+                this.clickAmount = 0.25;
+            }
+        }
+        
         public frmMain()
         {
             InitializeComponent();
@@ -183,22 +203,12 @@ namespace FirstClicker
             lblMatsMined.AutoSize = true;
             lblIncrPerClick.AutoSize = true;
 
-
+            //initialize default item list before loading to fix prestige issue. If not prestige load, make sure to overwrite them.
+            initItemsDefault();
 
             //frmMain constructor now initializes all fields to default IF LoadGame() didn't override them.
             this.LoadGame();
-
-            if (this.myItems == default || this.myItems.Length == 0)
-            {
-                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.0d, 600),
-                    new ItemView(2, "Stone Miner", 60d, 1.15d, 60d, 3000),
-                    new ItemView(3, "Iron Miner", 720d, 1.14d, 540d, 6000),
-                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 4320d, 12000),
-                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 51840d, 24000),
-                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000),
-                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000),
-                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000)];
-            }
+            
             if (this.upgradeButtons == default) { upgradeButtons = new List<UpgradeButton>(); }    //(ID, Name, baseCost, Multiplier, Salary)
 
             //Upgrades are declared as: (string Name, double Cost, int ItemID, double Multiplier, int upgradeID). They can only be created or altered through their constructors.
@@ -1037,10 +1047,10 @@ namespace FirstClicker
                 }
                 this.salary = default;
                 this.myMoney = default;
-                this.clickAmount = default;
-                this.prestigeMultiplier = default;
+                this.clickAmount = 0.25d;
+                this.prestigeMultiplier = 2;
                 this.matsMined = default;
-                this.incrperclick = default;
+                this.incrperclick = 1;
                 this.thislifetimeMoney = default;
                 this.thislifeGameTime = default;
                 Program.RestartForPrestige = true;
@@ -1257,7 +1267,11 @@ namespace FirstClicker
             {
                 tempitemlist.Add(new ItemView(save.myItemDatas[i]));
             }
-            this.myItems = tempitemlist.ToArray();
+            //only overwrite list if we actually loaded items from the save. Otherwise, keep defaults.
+            if (tempitemlist.Count != 0)
+            {
+                this.myItems = tempitemlist.ToArray();
+            }
             this.MainUpgradeList = save.MainUpgradeList;
 
             this.toolTipVisibleTime = save.toolTipVisibleTime;
@@ -1297,8 +1311,10 @@ namespace FirstClicker
 
                 MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false); 
             }
-            if (save.PrestigeSaveFlag)
+            if (save.PrestigeSaveFlag || (save.clickAmount == 0.25d && this.prestigePoints > 0.0d))
             {
+                //We know that clickAmount and myItems are empty right now - we need to initialize these to default before loading.
+                //Find out why MusicVol and FXVol didn't save.
                 //show message displaying amount of prestige earned?
                 MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
                 //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
