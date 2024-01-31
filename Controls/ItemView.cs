@@ -50,6 +50,7 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = _salaryTime;
             this.progressMining.Maximum = _salaryTime;
             this.displaySalPerSec = false;
+            myTimer = new System.Windows.Forms.Timer();
             if (progressvalue > this.progressMining.Maximum)
             {
                 this.myprogressvalue = _salaryTime;
@@ -76,6 +77,7 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = data.mySalaryTimeMS;
             this.progressMining.Maximum = this.mySalaryTimeMS;
             this.displaySalPerSec = data.displaySalPerSec;
+            myTimer = new();
             if (data.progressvalueMS > this.progressMining.Maximum)
             {
                 this.myprogressvalue = this.progressMining.Maximum;
@@ -125,6 +127,7 @@ namespace FirstClicker.Controls
             grpItem.ForeColor = MyColors.colTextPrimary;
             lblTimeLeft.BackColor = MyColors.colButtonEnabled;
             lblTimeLeft.ForeColor = MyColors.colTextPrimary;
+            this.UpdateLabels();
         }
         /// <summary>
         /// Calculates and sets the properties in the given item for it's salary per timeinterval.
@@ -148,7 +151,10 @@ namespace FirstClicker.Controls
         }
         private void salaryTimer_Tick(object? sender, EventArgs e)
         {
-            ((frmMain)((this.Parent).Parent)).itemTimer_Tick(this, e);
+            if (this.Parent != null && (this.Parent).Parent != null) 
+            { 
+                ((frmMain)((this.Parent).Parent)).itemTimer_Tick(this, e);
+            }
 
         }
         public void UpdateLabels()
@@ -240,10 +246,10 @@ namespace FirstClicker.Controls
 
         private void lblTotalSal_Click(object sender, EventArgs e)
         {
-            //simple toggle
-            //this.displaySalPerSec = !this.displaySalPerSec;
-            ((frmMain)(this.Parent).Parent).ToggleItemSalaryDisplays();
-            //After loading a game manually, we lose the object references to itemPanel's items. Remove them all and add the new ones.
+            if (this.Parent != null && this.Parent.Parent != null)
+            {
+                ((frmMain)(this.Parent).Parent).ToggleItemSalaryDisplays();
+            }
         }
 
         

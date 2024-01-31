@@ -45,20 +45,24 @@ namespace MoneyMiner
         private void checkMusicEnabled_CheckedChanged(object sender, EventArgs e)
         {
             FrmMainObj.ToggleMusic(((CheckBox)sender).Checked);
+            FrmMainObj.PlaySound(SoundList.ClickSound);
         }
 
         private void checkEffectsEnabled_CheckedChanged(object sender, EventArgs e)
         {
             FrmMainObj.ToggleFX(((CheckBox)sender).Checked);
+            FrmMainObj.PlaySound(SoundList.ClickSound);
         }
 
         private void btnExit_Click(object sender, EventArgs e)
         {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
             FrmMainObj.Close();
         }
 
         private void btnResume_Click(object sender, EventArgs e)
         {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
             this.Close();
         }
 
@@ -78,6 +82,7 @@ namespace MoneyMiner
         {
             if (keyData == Keys.Escape)
             {
+                FrmMainObj.PlaySound(SoundList.ClickSound);
                 this.Close();
                 return true;
             }
@@ -86,6 +91,7 @@ namespace MoneyMiner
 
         private void btnSaveGame_Click(object sender, EventArgs e)
         {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
             //temp for testing
             saveDialog.InitialDirectory = Environment.CurrentDirectory;
             DialogResult saveresult = saveDialog.ShowDialog();
@@ -99,6 +105,7 @@ namespace MoneyMiner
 
         private void btnLoadGame_Click(object sender, EventArgs e)
         {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
             //temp for testing
             loadDialog.InitialDirectory = Environment.CurrentDirectory;
             DialogResult loadresult = loadDialog.ShowDialog();
@@ -106,6 +113,25 @@ namespace MoneyMiner
             {
                 FrmMainObj.LoadGame(Path.GetFullPath(loadDialog.FileName));
             }
+        }
+
+        private void btnStats_Click(object sender, EventArgs e)
+        {
+            if (FrmMainObj != null)
+            {
+                FrmMainObj.btnStats_Click(sender, e);
+            }
+        }
+
+        private void btnAbout_Click(object sender, EventArgs e)
+        {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
+            FrmMainObj.ShowAbout();
+        }
+
+        private void btnMasterReset_Click(object sender, EventArgs e)
+        {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
         }
     }
 }

@@ -209,6 +209,7 @@
             btnMasterReset.TabIndex = 4;
             btnMasterReset.Text = "Reset Game";
             btnMasterReset.UseVisualStyleBackColor = false;
+            btnMasterReset.Click += btnMasterReset_Click;
             // 
             // btnResume
             // 
@@ -250,6 +251,7 @@
             btnStats.TabIndex = 7;
             btnStats.Text = "Stats...";
             btnStats.UseVisualStyleBackColor = false;
+            btnStats.Click += btnStats_Click;
             // 
             // btnAbout
             // 
@@ -263,6 +265,7 @@
             btnAbout.TabIndex = 8;
             btnAbout.Text = "About...";
             btnAbout.UseVisualStyleBackColor = false;
+            btnAbout.Click += btnAbout_Click;
             // 
             // loadDialog
             // 

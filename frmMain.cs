@@ -34,16 +34,16 @@ namespace FirstClicker
     {
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
-        //NOTES & TODO
+        /*NOTES & TODO
 
-        //-should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
+        -should have an 'About' window that holds credit information for resources used in the project - song/sound creators, image owners, any 3rd party libraries used, etc.
 
         //Need a 'Settings' menu!
         //-Save/Load Buttons --DONE!
         //-master volume slider --DONE!
         //-add checkboxes for backgroundmusic and soundFX toggles --DONE!
         //-if backgroundmusic is toggled Off, playback should also stop - not just mute. --DONE!
-        //-fullscreen toggle?
+        //-'about' button --DONE!
         //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
         //-Delete Save/Master Reset button needed... This will overwrite the save file in the root directory with an empty one. Next time the game launches, it will initialize to defaults.
         //-Autosave Interval Setting
@@ -64,19 +64,19 @@ namespace FirstClicker
         //Global upgrades should also double clickAmount... --DONE!
 
         //New stats:
-        //Money earned by clicking
-        //Money earned by clicking lifetime
-        //Money earned by miners
-        //Money earned by miners lifetime
-        //Highest clickAmount lifetime
+        //Money earned by clicking - matsMinedEarnedThisLifetime
+        //Money earned by clicking lifetime - matsMinedEarnedTotal
+        //Money earned by miners - autoMinerEarnedThisLifetime
+        //Money earned by miners lifetime - autoMinerEarnedTotal
+        //Highest clickAmount lifetime - matsMinedLifetime
 
         //Add "Quick-Buy" button to buy all upgrades affordable, starting with least expensive
 
         //Need a proper 'Stats' window!
 
-        //Need Prestige Earned window/popup!
+        //Need proper Prestige Earned window/popup!
 
-        //Need 'Welcome Back' window/popup!
+        //Need proper 'Welcome Back' window/popup!
 
         //Need more background music? If so, we'll need a callback method for when playback is finished that triggers next song in list. I guess List<string> would work for holding
         //track names, and the callback method would iterate to the next string in the list, open it's file, seek to 0L, and play.
@@ -87,6 +87,15 @@ namespace FirstClicker
 
         //Maybe we should add an upgradeID for item.mySalaryTimeMS / upgrade.Multiplier... "Speed X4", etc
 
+        //Get rid of the enable/disable button function on upgrades. Instead, change the color, make sure a bool flag is set regularly whether
+        //we can afford it or not, and add a check for that flag in Upgrade_clicked, and change flatstyle accordingly. CanAfford => popup, can't
+        //afford => flat. This will fix tooltips acting wierd and fix the text visual glitches - we could also remove the btnpaint handler at that point.
+        //do this in a helper method within UpgradeButton, maybe a static method.
+
+        //Add clicksound to PauseMenu --DONE!
+
+        //Add enum SaveType with PrestigeSave and ExitSave and ManualSave for easier loadGame() adjustment?
+        */
 
         //----Properties/Fields----//
         public Game myGame;
@@ -95,16 +104,28 @@ namespace FirstClicker
         public frmMain()
         {
             InitializeComponent();
-            btnPause.Parent = this;
 
             //initialize default item list before loading to fix prestige issue. If not prestige load, make sure to overwrite them.
             GameState? tempSave = this.LoadGame();
-            
-            this.LoadGame();
 
-            
-
-            
+            if (tempSave != null)
+            {
+                //load data from tempsave and use it to initialize.
+                myGame = new Game(tempSave);
+                if (myGame.PrestigeNextRestart && myGame.prestigeGainedNextRestart > 0.0d)
+                {
+                    this.myGame = ApplyNewPrestige(myGame);
+                }
+            }
+            else
+            {
+                //load default data and initialize.
+                myGame = new Game();
+            }
+            InitAudio();
+            InitControls();
+            LoadItemControlsToForm();
+            LoadUpgradeControlsToForm();
 
         }
         public void InitAudio()
@@ -123,7 +144,7 @@ namespace FirstClicker
             mciSendString($@"open {Environment.CurrentDirectory}\Resources\cashregisterpurchase2.wav type mpegvideo alias registersound2", null, 0, IntPtr.Zero);
 
         }   //before frmMain_load
-        public void InitControlColors()
+        public void InitControls()
         {
             //Set default form colors
             this.BackColor = MyColors.colBackground;
@@ -135,8 +156,10 @@ namespace FirstClicker
             this.UpgradePanel.BackColor = MyColors.colBorders;
             this.grpMoney.BackColor = MyColors.colBorders;
             this.btnPause.BackColor = MyColors.colButtonEnabled;
+            this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
+            
         }   //after ctor, before frmMain_load
-        public void LoadItemControls()
+        public void LoadItemControlsToForm()
         {
             //Populate form with items from array, then center the items.
             for (int i = 1; i <= myGame.myItems.Length; i++)
@@ -145,7 +168,7 @@ namespace FirstClicker
             }
             itemPanel_Resize(this, EventArgs.Empty);  //make sure items are centered
         }   //after ctor, before frmMain_load
-        public void LoadUpgradeControls()
+        public void LoadUpgradeControlsToForm()
         {
             //add upgrade button for each upgrade, configure it, and add to form's upgradePanel, then center it.
             foreach (Upgrade upgrade in myGame.MainUpgradeList)
@@ -192,13 +215,14 @@ namespace FirstClicker
                 UpgradePanel.Controls.Add(myGame.upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
 
-            
+
             UpgradePanel_Resize(this, EventArgs.Empty);   //make sure upgrade buttons are centered
         }   //after ctor, before frmMain_load
         public void GameStart()
         {
             //start backgroundmusic if enabled or default
             if (myGame.MusicEnabled) { mciSendString("play backgroundmusic01 repeat", null, 0, IntPtr.Zero); }
+
             //put in gamestart()
             foreach (ItemView item in myGame.myItems)
             {
@@ -227,14 +251,14 @@ namespace FirstClicker
         //----Event Handlers----//
         private void frmMain_Load(object sender, EventArgs e)
         {
-            //initcustom()
-            this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
+            //set window state according to game object, and thus by the last save, if it exists
+            this.WindowState = myGame.myWindowState;
             //initaudio
             SetAudioVolume(myGame.MusicVolume, myGame.FXVolume);
-            
-            
-            
-
+            this.Refresh();
+            SinceYouveBeenGone(myGame);
+            this.Activate();
+            GameStart();
         }
         private void toolTipTick(object? sender, EventArgs e)
         {
@@ -408,6 +432,10 @@ namespace FirstClicker
              */
 
             //senderview.myTimer.Start();
+        }
+        private void frmMain_Resize(object sender, EventArgs e)
+        {
+            if (this.WindowState != FormWindowState.Minimized) { myGame.myWindowState = this.WindowState; }
         }
 
         //----Control Interactions----//
@@ -798,6 +826,7 @@ namespace FirstClicker
             if (myGame.matsMined != 0 && myGame.matsMined + myGame.incrperclick >= (Math.Round((double)myGame.matsMined / 100.0d, MidpointRounding.ToPositiveInfinity) * 100) && myGame.incrperclick < 10 && myGame.matsMined != (Math.Round((double)myGame.matsMined / 100.0d, MidpointRounding.ToPositiveInfinity) * 100))
             {
                 myGame.matsMined += myGame.incrperclick;
+                myGame.matsMinedLifetime += myGame.incrperclick;
                 myGame.incrperclick++;
                 //clickAmount = (clickAmount / (incrperclick - 1)) * incrperclick;
 
@@ -830,7 +859,7 @@ namespace FirstClicker
             }
 
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
-            //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.
+            //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.   Edit: Why not both?
             double tempprestige = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
             foreach (ItemView item in myGame.myItems)
             {
@@ -855,26 +884,10 @@ namespace FirstClicker
                     item.myprogressvalue = item.progressMining.Value;
                 }
 
-                myGame.lastlifetimeMoney = myGame.thislifetimeMoney + myGame.lastlifetimeMoney;
-                myGame.prestigePoints += tempprestige;
-                myGame.myItems = new ItemView[0];
-                myGame.upgradeButtons = new List<UpgradeButton>();
-                for (int i = 0; i < myGame.MainUpgradeList.Count; i++)
-                {
-                    myGame.MainUpgradeList[i] = Upgrade.UnsetPurchased(myGame.MainUpgradeList[i]);
-                }
-                myGame.salary = default;
-                myGame.myMoney = default;
-                myGame.clickAmount = 0.25d;
-                myGame.prestigeMultiplier = 2;
-                myGame.matsMined = default;
-                myGame.incrperclick = 1;
-                myGame.thislifetimeMoney = default;
-                myGame.thislifeGameTime = default;
                 Program.RestartForPrestige = true;
                 myGame.PrestigeNextRestart = true;
-                SaveGame(tempprestige);
-
+                myGame.prestigeGainedNextRestart = tempprestige;
+                SaveGame();
                 this.Close();
             }
             else if (dres == DialogResult.No)
@@ -905,7 +918,7 @@ namespace FirstClicker
         {
             lblClickAmount.Left = (this.grpMoney.Width - lblClickAmount.Size.Width) / 2;
         }
-        private void btnStats_Click(object sender, EventArgs e)
+        public void btnStats_Click(object sender, EventArgs e)
         {
             if (myGame.FXEnabled)
             {
@@ -929,7 +942,8 @@ namespace FirstClicker
                 $"\nTime spent all lifetimes: {myGame.totalGameTime.ToString(@"h\:mm\:ss")}" +
                 $"\nPrestige Points: {Stringify(myGame.prestigePoints.ToString("R"), StringifyOptions.LongText)}" +
                 $"\nPrestige Multiplier: {Stringify(myGame.prestigeMultiplier.ToString("R"), StringifyOptions.LongText)}% Per Point" +
-                $"\nPrestige Percentage: {(myGame.prestigePoints * myGame.prestigeMultiplier > 1000000.0d ? Stringify((myGame.prestigePoints * myGame.prestigeMultiplier).ToString("R"), StringifyOptions.LongText) : (myGame.prestigePoints * myGame.prestigeMultiplier).ToString("N0"))} %"
+                $"\nPrestige Percentage: {(myGame.prestigePoints * myGame.prestigeMultiplier > 1000000.0d ? Stringify((myGame.prestigePoints * myGame.prestigeMultiplier).ToString("R"), StringifyOptions.LongText) : (myGame.prestigePoints * myGame.prestigeMultiplier).ToString("N0"))} %" +
+                $"\nMaterials Mined all lifetimes: {(myGame.matsMinedLifetime >= 1000000.0d ? Stringify(myGame.matsMinedLifetime.ToString("R"), StringifyOptions.LongText) : myGame.matsMinedLifetime.ToString("N0"))}"
                 , "MoneyMiner Statistics", MessageBoxButtons.OK
                 );
 
@@ -1007,6 +1021,29 @@ namespace FirstClicker
 
             pauseMenu.ShowDialog();
         }
+        public void ShowAbout()
+        {
+            StringBuilder sb = new StringBuilder();
+            sb.AppendLine($"MoneyMiner {Application.ProductVersion.Split("+")[0]}");
+            sb.AppendLine($"\nCreated By Tim Earley");
+            sb.AppendLine($"\nLocation: '{Environment.CurrentDirectory}'\n");
+            TextReader treader = File.OpenText($@"{Environment.CurrentDirectory}\Resources\ResourceAttributions.txt");
+            string filecontents = treader.ReadToEnd();
+            string[] textlines = filecontents.Split(new string[] { "\r\n", "\r", "\n" }, StringSplitOptions.None);
+            sb.AppendLine($"\nResource Attributions:\n");
+            foreach (string line in textlines)
+            {
+                if (line != "")
+                {
+                    if (!line.Contains("http"))
+                    {
+                        sb.AppendLine($"{line}");
+                    }
+                }
+            }
+            sb.AppendLine($"\nThanks for playing MoneyMiner!");
+            MessageBox.Show(sb.ToString(), "About MoneyMiner", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
 
         //----Calculations----//
         /// <summary>
@@ -1049,7 +1086,7 @@ namespace FirstClicker
                 return (int)Math.Floor((double)((int)elapsed.TotalMilliseconds + item.myprogressvalue) / item.mySalaryTimeMS);
             }
         }
-        public static void SinceYouveBeenGone(Game mygame)
+        public static bool SinceYouveBeenGone(Game mygame)
         {
             if (mygame.sinceLastSave.TotalSeconds > 1.0d)
             {
@@ -1067,7 +1104,46 @@ namespace FirstClicker
                 mygame.thislifetimeMoney += salearned;
 
                 MessageBox.Show($"Welcome Back!\nYou were gone for {mygame.sinceLastSave.TotalHours:N0} hours, {mygame.sinceLastSave.Minutes:N0} minutes, and {mygame.sinceLastSave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false);
+                
             }
+            return true;
+        }
+        internal static Game ApplyNewPrestige(Game mygame)
+        {
+            //items and upgrades need to be reset to default
+            //clickamount reset to default
+            //calculate and apply clickamount and item salaries per new prestigePoints (old + gained)
+            //update 'lifetime' variables
+            //copy over other persistent variables
+            //show popup window/msgbox as modal window
+
+            //*Apply changes to current mygame object, then allow game to continue initialization. Next save will store new info from myGame.
+
+            //Create default game object to initialize items, upgrades, clickamount, etc
+            Game tempGame = new Game();
+            //copy over relevant vars
+            tempGame.FXEnabled = mygame.FXEnabled;
+            tempGame.FXVolume = mygame.FXVolume;
+            tempGame.MusicEnabled = mygame.MusicEnabled;
+            tempGame.MusicVolume = mygame.MusicVolume;
+            tempGame.lastlifetimeMoney = mygame.thislifetimeMoney + mygame.lastlifetimeMoney;
+            tempGame.matsMinedLifetime = mygame.matsMinedLifetime + mygame.matsMined;
+            tempGame.myPurchaseAmount = mygame.myPurchaseAmount;
+            tempGame.myWindowState = mygame.myWindowState;
+            tempGame.prestigePoints = mygame.prestigePoints + mygame.prestigeGainedNextRestart;
+            tempGame.sinceLastSave = mygame.sinceLastSave;  //not sure if we need this yet...
+            tempGame.toolTipDelay = mygame.toolTipDelay;
+            tempGame.toolTipVisibleTime = mygame.toolTipVisibleTime;
+            tempGame.totalGameTime = mygame.totalGameTime;
+
+            //calculate and update clickamount and item salaries
+            tempGame.clickAmount *= ((tempGame.prestigePoints / (100.0d / tempGame.prestigeMultiplier)) + 1);
+            foreach (var item in tempGame.myItems)
+            {
+                item.mySalary *= ((tempGame.prestigePoints / (100.0d / tempGame.prestigeMultiplier)) + 1);
+            }
+            MessageBox.Show($"You gained {(mygame.prestigeGainedNextRestart >= 1000000.0d ? Stringify(mygame.prestigeGainedNextRestart.ToString("R"), StringifyOptions.LongText) : mygame.prestigeGainedNextRestart.ToString("N"))} prestige points!", "Congratulations!");
+            return tempGame;
         }
 
         //----Visual Updates----//
@@ -1289,7 +1365,7 @@ namespace FirstClicker
                         return input;
                     }
             }
-        }        
+        }
         internal static string ReBig(string input)
         {
             //Removes scientific notation and returns a string as a literal representation of the number.
@@ -1310,19 +1386,17 @@ namespace FirstClicker
         }
 
         //----Save/Load----//
-        public void SaveGame(double presttogain = 0.0d)
+        public void SaveGame()
         {
             GameState save = new GameState(myGame);
-            
+
             if (myGame.PrestigeNextRestart)
             {
                 save.PrestigeSaveFlag = true;
-                save.PrestigePointsGained = presttogain;
             }
             else
             {
                 save.PrestigeSaveFlag = false;
-                save.PrestigePointsGained = 0.0d;
             }
 
             FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", FileMode.Create);
@@ -1337,10 +1411,6 @@ namespace FirstClicker
         public void SaveGame(string saveLocation)
         {
             GameState save = new GameState(myGame);
-
-            //loading from location - do we need to do this?
-            save.PrestigeSaveFlag = false;
-            save.PrestigePointsGained = 0.0d;
 
             FileStream fstream = new FileStream(saveLocation, FileMode.Create);
 
@@ -1367,8 +1437,8 @@ namespace FirstClicker
                 fstream.Close();
 
                 TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
-                save.thislifegametime.Add(sincelastsave);
-                save.totalgametime.Add(sincelastsave);
+                save.thislifegametime = save.thislifegametime.Add(sincelastsave);
+                save.totalgametime = save.totalgametime.Add(sincelastsave);
 
                 return save;
             }
@@ -1376,37 +1446,7 @@ namespace FirstClicker
             //the game is closed it will save a new file, overwriting the corrupted one if it exists.
             catch
             {
-                
-                this.WindowState = FormWindowState.Maximized;
                 return null;
-            }
-            
-
-            //if we gained prestigepoints and this is a prestige save, calculate and apply prestige multiplier, then show popup with amount.
-            //Move to seperate frmMain static method
-            if (save.PrestigeSaveFlag || (save.clickAmount == 0.25d && myGame.prestigePoints > 0.0d))
-            {
-                //We know that clickAmount and myItems are empty right now - we need to initialize these to default before loading.
-                //Find out why MusicVol and FXVol didn't save.
-                //show message displaying amount of prestige earned?
-                MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
-                //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
-                if (myGame.prestigePoints > 0.0d)
-                {
-                    //we got here, but clickamount and myItems were default/null. Reevaluate save method and loading/initialization order.
-                    myGame.clickAmount *= ((myGame.prestigePoints / (100.0d / myGame.prestigeMultiplier)) + 1);
-                }
-                foreach (var item in myGame.myItems)
-                {
-                    //upgradeButtons.Add(new UpgradeButton());
-                    if (myGame.prestigePoints > 0.0d)
-                    {
-                        item.mySalary *= ((myGame.prestigePoints / (100.0d / myGame.prestigeMultiplier)) + 1);
-                    }
-                }
-                save.PrestigeSaveFlag = false;
-                myGame.PrestigeNextRestart = false;
-                //SaveGame(); //REALLY bad sign - shouldn't need to save within load. If we set the flag locally, it will go into the next save.
             }
         }
         public GameState? LoadGame(string loadLocation)
@@ -1435,87 +1475,6 @@ namespace FirstClicker
                 this.WindowState = FormWindowState.Maximized;
                 return null;
             }
-
-            //Should add a check system for migrating old saves forward...
-
-            List<ItemView> tempitemlist = new List<ItemView>();
-            for (int i = 0; i < save.myItemDatas.Count(); i++)
-            {
-                tempitemlist.Add(new ItemView(save.myItemDatas[i]));
-            }
-            //only overwrite list if we actually loaded items from the save. Otherwise, keep defaults.
-            if (tempitemlist.Count != 0)
-            {
-                myGame.myItems = tempitemlist.ToArray();
-            }
-            this.itemPanel.Controls.Clear();
-            this.UpgradePanel.Controls.Clear();
-
-            myGame.MainUpgradeList = save.MainUpgradeList;
-
-            myGame.toolTipVisibleTime = save.toolTipVisibleTime;
-            myGame.toolTipDelay = save.toolTipDelay;
-            myGame.prestigeMultiplier = save.prestigeMultiplier;
-            myGame.clickAmount = save.clickAmount;
-            myGame.salary = save.salary;
-            myGame.matsMined = save.matsMined;
-            myGame.myMoney = save.myMoney;
-            myGame.incrperclick = save.incrperclick;
-            myGame.myPurchaseAmount = save.myPurchaseAmount;
-            myGame.thislifetimeMoney = save.thislifetimeMoney;
-            myGame.prestigePoints = save.prestigePoints;
-            myGame.lastlifetimeMoney = save.lastlifetimeMoney;
-            myGame.totalGameTime = save.totalgametime;
-            myGame.thislifeGameTime = save.thislifegametime;
-            myGame.myWindowState = save.lastWindowState;
-            myGame.MusicVolume = save.MusicVol;
-            myGame.FXVolume = save.FXVol;
-            myGame.MusicEnabled = save.MusicEn;
-            myGame.FXEnabled = save.FXEn;
-            //TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
-            //myGame.thislifeGameTime.Add(sincelastsave);
-            //myGame.totalGameTime.Add(sincelastsave);
-            //if (sincelastsave.TotalSeconds > 1.0d)
-            //{
-                //myMoney += salary * sincelastsave.TotalSeconds; 
-                //thislifetimeMoney += salary * sincelastsave.TotalSeconds;
-
-                //double salearned = 0.0d;
-                //for (int i = 0; i < myGame.myItems.Length; i++)
-                //{
-                    //int thisremainingMS;
-                    //salearned += (progressCompletedIterations(sincelastsave, myGame.myItems[i], out thisremainingMS) * myGame.myItems[i].mySalary * myGame.myItems[i].myQty);
-                    //myGame.myItems[i].myprogressvalue = thisremainingMS;
-                //}
-                //myGame.myMoney += salearned;
-                //myGame.thislifetimeMoney += salearned;
-
-                //MessageBox.Show($"Welcome Back!\nYou were gone for {sincelastsave.TotalHours:N0} hours, {sincelastsave.Minutes:N0} minutes, and {sincelastsave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false);
-            //}
-            //if (save.PrestigeSaveFlag || (save.clickAmount == 0.25d && myGame.prestigePoints > 0.0d))
-            //{
-                //We know that clickAmount and myItems are empty right now - we need to initialize these to default before loading.
-                //Find out why MusicVol and FXVol didn't save.
-                //show message displaying amount of prestige earned?
-                //MessageBox.Show($"You gained {(save.PrestigePointsGained >= 1000000.0d ? Stringify(save.PrestigePointsGained.ToString("R"), StringifyOptions.LongText) : save.PrestigePointsGained.ToString("N"))} prestige points!", "Congratulations!");
-                //after doing something, set prestigesaveflag to false, then savegame() so that the save file doesn't cause repeated messages at startup.
-                //if (myGame.prestigePoints > 0.0d)
-                //{
-                    //we got here, but clickamount and myItems were default/null. Reevaluate save method and loading/initialization order.
-                    //myGame.clickAmount *= ((myGame.prestigePoints / (100.0d / myGame.prestigeMultiplier)) + 1);
-                //}
-                //foreach (var item in myGame.myItems)
-                //{
-                    //upgradeButtons.Add(new UpgradeButton());
-                    //if (myGame.prestigePoints > 0.0d)
-                    //{
-                        //item.mySalary *= ((myGame.prestigePoints / (100.0d / myGame.prestigeMultiplier)) + 1);
-                    //}
-                //}
-                //save.PrestigeSaveFlag = false;
-                //SaveGame();
-            //}
-            //frmMain_Load(this, EventArgs.Empty);
         }
 
         //----Audio Methods----//
@@ -1593,6 +1552,53 @@ namespace FirstClicker
                 }
             }
         }
+        public void PlaySound(SoundList sound)
+        {
+            switch (sound)
+            {
+                case (SoundList.ClickSound):
+                    {
+                        if (myGame.FXEnabled)
+                        {
+                            mciSendString("seek clicksound to start", null, 0, IntPtr.Zero);
+                            mciSendString("play clicksound", null, 0, IntPtr.Zero);
+                        }
+                        return;
+                    }
+                case (SoundList.Register):
+                    {
+                        if (myGame.FXEnabled)
+                        {
+                            if (myGame.PlayRegisterSound1)
+                            {
+                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound", null, 0, IntPtr.Zero);
+                                myGame.PlayRegisterSound1 = false;
+                            }
+                            else
+                            {
+                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
+                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
+                                myGame.PlayRegisterSound1 = true;
+                            }
+                        }
+                        return;
+                    }
+                case (SoundList.Pickaxe):
+                    {
+                        Random randnumber = new Random();
+                        int i = randnumber.Next(1, 8);
+                        if (myGame.FXEnabled)
+                        {
+                            mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
+                            mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
+                        }
+                        return;
+                    }
+            }
+        }
+
+
     }
 
     //------Classes------//
@@ -1658,6 +1664,7 @@ namespace FirstClicker
                     new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000),
                     new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000),
                     new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000)];
+                
             }
 
             //init Upgrades Default
@@ -1670,16 +1677,16 @@ namespace FirstClicker
             {
                 MainUpgradeList =
             [
-                new Upgrade("Double Tap", 1000.0d, 0, 3, 1), //Click Upgrades
-                new Upgrade("Click Amplifier", 25000.0d, 0, 3, 2),
-                new Upgrade("Mega-Clicking", 75000.0d, 0, 3, 3),
-                new Upgrade("Click Physics", 150000.0d, 0, 3, 4),
-                new Upgrade("Parallel Clicking", 500000.0d, 0, 3, 5),
+                new Upgrade("Double Tap", 1000.0d, 0, 10, 1), //Click Upgrades
+                new Upgrade("Click Amplifier", 25000.0d, 0, 10, 2),
+                new Upgrade("Mega-Clicking", 150000.0d, 0, 10, 3),
+                new Upgrade("Click Physics", 500000.0d, 0, 10, 4),
+                new Upgrade("Parallel Clicking", 1500000.0d, 0, 10, 5),
                 new Upgrade("Birch Wood", 250000.0d, 1, 3, 6), //Item1 Upgrades
-                new Upgrade("Pine Wood", 20000000000000.0d, 1, 3, 7),   //----This should be more like 10, reevaluate subsequent upgrades
-                new Upgrade("Oak Wood", 2000000000000000000.0d, 1, 3, 8),
-                new Upgrade("Cherry Wood", 25000000000000000000000.0d, 1, 3, 9),
-                new Upgrade("Sequoia Wood", 1000000000000000000000000000.0d, 1, 7, 10),
+                new Upgrade("Pine Wood", 20000000000000.0d, 1, 10, 7),   //----This should be more like 10, reevaluate subsequent upgrades
+                new Upgrade("Oak Wood", 2000000000000000000.0d, 1, 7, 8),
+                new Upgrade("Cherry Wood", 25000000000000000000000.0d, 1, 7, 9),
+                new Upgrade("Sequoia Wood", 1000000000000000000000000000.0d, 1, 10, 10),
                 new Upgrade("Sandstone", 500000.0d, 2, 3, 11), //Item2 Upgrades
                 new Upgrade("Granite", 50000000000000.0d, 2, 3, 12),
                 new Upgrade("Limestone", 5000000000000000000.0d, 2, 3, 13),
@@ -1943,6 +1950,12 @@ namespace FirstClicker
         ScientificNotation = 128,
         SecondsToMinSec = 256,
         SecondsToHourMinSec = 512
+    }
+    public enum SoundList
+    {
+        ClickSound = 1,
+        Pickaxe = 2,
+        Register = 4
     }
     
     

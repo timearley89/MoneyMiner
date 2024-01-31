@@ -8,6 +8,14 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <StartupObject>MoneyMiner.Program</StartupObject>
     <Platforms>AnyCPU;x64</Platforms>
+    <Title>MoneyMiner</Title>
+    <Description>An incremental/idle game developed fully in C# .NET using WinForms.</Description>
+    <PackageProjectUrl>https://timearley89.itch.io/moneyminer</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/timearley89/MoneyMiner</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <AssemblyVersion>1.2.0.1</AssemblyVersion>
+    <FileVersion>1.2.0.1</FileVersion>
+    <Version>1.2.0.1-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
@@ -78,6 +86,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Resources\pickaxe.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Resources\ResourceAttributions.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

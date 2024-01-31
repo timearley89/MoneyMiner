@@ -45,8 +45,10 @@
             pctCenterBackground = new PictureBox();
             btnStats = new Button();
             btnPause = new Button();
+            pnlButtons = new Panel();
             grpMoney.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
+            pnlButtons.SuspendLayout();
             SuspendLayout();
             // 
             // itemPanel
@@ -71,7 +73,7 @@
             // 
             btnPurchAmount.Anchor = AnchorStyles.Bottom;
             btnPurchAmount.CausesValidation = false;
-            btnPurchAmount.Location = new Point(373, 494);
+            btnPurchAmount.Location = new Point(3, 3);
             btnPurchAmount.Name = "btnPurchAmount";
             btnPurchAmount.Size = new Size(65, 55);
             btnPurchAmount.TabIndex = 4;
@@ -140,7 +142,7 @@
             // btnPrestige
             // 
             btnPrestige.Anchor = AnchorStyles.Bottom;
-            btnPrestige.Location = new Point(687, 494);
+            btnPrestige.Location = new Point(321, 3);
             btnPrestige.Name = "btnPrestige";
             btnPrestige.Size = new Size(75, 55);
             btnPrestige.TabIndex = 10;
@@ -204,7 +206,7 @@
             // 
             pctCenterBackground.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
             pctCenterBackground.Image = MoneyMiner.Properties.Resources.mining_miner_cartoon;
-            pctCenterBackground.Location = new Point(373, 151);
+            pctCenterBackground.Location = new Point(375, 145);
             pctCenterBackground.Name = "pctCenterBackground";
             pctCenterBackground.Size = new Size(389, 337);
             pctCenterBackground.SizeMode = PictureBoxSizeMode.StretchImage;
@@ -215,7 +217,7 @@
             // 
             btnStats.Anchor = AnchorStyles.Bottom;
             btnStats.CausesValidation = false;
-            btnStats.Location = new Point(606, 519);
+            btnStats.Location = new Point(240, 28);
             btnStats.Name = "btnStats";
             btnStats.Size = new Size(75, 30);
             btnStats.TabIndex = 13;
@@ -227,7 +229,7 @@
             // 
             btnPause.Anchor = AnchorStyles.Bottom;
             btnPause.CausesValidation = false;
-            btnPause.Location = new Point(444, 519);
+            btnPause.Location = new Point(74, 28);
             btnPause.Name = "btnPause";
             btnPause.Size = new Size(75, 30);
             btnPause.TabIndex = 14;
@@ -235,21 +237,32 @@
             btnPause.UseVisualStyleBackColor = true;
             btnPause.Click += btnPause_Click;
             // 
+            // pnlButtons
+            // 
+            pnlButtons.Anchor = AnchorStyles.Bottom;
+            pnlButtons.BackColor = Color.Transparent;
+            pnlButtons.CausesValidation = false;
+            pnlButtons.Controls.Add(btnPause);
+            pnlButtons.Controls.Add(btnPurchAmount);
+            pnlButtons.Controls.Add(btnPrestige);
+            pnlButtons.Controls.Add(btnStats);
+            pnlButtons.Location = new Point(371, 488);
+            pnlButtons.Name = "pnlButtons";
+            pnlButtons.Size = new Size(399, 61);
+            pnlButtons.TabIndex = 15;
+            // 
             // frmMain
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             CausesValidation = false;
             ClientSize = new Size(984, 561);
-            Controls.Add(btnPause);
-            Controls.Add(btnStats);
+            Controls.Add(lblMatsMined);
+            Controls.Add(lblIncrPerClick);
+            Controls.Add(pnlButtons);
             Controls.Add(btnMine);
             Controls.Add(grpMoney);
-            Controls.Add(btnPrestige);
-            Controls.Add(lblIncrPerClick);
-            Controls.Add(lblMatsMined);
             Controls.Add(UpgradePanel);
-            Controls.Add(btnPurchAmount);
             Controls.Add(itemPanel);
             Controls.Add(pctCenterBackground);
             DoubleBuffered = true;
@@ -259,9 +272,11 @@
             Text = "MoneyMiner!";
             FormClosing += frmMain_FormClosing;
             Load += frmMain_Load;
+            Resize += frmMain_Resize;
             grpMoney.ResumeLayout(false);
             grpMoney.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).EndInit();
+            pnlButtons.ResumeLayout(false);
             ResumeLayout(false);
             PerformLayout();
         }
@@ -284,5 +299,6 @@
         private PictureBox pctCenterBackground;
         private Button btnStats;
         private Button btnPause;
+        private Panel pnlButtons;
     }
 }
