@@ -72,12 +72,14 @@
             sliderVolume.LargeChange = 100;
             sliderVolume.Location = new Point(32, 3);
             sliderVolume.Maximum = 1000;
+            sliderVolume.Minimum = 1;
             sliderVolume.Name = "sliderVolume";
             sliderVolume.RightToLeft = RightToLeft.No;
             sliderVolume.Size = new Size(246, 45);
             sliderVolume.SmallChange = 25;
             sliderVolume.TabIndex = 1;
             sliderVolume.TickFrequency = 50;
+            sliderVolume.Value = 1;
             sliderVolume.Scroll += sliderVolume_Scroll;
             // 
             // grpVolume

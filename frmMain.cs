@@ -7,6 +7,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Printing;
+using System.Drawing.Text;
 using System.Globalization;
 using System.Linq;
 using System.Media;
@@ -95,6 +96,9 @@ namespace FirstClicker
         //Add clicksound to PauseMenu --DONE!
 
         //Add enum SaveType with PrestigeSave and ExitSave and ManualSave for easier loadGame() adjustment?
+
+        -Tooltips for hovering over ItemView.btnBuy, which calculate and show the salary gained by purchasing the amount on the button. Checks
+            the display style of ItemView.lblTotalSalary, and shows information accordingly: "Gain $123,456 per second for Wood Miner!" or "Gain $1.52 Million per cycle for Wood Miner!"
         */
 
         //----Properties/Fields----//
@@ -105,7 +109,7 @@ namespace FirstClicker
         {
             InitializeComponent();
 
-            //initialize default item list before loading to fix prestige issue. If not prestige load, make sure to overwrite them.
+            //attempt autoload of $"{Environment.CurrentDirectory}\GameState.mmf"
             GameState? tempSave = this.LoadGame();
 
             if (tempSave != null)
@@ -175,49 +179,39 @@ namespace FirstClicker
             {
                 UpgradeButton btn = new UpgradeButton();
                 btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString("R"), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
-
+                btn.Font = new Font("Impact", 10);
                 btn.MouseHover += Btn_Hover;
-                btn.Paint += Btn_Paint;
                 btn.myUpgrade = upgrade;
                 btn.CausesValidation = false;
-                if (btn.myUpgrade.Purchased == false)
-                {
-                    btn.Enabled = true;
-                    btn.BackColor = MyColors.colButtonDisabled;
-                    btn.ForeColor = MyColors.colTextSecondary;
-                    btn.Enabled = false;
-                }
-
-                else if (btn.myUpgrade.Purchased == true)
-                {   //if we're loading the game and an upgrade is purchased, configure button accordingly.
-                    btn.Enabled = true;
-                    btn.BackColor = MyColors.colButtonPurchased;
-                    btn.ForeColor = MyColors.colTextPrimary;
-                    btn.Text = upgrade.Description + $"\nPurchased!";
-                    btn.Enabled = false;
-                }
+                UpgradeButtonEnable(btn, false);
                 myGame.upgradeButtons.Add(btn);
             }
             //Configure each button and add to form's UpgradePanel
             for (int i = 0; i < myGame.upgradeButtons.Count; i++)      //SET UP UPGRADE BUTTONS
             {
-                //itemID==0 is clickAmount upgrade button.
+                //itemID==0 is clickAmount upgrade button, itemID==1-8 is item upgrade button.
                 //itemID==15 is allitem upgrade, itemID==20 is prestigemultiplier upgrade.
 
                 myGame.upgradeButtons[i].Click += new EventHandler(upgradeClicked);
                 myGame.upgradeButtons[i].Width = (int)(UpgradePanel.Width * 0.85);  //button width is 85% of panel width
                 myGame.upgradeButtons[i].Height = (int)(myGame.upgradeButtons[i].Width * 0.40); //button height is 40% of button width
-                //upgradeButtons[i].BackColorChanged += new EventHandler(btncolorchanged);
-
-                myGame.upgradeButtons[i].BackColor = MyColors.colButtonDisabled;
-                myGame.upgradeButtons[i].ForeColor = MyColors.colTextSecondary;
-                myGame.upgradeButtons[i].Enabled = false;
                 UpgradePanel.Controls.Add(myGame.upgradeButtons[i]);   //add all upgrade buttons to upgradepanel
             }
 
 
             UpgradePanel_Resize(this, EventArgs.Empty);   //make sure upgrade buttons are centered
         }   //after ctor, before frmMain_load
+        private void frmMain_Load(object sender, EventArgs e)
+        {
+            //set window state according to game object, and thus by the last save, if it exists
+            this.WindowState = myGame.myWindowState;
+            //initaudio
+            SetAudioVolume(myGame.MusicVolume, myGame.FXVolume);
+            this.Refresh();
+            SinceYouveBeenGone(myGame);
+            this.Activate();
+            GameStart();
+        }
         public void GameStart()
         {
             //start backgroundmusic if enabled or default
@@ -249,17 +243,6 @@ namespace FirstClicker
         }   //after frmMain_load
 
         //----Event Handlers----//
-        private void frmMain_Load(object sender, EventArgs e)
-        {
-            //set window state according to game object, and thus by the last save, if it exists
-            this.WindowState = myGame.myWindowState;
-            //initaudio
-            SetAudioVolume(myGame.MusicVolume, myGame.FXVolume);
-            this.Refresh();
-            SinceYouveBeenGone(myGame);
-            this.Activate();
-            GameStart();
-        }
         private void toolTipTick(object? sender, EventArgs e)
         {
             if (myGame.myTip != null) { myGame.myTip.Hide(this); }
@@ -318,43 +301,16 @@ namespace FirstClicker
             }
 
         }
-        private void Btn_Paint(object? sender, PaintEventArgs e)
-        {
-            if (sender == null) { return; }
-            UpgradeButton myButton = (UpgradeButton)sender;
-            if (myButton.Enabled) { return; }
-            SolidBrush myBrush;
-            if (myButton.Enabled)
-            {
-                myBrush = new SolidBrush(MyColors.colTextPrimary);
-            }
-            else
-            {
-                myBrush = new SolidBrush(MyColors.colTextSecondary);
-            }
-            StringFormat strFormat = new StringFormat
-            {
-                Alignment = StringAlignment.Center,
-                LineAlignment = StringAlignment.Center
-            };
-            //button text is erased, and now will be repainted onto the button in the correct color so that 'Disabling' the button won't render black text.
-            e.Graphics.DrawString(myButton.Text, myButton.Font, myBrush, e.ClipRectangle, strFormat);
-            myBrush.Dispose();
-            strFormat.Dispose();
-        }
         private void timerPerSec_Tick(object sender, EventArgs e)
         {
-            //update button colors based on affordability
-            //update money amount based on quantity of items owned and any multipliers
-            //update labels and buttons as needed
+            //calculate total salary per second
             double tempsal = 0.00d;    //iterate through items owned and calculate total salary per cycle.
             foreach (ItemView view in myGame.myItems)
             {
                 tempsal += ((view.mySalary / ((double)view.mySalaryTimeMS / 1000.0d)) * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             myGame.salary = tempsal;
-            //myMoney += salary;
-            //thislifetimeMoney += salary;
+            
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -442,56 +398,25 @@ namespace FirstClicker
         public void upgradeClicked(Object? sender, EventArgs e)
         {
             if (sender == null) { return; } //basic protection
-
             else
             {
                 UpgradeButton btnsender = (UpgradeButton)sender;
+                if (!btnsender.IsEnabled) { return; }
                 int btnitemID = btnsender.myUpgrade.itemID;
                 if (btnitemID >= 1 && btnitemID <= myGame.myItems.Length)
                 {
                     //btnvars itemID is between 1 and the last itemID in myItems, so ItemUpgrade
                     if (myGame.myMoney >= btnsender.myUpgrade.Cost)
                     {
-
-                        btnsender.BackColor = MyColors.colButtonPurchased;
-                        btnsender.ForeColor = MyColors.colTextPrimary;
                         myGame.myMoney -= btnsender.myUpgrade.Cost;
-
-                        //previously threw an exception when trying to just cast it to 'ItemView'. '.Where' returns an Enumerable of type T (inferred or specified), so being that
-                        //an enumerable is just a list that meets the requirements of IEnumerable, we have to return the first item. We need to figure out how to handle btnitemID not found though...
                         ItemView tempItem = myGame.myItems.Where(x => x.myID == btnitemID).First<ItemView>();
                         tempItem.mySalary *= btnsender.myUpgrade.Multiplier;
 
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
-
                         //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (myGame.FXEnabled)
-                        {
-                            if (myGame.PlayRegisterSound1)
-                            {
-                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = false;
-                            }
-                            else
-                            {
-                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = true;
-                            }
-                        }
-
-                        btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
-                        btnsender.Enabled = false;
-                    }
-                    else
-                    {
-
-                        btnsender.BackColor = MyColors.colButtonDisabled;
-                        btnsender.ForeColor = MyColors.colTextSecondary;
-                        btnsender.Enabled = false;
+                        PlaySound(SoundList.Register);
                     }
                 }
                 else if (btnitemID == 0)
@@ -499,39 +424,13 @@ namespace FirstClicker
                     //clickAmount upgrade, may be removed entirely, not sure yet
                     if (myGame.myMoney >= btnsender.myUpgrade.Cost)
                     {
-
-                        btnsender.BackColor = MyColors.colButtonPurchased;
-                        btnsender.ForeColor = MyColors.colTextPrimary;
                         myGame.myMoney -= btnsender.myUpgrade.Cost;
                         myGame.clickAmount *= btnsender.myUpgrade.Multiplier;
                         //had to make 'SetPurchased' a static method that returned an object reference. For some reason it wasn't updating the object passed to it before...
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (myGame.FXEnabled)
-                        {
-                            if (myGame.PlayRegisterSound1)
-                            {
-                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = false;
-                            }
-                            else
-                            {
-                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = true;
-                            }
-                        }
-                        btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
-                        btnsender.Enabled = false;
-                    }
-                    else
-                    {
-
-                        btnsender.BackColor = MyColors.colButtonDisabled;
-                        btnsender.ForeColor = MyColors.colTextSecondary;
-                        btnsender.Enabled = false;
+                        PlaySound(SoundList.Register);
                     }
                 }
                 else if (btnitemID == 15)
@@ -539,11 +438,7 @@ namespace FirstClicker
                     //All Items Upgrade
                     if (myGame.myMoney >= btnsender.myUpgrade.Cost)
                     {
-
-                        btnsender.BackColor = MyColors.colButtonPurchased;
-                        btnsender.ForeColor = MyColors.colTextPrimary;
                         myGame.myMoney -= btnsender.myUpgrade.Cost;
-                        btnsender.Enabled = false;
                         foreach (ItemView item in myGame.myItems)
                         {
                             item.mySalary *= btnsender.myUpgrade.Multiplier;
@@ -551,41 +446,14 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (myGame.FXEnabled)
-                        {
-                            if (myGame.PlayRegisterSound1)
-                            {
-                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = false;
-                            }
-                            else
-                            {
-                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = true;
-                            }
-                        }
-                        btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
+                        PlaySound(SoundList.Register);
                     }
-                    else
-                    {
-
-                        btnsender.BackColor = MyColors.colButtonDisabled;
-                        btnsender.ForeColor = MyColors.colTextSecondary;
-                        btnsender.Enabled = false;
-                    }
-
                 }
                 else if (btnitemID == 20)
                 {
                     //prestige points upgrade
                     if (myGame.myMoney >= btnsender.myUpgrade.Cost)
                     {
-
-                        btnsender.BackColor = MyColors.colButtonPurchased;
-                        btnsender.ForeColor = MyColors.colTextPrimary;
-                        btnsender.Enabled = false;
                         double newmult = (btnsender.myUpgrade.Multiplier * 100) - 100;
                         double oldPrestigeMult = myGame.prestigeMultiplier;
                         myGame.prestigeMultiplier += newmult;
@@ -628,31 +496,10 @@ namespace FirstClicker
                         btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
-                        if (myGame.FXEnabled)
-                        {
-                            if (myGame.PlayRegisterSound1)
-                            {
-                                mciSendString("seek registersound to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = false;
-                            }
-                            else
-                            {
-                                mciSendString("seek registersound2 to start", null, 0, IntPtr.Zero);
-                                mciSendString("play registersound2", null, 0, IntPtr.Zero);
-                                myGame.PlayRegisterSound1 = true;
-                            }
-                        }
-                        btnsender.Text = $"{btnsender.myUpgrade.Description}\nPurchased!";
-                    }
-                    else
-                    {
-
-                        btnsender.BackColor = MyColors.colButtonDisabled;
-                        btnsender.ForeColor = MyColors.colTextSecondary;
-                        btnsender.Enabled = false;
+                        PlaySound(SoundList.Register);
                     }
                 }
+                UpgradeButtonEnable(btnsender, false);
             }
         }
         public void BuyClicked(ItemView sender)
@@ -1172,13 +1019,7 @@ namespace FirstClicker
             {
                 if (btn.myUpgrade.Purchased)
                 {
-
-
-                    //specify color to override enabledchanged event handler method
-
-                    btn.BackColor = MyColors.colButtonPurchased;
-                    btn.ForeColor = MyColors.colTextPrimary;
-                    btn.Enabled = false;
+                    UpgradeButtonEnable(btn, false);
                 }
                 //if we can afford it and haven't bought it, enable it and turn it green, if not, disable it and turn it gray. real simple.
                 else if (!(btn.myUpgrade.Purchased))
@@ -1187,19 +1028,12 @@ namespace FirstClicker
                     if (myGame.myMoney >= btn.myUpgrade.Cost)
                     {
                         //can afford
-
-                        btn.BackColor = MyColors.colButtonEnabled;
-                        btn.ForeColor = MyColors.colTextPrimary; //black
-                        btn.Enabled = true;
+                        UpgradeButtonEnable(btn, true);
                     }
                     else
                     {
                         //can't afford
-
-
-                        btn.BackColor = MyColors.colButtonDisabled;
-                        btn.ForeColor = MyColors.colTextSecondary; //white
-                        btn.Enabled = false;
+                        UpgradeButtonEnable(btn, false);
                     }
                 }
             }
@@ -1270,6 +1104,34 @@ namespace FirstClicker
                 Padding padding = new Padding(xLocation - itemPanel.Location.X, 10, 10, 10);
                 itemPanel.Controls[i].Margin = padding;
                 //itemPanel.Controls[i].Location = newLocation; Not needed afterall, causes flickering due to different locations anyway. Parent Control forces location anyway.
+            }
+        }
+        internal static void UpgradeButtonEnable(UpgradeButton btn, bool enabled)
+        {
+            if (enabled)    //enabled, we can purchase it
+            {
+                btn.BackColor = MyColors.colButtonEnabled;
+                btn.ForeColor = MyColors.colTextSecondary;
+                btn.FlatStyle = FlatStyle.Popup;
+                btn.IsEnabled = true;
+            }
+            else
+            {   
+                if (!btn.myUpgrade.Purchased)   //disabled and we don't own it
+                {
+                    btn.BackColor = MyColors.colButtonDisabled;
+                    btn.ForeColor = MyColors.colTextSecondary;
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.IsEnabled = false;
+                }
+                else    //disabled and we do own it
+                {
+                    btn.BackColor = MyColors.colButtonPurchased;
+                    btn.ForeColor = MyColors.colTextSecondary;
+                    btn.FlatStyle = FlatStyle.Flat;
+                    btn.Text = $"{btn.myUpgrade.Description}\nPurchased!";
+                    btn.IsEnabled = false;
+                }
             }
         }
 
@@ -1911,7 +1773,10 @@ namespace FirstClicker
     public class UpgradeButton : Button
     {
         internal Upgrade myUpgrade { get; set; }
-        
+        /// <summary>
+        /// Custom property used instead of default enable
+        /// </summary>
+        internal bool IsEnabled { get; set; }
     }
     [Serializable]
     public static class MyColors
@@ -1922,7 +1787,7 @@ namespace FirstClicker
         public static Color colDisable = Color.Gray;
         public static Color colButtonDisabled = Color.FromArgb(37, 39, 46);//BlackOlive
         public static Color colButtonEnabled = Color.FromArgb(63, 210, 255);//PaleAzure
-        public static Color colButtonPurchased = Color.FromArgb(20, 81, 195);//SteelBlue
+        public static Color colButtonPurchased = Color.ForestGreen;
         public static Color colBackground = Color.FromArgb(210, 180, 140);//Tan
         public static Color colTextPrimary = Color.Black;
         public static Color colTextSecondary = Color.White;
