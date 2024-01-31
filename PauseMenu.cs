@@ -17,7 +17,7 @@ namespace MoneyMiner
         private int mySizeX;
         private int mySizeY;
         private Point myLocation;
-        public PauseMenu(frmMain Obj)
+        public PauseMenu(frmMain Obj, Game myGame)
         {
             InitializeComponent();
             //get a reference to the active main form
@@ -31,16 +31,14 @@ namespace MoneyMiner
             Point pauseLoc = new Point(centeroffrmmainx - (this.Width / 2), centeroffrmmainy - (this.Height / 2));
             myLocation = pauseLoc;
             this.Location = myLocation; //fire the move event which will set the window location to myLocation.
-            this.sliderVolume.Value = FrmMainObj.MusicVolume;
-            this.checkMusicEnabled.Checked = FrmMainObj.MusicEnabled;
-            this.checkEffectsEnabled.Checked = FrmMainObj.FXEnabled;
+            this.sliderVolume.Value = myGame.MusicVolume;
+            this.checkMusicEnabled.Checked = myGame.MusicEnabled;
+            this.checkEffectsEnabled.Checked = myGame.FXEnabled;
         }
 
         private void sliderVolume_Scroll(object sender, EventArgs e)
         {
             //Set volume in frmMain object
-            FrmMainObj.MusicVolume = sliderVolume.Value;
-            FrmMainObj.FXVolume = sliderVolume.Value;
             FrmMainObj.SetAudioVolume(sliderVolume.Value, sliderVolume.Value);
         }
 
@@ -95,6 +93,7 @@ namespace MoneyMiner
             {
                 //user selected a valid save location and file
                 FrmMainObj.SaveGame(Path.GetFullPath(saveDialog.FileName));
+                //-Didn't actually write to location
             }
         }
 

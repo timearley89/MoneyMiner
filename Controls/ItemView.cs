@@ -19,7 +19,6 @@ namespace FirstClicker.Controls
     [Serializable]
     public partial class ItemView : UserControl
     {
-        public MyColors Colors;
         public double myCost;
         public int myQty = 0;
         public double mySalary;
@@ -38,10 +37,9 @@ namespace FirstClicker.Controls
         {
             InitializeComponent();
             this.myID = myID;
-            this.Colors = new MyColors();
-            this.BackColor = Colors.colBackground;
-            this.grpItem.BackColor = Colors.colBackground;
-            this.ForeColor = Colors.colTextPrimary;
+            this.BackColor = MyColors.colBackground;
+            this.grpItem.BackColor = MyColors.colBackground;
+            this.ForeColor = MyColors.colTextPrimary;
             this.myCost = _myCost;
             this.baseCost = _myCost;
             //this.myQty = _myQty;
@@ -73,7 +71,6 @@ namespace FirstClicker.Controls
             this.myCostMult = data.myCostMult;
             this.calculatedCost = data.calculatedCost;
             this.baseCost = data.baseCost;
-            this.Colors = data.myColors;
             this.Name = data.myName;
             this.latestUnlock = data.latestUnlock;
             this.mySalaryTimeMS = data.mySalaryTimeMS;
@@ -111,23 +108,23 @@ namespace FirstClicker.Controls
 
             }
 
-            lblTotalSal.BackColor = Colors.colButtonEnabled;
+            lblTotalSal.BackColor = MyColors.colButtonEnabled;
             lblTotalSal.BorderStyle = BorderStyle.FixedSingle;
-            lblQuantity.BackColor = Colors.colButtonEnabled;
+            lblQuantity.BackColor = MyColors.colButtonEnabled;
             lblQuantity.BorderStyle = BorderStyle.FixedSingle;
-            lblCost.BackColor = Colors.colButtonEnabled;
+            lblCost.BackColor = MyColors.colButtonEnabled;
             lblCost.BorderStyle = BorderStyle.FixedSingle;
-            lblSalPerSec.BackColor = Colors.colButtonEnabled;
+            lblSalPerSec.BackColor = MyColors.colButtonEnabled;
             lblSalPerSec.BorderStyle = BorderStyle.FixedSingle;
-            grpItem.BackColor = Colors.colBorders;
-            BackColor = Colors.colBackground;
-            lblTotalSal.ForeColor = Colors.colTextPrimary;    //black
-            lblQuantity.ForeColor = Colors.colTextPrimary;
-            lblCost.ForeColor = Colors.colTextPrimary;
-            lblSalPerSec.ForeColor = Colors.colTextPrimary;
-            grpItem.ForeColor = Colors.colTextPrimary;
-            lblTimeLeft.BackColor = Colors.colButtonEnabled;
-            lblTimeLeft.ForeColor = Colors.colTextPrimary;
+            grpItem.BackColor = MyColors.colBorders;
+            BackColor = MyColors.colBackground;
+            lblTotalSal.ForeColor = MyColors.colTextPrimary;    //black
+            lblQuantity.ForeColor = MyColors.colTextPrimary;
+            lblCost.ForeColor = MyColors.colTextPrimary;
+            lblSalPerSec.ForeColor = MyColors.colTextPrimary;
+            grpItem.ForeColor = MyColors.colTextPrimary;
+            lblTimeLeft.BackColor = MyColors.colButtonEnabled;
+            lblTimeLeft.ForeColor = MyColors.colTextPrimary;
         }
         /// <summary>
         /// Calculates and sets the properties in the given item for it's salary per timeinterval.
@@ -188,8 +185,8 @@ namespace FirstClicker.Controls
         public void ButtonColor(double myMoney, int purchaseQty, double costMultiplier)
         {
             //calculates whether purchase can be done given current balance, purchase amount, and cost multiplier, based on current cost of this item.
-            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colButtonEnabled : Colors.colButtonDisabled;
-            this.btnBuy.ForeColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colTextPrimary : Colors.colTextSecondary;
+            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? MyColors.colButtonEnabled : MyColors.colButtonDisabled;
+            this.btnBuy.ForeColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? MyColors.colTextPrimary : MyColors.colTextSecondary;
         }
         public bool CanAfford(double myMoney, int purchaseQty, double costMultiplier)
         {
@@ -246,6 +243,7 @@ namespace FirstClicker.Controls
             //simple toggle
             //this.displaySalPerSec = !this.displaySalPerSec;
             ((frmMain)(this.Parent).Parent).ToggleItemSalaryDisplays();
+            //After loading a game manually, we lose the object references to itemPanel's items. Remove them all and add the new ones.
         }
 
         
@@ -261,7 +259,6 @@ namespace FirstClicker.Controls
         public double myCostMult;
         public double calculatedCost;
         public double baseCost;
-        public MyColors myColors;
         public string myName;
         public int latestUnlock;
         public int mySalaryTimeMS;
@@ -278,14 +275,13 @@ namespace FirstClicker.Controls
             this.myCostMult = item.myCostMult;
             this.calculatedCost = item.calculatedCost;
             this.baseCost = item.baseCost;
-            this.myColors = item.Colors;
             this.myName = item.Name;
             this.latestUnlock = item.latestUnlock;
             this.mySalaryTimeMS = item.mySalaryTimeMS;
             this.progressvalueMS = item.myprogressvalue;
             this.displaySalPerSec = item.displaySalPerSec;
         }
-        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, MyColors myColors, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
+        public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
         {
             this.myCost = myCost;
             this.myQty = myQty;
@@ -295,7 +291,6 @@ namespace FirstClicker.Controls
             this.myCostMult = myCostMult;
             this.calculatedCost = calculatedCost;
             this.baseCost = baseCost;
-            this.myColors = myColors;
             this.myName = myName;
             this.latestUnlock = latestUnlock;
             this.mySalaryTimeMS = mySalaryTimeMS;

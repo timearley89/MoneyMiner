@@ -252,14 +252,13 @@
             Controls.Add(btnPurchAmount);
             Controls.Add(itemPanel);
             Controls.Add(pctCenterBackground);
+            DoubleBuffered = true;
             MinimumSize = new Size(1000, 600);
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Show;
             Text = "MoneyMiner!";
             FormClosing += frmMain_FormClosing;
             Load += frmMain_Load;
-            Click += frmMain_Click;
-            Paint += frmMain_Paint;
             grpMoney.ResumeLayout(false);
             grpMoney.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).EndInit();
