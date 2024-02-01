@@ -142,15 +142,15 @@ namespace FirstClicker
         public void InitControls()
         {
             //Set default form colors
-            this.BackColor = MyColors.colBackground;
-            this.btnMine.BackColor = MyColors.colButtonEnabled;
-            this.btnPrestige.BackColor = MyColors.colButtonEnabled;
-            this.btnPurchAmount.BackColor = MyColors.colButtonEnabled;
-            this.btnStats.BackColor = MyColors.colButtonEnabled;
-            this.itemPanel.BackColor = MyColors.colBorders;
-            this.UpgradePanel.BackColor = MyColors.colBorders;
-            this.grpMoney.BackColor = MyColors.colBorders;
-            this.btnPause.BackColor = MyColors.colButtonEnabled;
+            this.BackColor = Colors.colBackground;
+            this.btnMine.BackColor = Colors.colButtonEnabled;
+            this.btnPrestige.BackColor = Colors.colButtonEnabled;
+            this.btnPurchAmount.BackColor = Colors.colButtonEnabled;
+            this.btnStats.BackColor = Colors.colButtonEnabled;
+            this.itemPanel.BackColor = Colors.colBorders;
+            this.UpgradePanel.BackColor = Colors.colBorders;
+            this.grpMoney.BackColor = Colors.colBorders;
+            this.btnPause.BackColor = Colors.colButtonEnabled;
             this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
             
         }   //after ctor, before frmMain_load
@@ -342,7 +342,7 @@ namespace FirstClicker
             {   //subtract 20 from alpha value
 
                 int alphaval = thislbl.ForeColor.A - dimmingamount >= 0 ? thislbl.ForeColor.A - dimmingamount : 0;
-                thislbl.ForeColor = Color.FromArgb(alphaval, MyColors.colTextPrimary);
+                thislbl.ForeColor = Color.FromArgb(alphaval, Colors.colTextPrimary);
             }
             else
             {
@@ -847,8 +847,8 @@ namespace FirstClicker
             lblNew.BringToFront();
             lblNew.Name = $"lblFloat{myGame.floatlabels.Count + 1}";
             lblNew.Text = $"${(myGame.clickAmount * myGame.incrperclick >= 1000000.0d ? Stringify((myGame.clickAmount * myGame.incrperclick).ToString()) : double.Round(myGame.clickAmount * myGame.incrperclick, 2).ToString("N"))}";
-            lblNew.ForeColor = Color.FromArgb(255, MyColors.colTextPrimary);
-            lblNew.BackColor = Color.FromArgb(0, MyColors.colTextSecondary);
+            lblNew.ForeColor = Color.FromArgb(255, Colors.colTextPrimary);
+            lblNew.BackColor = Color.FromArgb(0, Colors.colTextSecondary);
             lblNew.Visible = true;
             lblNew.Enabled = true;
             lblNew.Show();
@@ -1165,8 +1165,8 @@ namespace FirstClicker
         {
             if (enabled)    //enabled, we can purchase it
             {
-                btn.BackColor = MyColors.colButtonEnabled;
-                btn.ForeColor = MyColors.colUpgradeTextEnabled;
+                btn.BackColor = Colors.colButtonEnabled;
+                btn.ForeColor = Colors.colUpgradeTextEnabled;
                 btn.FlatStyle = FlatStyle.Popup;
                 btn.IsEnabled = true;
             }
@@ -1174,15 +1174,15 @@ namespace FirstClicker
             {   
                 if (!btn.myUpgrade.Purchased)   //disabled and we don't own it
                 {
-                    btn.BackColor = MyColors.colButtonDisabled;
-                    btn.ForeColor = MyColors.colUpgradeTextDisabled;
+                    btn.BackColor = Colors.colButtonDisabled;
+                    btn.ForeColor = Colors.colUpgradeTextDisabled;
                     btn.FlatStyle = FlatStyle.Flat;
                     btn.IsEnabled = false;
                 }
                 else    //disabled and we do own it
                 {
-                    btn.BackColor = MyColors.colButtonPurchased;
-                    btn.ForeColor = MyColors.colUpgradeTextPurchased;
+                    btn.BackColor = Colors.colButtonPurchased;
+                    btn.ForeColor = Colors.colUpgradeTextPurchased;
                     btn.FlatStyle = FlatStyle.Flat;
                     btn.Text = $"{btn.myUpgrade.Description}\nPurchased!";
                     btn.IsEnabled = false;
@@ -1349,15 +1349,17 @@ namespace FirstClicker
         {
             FileStreamOptions fsOptions = new FileStreamOptions();
             GameState save;
-            try
-            {
-                fsOptions.Mode = FileMode.Open;
+            fsOptions.Mode = FileMode.Open;
                 using FileStream fstream = new FileStream(Environment.CurrentDirectory + @"\GameState.mmf", fsOptions);
                 //read from disk and deserialize
 #pragma warning disable SYSLIB0011 // Type or member is obsolete
                 BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
+            
+            try
+            {
                 save = (GameState)bformatter.Deserialize(fstream);
+                
                 fstream.Close();
 
                 TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
@@ -1370,7 +1372,11 @@ namespace FirstClicker
             //the game is closed it will save a new file, overwriting the corrupted one if it exists.
             catch (Exception ex)
             {
-                MessageBox.Show("Error occurred during LoadGame() - " + ex.Message + ", initializing defaults", "LoadGame() Error...");
+                if (ex is SerializationException)
+                {
+                    MessageBox.Show("Incompatible save - " + ex.Message + ", initializing defaults", "Serialization Error...");
+                }
+                else { MessageBox.Show("Error occurred during LoadGame() - " + ex.Message + ", initializing defaults", "LoadGame() Error..."); }
                 return null;
             }
         }
@@ -1829,12 +1835,19 @@ namespace FirstClicker
         internal double PrestigePointsGained;//--
         internal int MusicVol;//
         internal int FXVol;//
+        [OptionalField(VersionAdded = 2)]
         internal bool MusicEn;//
+        [OptionalField(VersionAdded = 2)]
         internal bool FXEn;//
+        [OptionalField(VersionAdded = 2)]
         internal int matsMinedLifetime;//
+        [OptionalField(VersionAdded = 3)]
         internal SaveType saveType;
+        [OptionalField(VersionAdded = 3)]
         internal string SaveLocation;
+        [OptionalField(VersionAdded = 3)]
         internal bool AutosaveEnabled;
+        [OptionalField(VersionAdded = 3)]
         internal int AutosaveInterval;
         
         /// <summary>
@@ -1921,7 +1934,7 @@ namespace FirstClicker
         internal bool IsEnabled { get; set; }
     }
     [Serializable]
-    public static class MyColors
+    public static class Colors
     {
         public static Color colPrimary = Color.Green;
         public static Color colSecondary = Color.SandyBrown;
@@ -1938,7 +1951,27 @@ namespace FirstClicker
         public static Color colUpgradeTextDisabled = Color.FromArgb(188, 194, 174);
         public static Color colUpgradeTextPurchased = Color.FromArgb(255, 255, 255);
     }
-
+    [Serializable]
+    public class MyColors   //Deprecated - Here for compatibility
+    {
+        public Color colPrimary = Color.Green;
+        public Color colSecondary = Color.SandyBrown;
+        public Color colTertiary = Color.Tan;
+        public Color colDisable = Color.Gray;
+        public Color colButtonDisabled = Color.FromArgb(37, 39, 46);//BlackOlive
+        public Color colButtonEnabled = Color.FromArgb(63, 210, 255);//PaleAzure
+        public Color colButtonPurchased = Color.FromArgb(20, 81, 195);//SteelBlue
+        public Color colBackground = Color.FromArgb(210, 180, 140);//Tan
+        public Color colTextPrimary = Color.Black;
+        public Color colTextSecondary = Color.White;
+        public Color colBorders = Color.FromArgb(78, 213, 215);//TiffanyBlue
+        [OptionalField(VersionAdded = 3)]
+        public Color colUpgradeTextEnabled = Color.FromArgb(0, 29, 107);
+        [OptionalField(VersionAdded = 3)]
+        public Color colUpgradeTextDisabled = Color.FromArgb(188, 194, 174);
+        [OptionalField(VersionAdded = 3)]
+        public Color colUpgradeTextPurchased = Color.FromArgb(255, 255, 255);
+    }
 
     //------Enums------//
     /// <summary>

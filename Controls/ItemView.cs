@@ -5,6 +5,7 @@ using System.Data;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Text.Json.Serialization;
@@ -37,9 +38,9 @@ namespace FirstClicker.Controls
         {
             InitializeComponent();
             this.myID = myID;
-            this.BackColor = MyColors.colBackground;
-            this.grpItem.BackColor = MyColors.colBackground;
-            this.ForeColor = MyColors.colTextPrimary;
+            this.BackColor = Colors.colBackground;
+            this.grpItem.BackColor = Colors.colBackground;
+            this.ForeColor = Colors.colTextPrimary;
             this.myCost = _myCost;
             this.baseCost = _myCost;
             //this.myQty = _myQty;
@@ -110,23 +111,23 @@ namespace FirstClicker.Controls
 
             }
 
-            lblTotalSal.BackColor = MyColors.colButtonEnabled;
+            lblTotalSal.BackColor = Colors.colButtonEnabled;
             lblTotalSal.BorderStyle = BorderStyle.FixedSingle;
-            lblQuantity.BackColor = MyColors.colButtonEnabled;
+            lblQuantity.BackColor = Colors.colButtonEnabled;
             lblQuantity.BorderStyle = BorderStyle.FixedSingle;
-            lblCost.BackColor = MyColors.colButtonEnabled;
+            lblCost.BackColor = Colors.colButtonEnabled;
             lblCost.BorderStyle = BorderStyle.FixedSingle;
-            lblSalPerSec.BackColor = MyColors.colButtonEnabled;
+            lblSalPerSec.BackColor = Colors.colButtonEnabled;
             lblSalPerSec.BorderStyle = BorderStyle.FixedSingle;
-            grpItem.BackColor = MyColors.colBorders;
-            BackColor = MyColors.colBackground;
-            lblTotalSal.ForeColor = MyColors.colTextPrimary;    //black
-            lblQuantity.ForeColor = MyColors.colTextPrimary;
-            lblCost.ForeColor = MyColors.colTextPrimary;
-            lblSalPerSec.ForeColor = MyColors.colTextPrimary;
-            grpItem.ForeColor = MyColors.colTextPrimary;
-            lblTimeLeft.BackColor = MyColors.colButtonEnabled;
-            lblTimeLeft.ForeColor = MyColors.colTextPrimary;
+            grpItem.BackColor = Colors.colBorders;
+            BackColor = Colors.colBackground;
+            lblTotalSal.ForeColor = Colors.colTextPrimary;    //black
+            lblQuantity.ForeColor = Colors.colTextPrimary;
+            lblCost.ForeColor = Colors.colTextPrimary;
+            lblSalPerSec.ForeColor = Colors.colTextPrimary;
+            grpItem.ForeColor = Colors.colTextPrimary;
+            lblTimeLeft.BackColor = Colors.colButtonEnabled;
+            lblTimeLeft.ForeColor = Colors.colTextPrimary;
             this.UpdateLabels();
         }
         /// <summary>
@@ -191,8 +192,8 @@ namespace FirstClicker.Controls
         public void ButtonColor(double myMoney, int purchaseQty, double costMultiplier)
         {
             //calculates whether purchase can be done given current balance, purchase amount, and cost multiplier, based on current cost of this item.
-            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? MyColors.colButtonEnabled : MyColors.colButtonDisabled;
-            this.btnBuy.ForeColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? MyColors.colTextPrimary : MyColors.colTextSecondary;
+            this.btnBuy.BackColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colButtonEnabled : Colors.colButtonDisabled;
+            this.btnBuy.ForeColor = this.CanAfford(myMoney, purchaseQty, costMultiplier) && purchaseQty > 0 ? Colors.colTextPrimary : Colors.colTextSecondary;
         }
         public bool CanAfford(double myMoney, int purchaseQty, double costMultiplier)
         {
@@ -268,10 +269,12 @@ namespace FirstClicker.Controls
         public double myCostMult;
         public double calculatedCost;
         public double baseCost;
+        public MyColors myColors;   //Deprecated
         public string myName;
         public int latestUnlock;
         public int mySalaryTimeMS;
         public int progressvalueMS;
+        [OptionalField(VersionAdded =3)]
         public bool displaySalPerSec;
 
         public ItemData(ItemView item)

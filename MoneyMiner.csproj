@@ -13,9 +13,9 @@
     <PackageProjectUrl>https://timearley89.itch.io/moneyminer</PackageProjectUrl>
     <RepositoryUrl>https://github.com/timearley89/MoneyMiner</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <AssemblyVersion>1.2.0.1</AssemblyVersion>
-    <FileVersion>1.2.0.1</FileVersion>
-    <Version>1.2.0.1-alpha</Version>
+    <AssemblyVersion>1.2.2.1</AssemblyVersion>
+    <FileVersion>1.2.2.1</FileVersion>
+    <Version>1.2.2.1-alpha</Version>
   </PropertyGroup>
 
   <ItemGroup>
