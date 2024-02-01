@@ -137,7 +137,7 @@ namespace FirstClicker
             mciSendString($@"open {Environment.CurrentDirectory}\Resources\pickaxe-clank-08.wav type mpegvideo alias pickaxe8sound", null, 0, IntPtr.Zero);
             mciSendString($@"open {Environment.CurrentDirectory}\Resources\BackgroundMusic01.mp3 type mpegvideo alias backgroundmusic01", null, 0, IntPtr.Zero);
             mciSendString($@"open {Environment.CurrentDirectory}\Resources\cashregisterpurchase2.wav type mpegvideo alias registersound2", null, 0, IntPtr.Zero);
-
+            mciSendString($@"open {Environment.CurrentDirectory}\Resources\ping.wav type mpegvideo alias pingsound", null, 0, IntPtr.Zero);
         }   //before frmMain_load
         public void InitControls()
         {
@@ -231,6 +231,7 @@ namespace FirstClicker
                 myGame.myPurchaseAmount = PurchaseAmount.Buy100;
                 btnPurchAmount_Click(this, EventArgs.Empty);
             }
+            if (myGame.AutosaveEnabled && myGame.AutosaveInterval > 0) { myGame.AutosaveTimer.Interval = myGame.AutosaveInterval * 60000; myGame.AutosaveTimer.Start(); }
         }   //after frmMain_load
         public void ClearFormItems()
         {
@@ -924,11 +925,12 @@ namespace FirstClicker
         public void EnableAutosave(bool autosave)
         {
             myGame.AutosaveEnabled = autosave;
+            
             if (myGame.AutosaveEnabled && myGame.AutosaveInterval != 0) 
             {
                 myGame.AutosaveTimer.Tick -= Autosave;
                 myGame.AutosaveTimer.Tick += Autosave;
-                myGame.AutosaveTimer.Interval = myGame.AutosaveInterval * 1000; 
+                myGame.AutosaveTimer.Interval = myGame.AutosaveInterval * 60000; 
                 myGame.AutosaveTimer.Start(); 
             }
             else 
@@ -939,7 +941,7 @@ namespace FirstClicker
         public void SetAutosaveInterval(int Interval)
         {
             myGame.AutosaveInterval = Interval;
-            if (myGame.AutosaveEnabled && myGame.AutosaveInterval != 0) { myGame.AutosaveTimer.Interval = myGame.AutosaveInterval * 1000; myGame.AutosaveTimer.Start(); }
+            if (myGame.AutosaveEnabled && myGame.AutosaveInterval != 0) { myGame.AutosaveTimer.Interval = myGame.AutosaveInterval * 60000; myGame.AutosaveTimer.Start(); }
             else { myGame.AutosaveTimer.Stop(); }
         }
 
@@ -1333,6 +1335,7 @@ namespace FirstClicker
             if (IsAutosave) { save.saveType = SaveType.Autosave; }
             save.lastsavetimestamp = DateTime.Now;
             save.SaveLocation = saveLocation;
+            myGame.lastSaveLocation = saveLocation;
             FileStream fstream = new FileStream(saveLocation, FileMode.Create);
 
             //serialize and write to disk
@@ -1437,8 +1440,9 @@ namespace FirstClicker
         }
         public void Autosave(object? sender, EventArgs e)
         {
-            SaveGame(myGame.lastSaveLocation);
+            SaveGame(myGame.lastSaveLocation, true);
             //need some way to show it autosaved...
+            PlaySound(SoundList.Ping);
         }
 
         //----Audio Methods----//
@@ -1452,6 +1456,7 @@ namespace FirstClicker
             mciSendString($"setaudio registersound volume to {fxVol}", null, 0, IntPtr.Zero);
             mciSendString($"setaudio registersound2 volume to {fxVol}", null, 0, IntPtr.Zero);
             mciSendString($"setaudio clicksound volume to {fxVol}", null, 0, IntPtr.Zero);
+            mciSendString($"setaudio pingsound volume to {fxVol}", null, 0, IntPtr.Zero);
             for (int i = 1; i <= 8; i++)
             {
                 mciSendString($"setaudio pickaxe{i}sound volume to {fxVol}", null, 0, IntPtr.Zero);
@@ -1493,6 +1498,7 @@ namespace FirstClicker
                     mciSendString($"setaudio clicksound on", null, 0, IntPtr.Zero);
                     mciSendString($"setaudio registersound on", null, 0, IntPtr.Zero);
                     mciSendString($"setaudio registersound2 on", null, 0, IntPtr.Zero);
+                    mciSendString("setaudio pingsound on", null, 0, IntPtr.Zero);
                     for (int i = 1; i <= 8; i++)
                     {
                         mciSendString($"setaudio pickaxe{i}sound on", null, 0, IntPtr.Zero);
@@ -1508,6 +1514,7 @@ namespace FirstClicker
                     mciSendString($"setaudio clicksound off", null, 0, IntPtr.Zero);
                     mciSendString($"setaudio registersound off", null, 0, IntPtr.Zero);
                     mciSendString($"setaudio registersound2 off", null, 0, IntPtr.Zero);
+                    mciSendString("setaudio pingsound off", null, 0, IntPtr.Zero);
                     for (int i = 1; i <= 8; i++)
                     {
                         mciSendString($"setaudio pickaxe{i}sound off", null, 0, IntPtr.Zero);
@@ -1556,6 +1563,15 @@ namespace FirstClicker
                         {
                             mciSendString($"seek pickaxe{i}sound to start", null, 0, IntPtr.Zero);
                             mciSendString($"play pickaxe{i}sound", null, 0, IntPtr.Zero);
+                        }
+                        return;
+                    }
+                case (SoundList.Ping):
+                    {
+                        if (myGame.FXEnabled)
+                        {
+                            mciSendString("seek pingsound to start", null, 0, IntPtr.Zero);
+                            mciSendString("play pingsound", null, 0, IntPtr.Zero);
                         }
                         return;
                     }
@@ -1949,7 +1965,8 @@ namespace FirstClicker
     {
         ClickSound = 1,
         Pickaxe = 2,
-        Register = 4
+        Register = 4,
+        Ping = 8
     }
     [DefaultValue(SaveType.Exitsave)]
     public enum SaveType

@@ -88,6 +88,9 @@
     <None Update="Resources\pickaxe.png">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Resources\ping.wav">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Resources\ResourceAttributions.txt">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

@@ -34,6 +34,8 @@ namespace MoneyMiner
             this.sliderVolume.Value = myGame.MusicVolume;
             this.checkMusicEnabled.Checked = myGame.MusicEnabled;
             this.checkEffectsEnabled.Checked = myGame.FXEnabled;
+            this.checkAutosaveEnabled.Checked = myGame.AutosaveEnabled;
+            this.numAutosaveInterval.Value = myGame.AutosaveInterval >= numAutosaveInterval.Minimum ? myGame.AutosaveInterval : 5;
         }
 
         private void sliderVolume_Scroll(object sender, EventArgs e)
@@ -148,6 +150,7 @@ namespace MoneyMiner
         private void checkAutosaveEnabled_CheckedChanged(object sender, EventArgs e)
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
+            numAutosaveInterval.Enabled = checkAutosaveEnabled.Checked;
             FrmMainObj.EnableAutosave(checkAutosaveEnabled.Checked);
         }
 
