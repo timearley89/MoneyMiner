@@ -151,8 +151,8 @@ namespace FirstClicker.Controls
         }
         private void salaryTimer_Tick(object? sender, EventArgs e)
         {
-            if (this.Parent != null && (this.Parent).Parent != null) 
-            { 
+            if (this.Parent != null && (this.Parent).Parent != null)
+            {
                 ((frmMain)((this.Parent).Parent)).itemTimer_Tick(this, e);
             }
 
@@ -178,8 +178,8 @@ namespace FirstClicker.Controls
                 //Display total salary per payout period
                 this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";
                 this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary,
-                
-                
+
+
             }
         }
 
@@ -252,7 +252,10 @@ namespace FirstClicker.Controls
             }
         }
 
-        
+        private void btnBuy_MouseHover(object sender, EventArgs e)
+        {
+            frmMain.btnBuy_Hover(sender, e);
+        }
     }
     [Serializable]
     public class ItemData

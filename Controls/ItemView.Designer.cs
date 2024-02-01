@@ -51,6 +51,7 @@
             btnBuy.Text = "Purchase x1";
             btnBuy.UseVisualStyleBackColor = true;
             btnBuy.Click += btnBuy_Click;
+            btnBuy.MouseHover += btnBuy_MouseHover;
             // 
             // grpItem
             // 

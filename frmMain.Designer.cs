@@ -142,6 +142,7 @@
             // btnPrestige
             // 
             btnPrestige.Anchor = AnchorStyles.Bottom;
+            btnPrestige.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
             btnPrestige.Location = new Point(321, 3);
             btnPrestige.Name = "btnPrestige";
             btnPrestige.Size = new Size(75, 55);

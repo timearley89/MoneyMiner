@@ -89,11 +89,12 @@ namespace MoneyMiner
             return base.ProcessCmdKey(ref msg, keyData);
         }
 
-        private void btnSaveGame_Click(object sender, EventArgs e)
+        private void btnSaveGame_Click(object sender, EventArgs e)  //Next on the list
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
             //temp for testing
-            saveDialog.InitialDirectory = Environment.CurrentDirectory;
+            saveDialog.InitialDirectory = FrmMainObj.GetSaveLocation();
+            saveDialog.FileName = Path.GetFileName(FrmMainObj.GetSaveLocation());
             DialogResult saveresult = saveDialog.ShowDialog();
             if (saveresult == DialogResult.OK)
             {
@@ -103,11 +104,11 @@ namespace MoneyMiner
             }
         }
 
-        private void btnLoadGame_Click(object sender, EventArgs e)
+        private void btnLoadGame_Click(object sender, EventArgs e)  //Next on the list
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
             //temp for testing
-            loadDialog.InitialDirectory = Environment.CurrentDirectory;
+            loadDialog.InitialDirectory = FrmMainObj.GetSaveLocation();
             DialogResult loadresult = loadDialog.ShowDialog();
             if (loadresult == DialogResult.OK)
             {
@@ -132,6 +133,28 @@ namespace MoneyMiner
         private void btnMasterReset_Click(object sender, EventArgs e)
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
+            DialogResult deleteResult = MessageBox.Show("Are you sure? There is no undoing this if you don't have a backup save!", "Delete Forever!?", MessageBoxButtons.YesNo, MessageBoxIcon.Stop, MessageBoxDefaultButton.Button2);
+            if (deleteResult == DialogResult.Yes)
+            {
+                FrmMainObj.DeleteForever();
+                this.Close();
+            }
+            else
+            {
+                return;
+            }
+        }
+
+        private void checkAutosaveEnabled_CheckedChanged(object sender, EventArgs e)
+        {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
+            FrmMainObj.EnableAutosave(checkAutosaveEnabled.Checked);
+        }
+
+        private void numAutosaveInterval_ValueChanged(object sender, EventArgs e)
+        {
+            FrmMainObj.PlaySound(SoundList.ClickSound);
+            FrmMainObj.SetAutosaveInterval((int)numAutosaveInterval.Value);
         }
     }
 }

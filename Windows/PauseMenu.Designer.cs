@@ -45,11 +45,19 @@
             btnAbout = new Button();
             loadDialog = new OpenFileDialog();
             saveDialog = new SaveFileDialog();
+            grpAutosave = new GroupBox();
+            pnlAutosave = new Panel();
+            lblIntervalText = new Label();
+            numAutosaveInterval = new NumericUpDown();
+            checkAutosaveEnabled = new CheckBox();
             ((System.ComponentModel.ISupportInitialize)sliderVolume).BeginInit();
             grpVolume.SuspendLayout();
             panel1.SuspendLayout();
             grpLoadSave.SuspendLayout();
             panel2.SuspendLayout();
+            grpAutosave.SuspendLayout();
+            pnlAutosave.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)numAutosaveInterval).BeginInit();
             SuspendLayout();
             // 
             // lblHeader
@@ -62,7 +70,7 @@
             lblHeader.Name = "lblHeader";
             lblHeader.Size = new Size(100, 36);
             lblHeader.TabIndex = 0;
-            lblHeader.Text = "Pause";
+            lblHeader.Text = "Settings";
             lblHeader.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // sliderVolume
@@ -84,11 +92,11 @@
             // 
             // grpVolume
             // 
-            grpVolume.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            grpVolume.Anchor = AnchorStyles.Top;
             grpVolume.BackColor = Color.FromArgb(128, 255, 255);
             grpVolume.Controls.Add(panel1);
             grpVolume.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Underline);
-            grpVolume.Location = new Point(12, 109);
+            grpVolume.Location = new Point(12, 112);
             grpVolume.Name = "grpVolume";
             grpVolume.Size = new Size(366, 156);
             grpVolume.TabIndex = 2;
@@ -148,11 +156,11 @@
             // 
             // grpLoadSave
             // 
-            grpLoadSave.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            grpLoadSave.Anchor = AnchorStyles.Top;
             grpLoadSave.BackColor = Color.FromArgb(128, 255, 255);
             grpLoadSave.Controls.Add(panel2);
             grpLoadSave.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Underline);
-            grpLoadSave.Location = new Point(12, 271);
+            grpLoadSave.Location = new Point(12, 274);
             grpLoadSave.Name = "grpLoadSave";
             grpLoadSave.Size = new Size(366, 107);
             grpLoadSave.TabIndex = 3;
@@ -205,7 +213,7 @@
             btnMasterReset.BackColor = Color.DarkRed;
             btnMasterReset.Font = new Font("Impact", 12F);
             btnMasterReset.ForeColor = SystemColors.ControlLightLight;
-            btnMasterReset.Location = new Point(107, 517);
+            btnMasterReset.Location = new Point(107, 614);
             btnMasterReset.Name = "btnMasterReset";
             btnMasterReset.Size = new Size(174, 36);
             btnMasterReset.TabIndex = 4;
@@ -229,11 +237,11 @@
             // 
             // btnExit
             // 
-            btnExit.Anchor = AnchorStyles.Top;
+            btnExit.Anchor = AnchorStyles.Bottom;
             btnExit.BackColor = Color.FromArgb(128, 255, 255);
             btnExit.FlatStyle = FlatStyle.Popup;
             btnExit.Font = new Font("Impact", 14F);
-            btnExit.Location = new Point(107, 384);
+            btnExit.Location = new Point(107, 481);
             btnExit.Name = "btnExit";
             btnExit.Size = new Size(174, 36);
             btnExit.TabIndex = 6;
@@ -243,11 +251,11 @@
             // 
             // btnStats
             // 
-            btnStats.Anchor = AnchorStyles.Top;
+            btnStats.Anchor = AnchorStyles.Bottom;
             btnStats.BackColor = Color.FromArgb(128, 255, 255);
             btnStats.FlatStyle = FlatStyle.Popup;
             btnStats.Font = new Font("Impact", 14F);
-            btnStats.Location = new Point(107, 426);
+            btnStats.Location = new Point(107, 523);
             btnStats.Name = "btnStats";
             btnStats.Size = new Size(174, 30);
             btnStats.TabIndex = 7;
@@ -257,11 +265,11 @@
             // 
             // btnAbout
             // 
-            btnAbout.Anchor = AnchorStyles.Top;
+            btnAbout.Anchor = AnchorStyles.Bottom;
             btnAbout.BackColor = Color.FromArgb(128, 255, 255);
             btnAbout.FlatStyle = FlatStyle.Popup;
             btnAbout.Font = new Font("Impact", 14F);
-            btnAbout.Location = new Point(107, 462);
+            btnAbout.Location = new Point(107, 559);
             btnAbout.Name = "btnAbout";
             btnAbout.Size = new Size(174, 29);
             btnAbout.TabIndex = 8;
@@ -284,13 +292,83 @@
             saveDialog.Filter = "MoneyMiner Saves|*.mmf|All Files|*.*";
             saveDialog.Title = "Save MoneyMiner To:";
             // 
+            // grpAutosave
+            // 
+            grpAutosave.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            grpAutosave.BackColor = Color.FromArgb(128, 255, 255);
+            grpAutosave.CausesValidation = false;
+            grpAutosave.Controls.Add(pnlAutosave);
+            grpAutosave.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            grpAutosave.Location = new Point(12, 387);
+            grpAutosave.Name = "grpAutosave";
+            grpAutosave.Size = new Size(180, 88);
+            grpAutosave.TabIndex = 9;
+            grpAutosave.TabStop = false;
+            grpAutosave.Text = "Auto-Save";
+            // 
+            // pnlAutosave
+            // 
+            pnlAutosave.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            pnlAutosave.BackColor = Color.PaleTurquoise;
+            pnlAutosave.BorderStyle = BorderStyle.Fixed3D;
+            pnlAutosave.CausesValidation = false;
+            pnlAutosave.Controls.Add(lblIntervalText);
+            pnlAutosave.Controls.Add(numAutosaveInterval);
+            pnlAutosave.Controls.Add(checkAutosaveEnabled);
+            pnlAutosave.Location = new Point(6, 19);
+            pnlAutosave.Name = "pnlAutosave";
+            pnlAutosave.Size = new Size(168, 63);
+            pnlAutosave.TabIndex = 0;
+            // 
+            // lblIntervalText
+            // 
+            lblIntervalText.Anchor = AnchorStyles.Bottom;
+            lblIntervalText.AutoSize = true;
+            lblIntervalText.Location = new Point(67, 31);
+            lblIntervalText.Name = "lblIntervalText";
+            lblIntervalText.Size = new Size(65, 19);
+            lblIntervalText.TabIndex = 2;
+            lblIntervalText.Text = "Minutes";
+            // 
+            // numAutosaveInterval
+            // 
+            numAutosaveInterval.Anchor = AnchorStyles.Bottom;
+            numAutosaveInterval.BackColor = Color.Cyan;
+            numAutosaveInterval.BorderStyle = BorderStyle.FixedSingle;
+            numAutosaveInterval.Enabled = false;
+            numAutosaveInterval.Font = new Font("Bahnschrift SemiBold", 10F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            numAutosaveInterval.Location = new Point(28, 29);
+            numAutosaveInterval.Maximum = new decimal(new int[] { 15, 0, 0, 0 });
+            numAutosaveInterval.Minimum = new decimal(new int[] { 1, 0, 0, 0 });
+            numAutosaveInterval.Name = "numAutosaveInterval";
+            numAutosaveInterval.Size = new Size(37, 24);
+            numAutosaveInterval.TabIndex = 1;
+            numAutosaveInterval.TextAlign = HorizontalAlignment.Center;
+            numAutosaveInterval.Value = new decimal(new int[] { 5, 0, 0, 0 });
+            numAutosaveInterval.ValueChanged += this.numAutosaveInterval_ValueChanged;
+            // 
+            // checkAutosaveEnabled
+            // 
+            checkAutosaveEnabled.Anchor = AnchorStyles.Top;
+            checkAutosaveEnabled.AutoSize = true;
+            checkAutosaveEnabled.CausesValidation = false;
+            checkAutosaveEnabled.Font = new Font("Impact", 12.75F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            checkAutosaveEnabled.Location = new Point(9, 3);
+            checkAutosaveEnabled.Name = "checkAutosaveEnabled";
+            checkAutosaveEnabled.Size = new Size(145, 25);
+            checkAutosaveEnabled.TabIndex = 0;
+            checkAutosaveEnabled.Text = "Enable Autosave";
+            checkAutosaveEnabled.UseVisualStyleBackColor = true;
+            checkAutosaveEnabled.CheckedChanged += checkAutosaveEnabled_CheckedChanged;
+            // 
             // PauseMenu
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.Tan;
-            ClientSize = new Size(390, 565);
+            ClientSize = new Size(390, 662);
             ControlBox = false;
+            Controls.Add(grpAutosave);
             Controls.Add(btnAbout);
             Controls.Add(btnStats);
             Controls.Add(btnExit);
@@ -313,6 +391,10 @@
             panel1.PerformLayout();
             grpLoadSave.ResumeLayout(false);
             panel2.ResumeLayout(false);
+            grpAutosave.ResumeLayout(false);
+            pnlAutosave.ResumeLayout(false);
+            pnlAutosave.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)numAutosaveInterval).EndInit();
             ResumeLayout(false);
         }
 
@@ -334,5 +416,10 @@
         private Button btnAbout;
         private OpenFileDialog loadDialog;
         private SaveFileDialog saveDialog;
+        private GroupBox grpAutosave;
+        private Panel pnlAutosave;
+        private CheckBox checkAutosaveEnabled;
+        private Label lblIntervalText;
+        private NumericUpDown numAutosaveInterval;
     }
 }
