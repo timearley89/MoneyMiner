@@ -292,6 +292,7 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = item.mySalaryTimeMS;
             this.progressvalueMS = item.myprogressvalue;
             this.displaySalPerSec = item.displaySalPerSec;
+            this.myColors = new();
         }
         public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
         {
@@ -308,6 +309,7 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = mySalaryTimeMS;
             this.progressvalueMS = myprogressvalue;
             this.displaySalPerSec = false;
+            this.myColors = new();
         }
     }
 
