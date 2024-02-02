@@ -43,9 +43,9 @@
             lblSalary = new Label();
             lblMoney = new Label();
             pctCenterBackground = new PictureBox();
-            btnStats = new Button();
             btnPause = new Button();
             pnlButtons = new Panel();
+            btnQuickBuy = new Button();
             grpMoney.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
             pnlButtons.SuspendLayout();
@@ -214,18 +214,6 @@
             pctCenterBackground.TabIndex = 12;
             pctCenterBackground.TabStop = false;
             // 
-            // btnStats
-            // 
-            btnStats.Anchor = AnchorStyles.Bottom;
-            btnStats.CausesValidation = false;
-            btnStats.Location = new Point(240, 28);
-            btnStats.Name = "btnStats";
-            btnStats.Size = new Size(75, 30);
-            btnStats.TabIndex = 13;
-            btnStats.Text = "Stats...";
-            btnStats.UseVisualStyleBackColor = true;
-            btnStats.Click += btnStats_Click;
-            // 
             // btnPause
             // 
             btnPause.Anchor = AnchorStyles.Bottom;
@@ -243,14 +231,26 @@
             pnlButtons.Anchor = AnchorStyles.Bottom;
             pnlButtons.BackColor = Color.Transparent;
             pnlButtons.CausesValidation = false;
+            pnlButtons.Controls.Add(btnQuickBuy);
             pnlButtons.Controls.Add(btnPause);
             pnlButtons.Controls.Add(btnPurchAmount);
             pnlButtons.Controls.Add(btnPrestige);
-            pnlButtons.Controls.Add(btnStats);
             pnlButtons.Location = new Point(371, 488);
             pnlButtons.Name = "pnlButtons";
             pnlButtons.Size = new Size(399, 61);
             pnlButtons.TabIndex = 15;
+            // 
+            // btnQuickBuy
+            // 
+            btnQuickBuy.Anchor = AnchorStyles.Bottom;
+            btnQuickBuy.CausesValidation = false;
+            btnQuickBuy.Location = new Point(240, 28);
+            btnQuickBuy.Name = "btnQuickBuy";
+            btnQuickBuy.Size = new Size(75, 30);
+            btnQuickBuy.TabIndex = 15;
+            btnQuickBuy.Text = "Quick-Buy";
+            btnQuickBuy.UseVisualStyleBackColor = true;
+            btnQuickBuy.Click += btnQuickBuy_Click;
             // 
             // frmMain
             // 
@@ -298,8 +298,8 @@
         private Label lblMoney;
         private Label lblClickAmount;
         private PictureBox pctCenterBackground;
-        private Button btnStats;
         private Button btnPause;
         private Panel pnlButtons;
+        private Button btnQuickBuy;
     }
 }
