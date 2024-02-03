@@ -10,18 +10,17 @@ using System.Windows.Forms;
 
 namespace MoneyMiner.Windows
 {
-    public partial class About : Form
+    public partial class Stats : Form
     {
-        public About(string Abouttext)
+        public Stats(string statstext)
         {
             InitializeComponent();
-            lblAbout.Text = Abouttext;
+            lblStats.Text = statstext;
         }
 
-        private void About_Load(object sender, EventArgs e)
+        private void btnOk_Click(object sender, EventArgs e)
         {
-
+            this.Close();
         }
-
     }
 }

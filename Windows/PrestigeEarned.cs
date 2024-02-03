@@ -10,18 +10,12 @@ using System.Windows.Forms;
 
 namespace MoneyMiner.Windows
 {
-    public partial class About : Form
+    public partial class PrestigeEarned : Form
     {
-        public About(string Abouttext)
+        public PrestigeEarned(string PrestigeMessage)
         {
             InitializeComponent();
-            lblAbout.Text = Abouttext;
+            lblPrestigeText.Text = PrestigeMessage;
         }
-
-        private void About_Load(object sender, EventArgs e)
-        {
-
-        }
-
     }
 }

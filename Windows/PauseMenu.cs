@@ -1,4 +1,5 @@
 ﻿using FirstClicker;
+using MoneyMiner.Windows;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -135,7 +136,8 @@ namespace MoneyMiner
         private void btnMasterReset_Click(object sender, EventArgs e)
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
-            DialogResult deleteResult = MessageBox.Show("Are you sure? There is no undoing this if you don't have a backup save!", "Delete Forever!?", MessageBoxButtons.YesNo, MessageBoxIcon.Stop, MessageBoxDefaultButton.Button2);
+            MsgBox delMsg = new MsgBox("Are you sure? There is no undoing this if you don't havce a backup save!", "Delete Forever!?");
+            DialogResult deleteResult = delMsg.ShowDialog();
             if (deleteResult == DialogResult.Yes)
             {
                 FrmMainObj.DeleteForever();

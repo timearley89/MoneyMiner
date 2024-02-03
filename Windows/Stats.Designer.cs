@@ -1,6 +1,6 @@
 ﻿namespace MoneyMiner.Windows
 {
-    partial class About
+    partial class Stats
     {
         /// <summary>
         /// Required designer variable.
@@ -28,23 +28,9 @@
         /// </summary>
         private void InitializeComponent()
         {
-            lblAbout = new Label();
             btnOk = new Button();
+            lblStats = new Label();
             SuspendLayout();
-            // 
-            // lblAbout
-            // 
-            lblAbout.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
-            lblAbout.BackColor = Color.FromArgb(128, 255, 255);
-            lblAbout.BorderStyle = BorderStyle.Fixed3D;
-            lblAbout.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblAbout.Location = new Point(12, 9);
-            lblAbout.Margin = new Padding(3, 0, 3, 5);
-            lblAbout.Name = "lblAbout";
-            lblAbout.Size = new Size(337, 381);
-            lblAbout.TabIndex = 3;
-            lblAbout.Text = "label1";
-            lblAbout.TextAlign = ContentAlignment.MiddleCenter;
             // 
             // btnOk
             // 
@@ -53,38 +39,55 @@
             btnOk.DialogResult = DialogResult.OK;
             btnOk.FlatStyle = FlatStyle.Popup;
             btnOk.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            btnOk.Location = new Point(134, 398);
+            btnOk.Location = new Point(137, 297);
             btnOk.Name = "btnOk";
             btnOk.Size = new Size(92, 40);
-            btnOk.TabIndex = 2;
+            btnOk.TabIndex = 0;
             btnOk.Text = "Close";
             btnOk.UseVisualStyleBackColor = false;
+            btnOk.Click += btnOk_Click;
             // 
-            // About
+            // lblStats
+            // 
+            lblStats.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
+            lblStats.BackColor = Color.FromArgb(128, 255, 255);
+            lblStats.BorderStyle = BorderStyle.Fixed3D;
+            lblStats.Font = new Font("Bahnschrift SemiBold", 9.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            lblStats.Location = new Point(12, 9);
+            lblStats.Margin = new Padding(3, 0, 3, 5);
+            lblStats.Name = "lblStats";
+            lblStats.Size = new Size(343, 280);
+            lblStats.TabIndex = 1;
+            lblStats.Text = "label1";
+            lblStats.TextAlign = ContentAlignment.MiddleCenter;
+            // 
+            // Stats
             // 
             AcceptButton = btnOk;
             AutoScaleMode = AutoScaleMode.None;
+            AutoSize = true;
+            AutoSizeMode = AutoSizeMode.GrowAndShrink;
             BackColor = Color.Tan;
-            ClientSize = new Size(361, 450);
+            ClientSize = new Size(367, 349);
             ControlBox = false;
-            Controls.Add(lblAbout);
+            Controls.Add(lblStats);
             Controls.Add(btnOk);
             Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            FormBorderStyle = FormBorderStyle.FixedDialog;
             MaximizeBox = false;
             MinimizeBox = false;
-            Name = "About";
+            Name = "Stats";
             ShowIcon = false;
             ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;
             StartPosition = FormStartPosition.CenterParent;
-            Text = "About MoneyMiner";
-            Load += About_Load;
+            Text = "MoneyMiner Stats";
             ResumeLayout(false);
         }
 
         #endregion
 
-        private Label lblAbout;
         private Button btnOk;
+        private Label lblStats;
     }
 }

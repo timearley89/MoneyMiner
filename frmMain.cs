@@ -39,6 +39,8 @@ namespace FirstClicker
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
         /*NOTES & TODO
 
+        //AutosaveEnable doesn't persist after prestige... check constructors for Game and GameState? -FIXED
+
         //Settings menu:
         //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
             -Long Text Notation --DONE
@@ -52,26 +54,9 @@ namespace FirstClicker
 
         //Prestige button should change color (or overlays an exclamation point or something) when prestigepoints to be earned >= current prestigepoints (or > 0 if at 0)
 
-        //Achievements
+        //Achievements? Or not necessary?
 
         //Upgrades sorted into button/per type which update to the next related upgrade after buying one? Or is the list approach better?
-
-        //Add new stats:
-        //Money earned by clicking - matsMinedEarnedThisLifetime
-        //Money earned by clicking lifetime - matsMinedEarnedTotal
-        //Money earned by miners - autoMinerEarnedThisLifetime
-        //Money earned by miners lifetime - autoMinerEarnedTotal
-
-        //Need a proper 'Stats' window!
-
-        //Need a proper 'About' window!
-
-        //Need proper Prestige Earned window!
-
-        //Need proper 'Welcome Back' window!
-
-        //Need more background music? If so, we'll need a callback method for when playback is finished that triggers next song in list. A new BGMusic enum would work for holding
-        //track names, and the callback method would iterate to the next item in BGMusic, open it's file, seek to 0L, and play.
 
         //Need more upgrades! & Rebalance upgrades. Add more clickAmount upgrades and change multipliers to keep items relevant.
 
@@ -87,12 +72,13 @@ namespace FirstClicker
             own first, then the global one, to determine global unlocks. This allows for different unlock levels across the board,
             and also, keeping things dynamic this way allows for things like custom events later.
 
-        //UpgradeButton tooltips are appearing within upgradePanel, thus limiting where they appear(I think). Need to reference them to frmMain instead. -DONE, not fixed
+        //Change save/load to use different serialization than binary - maybe base64 encoded text? XML? Json?
 
         */
 
         //----Properties/Fields----//
         public Game myGame;
+        public string BuildVersion = "1.3.0.1-alpha";
 
         //----Initialization----//
         public frmMain()
@@ -205,16 +191,16 @@ namespace FirstClicker
         }   //after ctor, before frmMain_load
         private void frmMain_Load(object sender, EventArgs e)
         {
-            LogMessage("Form Loaded");
+            LogMessage("Form loaded");
             //set window state according to game object, and thus by the last save, if it exists
             this.WindowState = myGame.myWindowState;
             //initaudio
             SetAudioVolume(myGame.MusicVolume, myGame.FXVolume);
             this.Refresh();
-            LogMessage("Calculating Idle Earnings...");
+            LogMessage("Calculating idle earnings and showing message...");
             this.myGame = SinceYouveBeenGone(myGame);
             this.Activate();
-            LogMessage("Earnings Calculated. Starting Game...");
+            LogMessage("Complete. Starting game...");
             GameStart();
         }
         public void GameStart()
@@ -450,7 +436,7 @@ namespace FirstClicker
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         PlaySound(SoundList.Register);
-                        LogMessage($"Upgrade {btnsender.myUpgrade.Description} Purchased");
+                        LogMessage($"Upgrade '{btnsender.myUpgrade.Description}' Purchased");
                     }
                 }
                 else if (btnitemID == 15)
@@ -467,7 +453,7 @@ namespace FirstClicker
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         PlaySound(SoundList.Register);
-                        LogMessage($"Upgrade {btnsender.myUpgrade.Description} Purchased");
+                        LogMessage($"Upgrade '{btnsender.myUpgrade.Description}' Purchased");
                     }
                 }
                 else if (btnitemID == 20)
@@ -518,7 +504,7 @@ namespace FirstClicker
                         Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
                         myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
                         PlaySound(SoundList.Register);
-                        LogMessage($"Upgrade {btnsender.myUpgrade.Description} Purchased");
+                        LogMessage($"Upgrade '{btnsender.myUpgrade.Description}' Purchased");
                     }
                 }
                 UpgradeButtonEnable(btnsender, false);
@@ -531,7 +517,7 @@ namespace FirstClicker
 
                 myGame.myMoney -= sender.calculatedCost;
                 PlaySound(SoundList.Register);
-                LogMessage($"{sender.purchaseAmount} of Item {sender.Name} Purchased");
+                LogMessage($"{sender.purchaseAmount} of Item '{sender.Name}' Purchased");
                 sender.myQty += sender.purchaseAmount;
                 if (sender.myQty > 0)
                 {
@@ -553,7 +539,7 @@ namespace FirstClicker
                     do
                     {
                         sender.latestUnlock++;        //-1 + 1 = 0;
-                        LogMessage($"{sender.Name} Unlock Reached - X{Game.unlockList[sender.latestUnlock]}");
+                        LogMessage($"'{sender.Name}' Unlock Reached - X{Game.unlockList[sender.latestUnlock]}");
                         if (sender.myQty > 1) { sender.mySalary *= Game.unlockMultiplier; }  //apply the bonus to this item if we bought more than 1, so that we can still have buy1 within buynext, and so we get an unlock for buying 1 of all.
                         bool allOthersHave = true;
                         for (int i = 0; i < myGame.myItems.Length; i++)
@@ -722,8 +708,9 @@ namespace FirstClicker
             myGame.GameClock.Stop();
             myGame.thislifeGameTime += myGame.GameClock.Elapsed;
             myGame.totalGameTime += myGame.GameClock.Elapsed;
-
-            DialogResult dres = MessageBox.Show($"Current Prestige: {Stringify(myGame.prestigePoints.ToString("R"), StringifyOptions.LongText)}. \nPrestige to Gain: {Stringify(tempprestige.ToString("R"), StringifyOptions.LongText)}. Prestige?", "Reset to earn prestige?", MessageBoxButtons.YesNo, MessageBoxIcon.Question, MessageBoxDefaultButton.Button1);
+            string msg = $"Current Prestige: {Stringify(myGame.prestigePoints.ToString("R"), StringifyOptions.LongText)}. \nPrestige to Gain: {Stringify(tempprestige.ToString("R"), StringifyOptions.LongText)}. Prestige?";
+            MsgBox msgBox = new(msg, "Reset To Earn Prestige Points?");
+            DialogResult dres = msgBox.ShowDialog();
             if (dres == DialogResult.Yes)
             {
                 this.timerPerSec.Stop();
@@ -783,7 +770,7 @@ namespace FirstClicker
             myGame.GameClock.Reset();
             myGame.GameClock.Start();
 
-            DialogResult result = MessageBox.Show(
+            string statsmessage =
                 $"Salary: ${(myGame.salary > 1000000.0d ? Stringify(myGame.salary.ToString("R"), StringifyOptions.LongText) : myGame.salary.ToString("N"))} Per Second" +
                 $"\nClickAmount: ${(myGame.clickAmount > 1000000.0d ? Stringify(myGame.clickAmount.ToString("R"), StringifyOptions.LongText) : myGame.clickAmount.ToString("N"))} Per Click" +
                 $"\nMoney Earned This Lifetime: ${(myGame.thislifetimeMoney > 1000000.0d ? Stringify(myGame.thislifetimeMoney.ToString("R"), StringifyOptions.LongText) : myGame.thislifetimeMoney.ToString("N"))}" +
@@ -795,10 +782,9 @@ namespace FirstClicker
                 $"\nPrestige Multiplier: {Stringify(myGame.prestigeMultiplier.ToString("R"), StringifyOptions.LongText)}% Per Point" +
                 $"\nPrestige Percentage: {(myGame.prestigePoints * myGame.prestigeMultiplier > 1000000.0d ? Stringify((myGame.prestigePoints * myGame.prestigeMultiplier).ToString("R"), StringifyOptions.LongText) : (myGame.prestigePoints * myGame.prestigeMultiplier).ToString("N0"))} %" +
                 $"\nMaterials Mined this lifetime: {(myGame.matsMined >= 1000000.0d ? Stringify(myGame.matsMined.ToString("R"), StringifyOptions.LongText) : myGame.matsMined.ToString("N0"))}" +
-                $"\nMaterials Mined all lifetimes: {(myGame.matsMinedLifetime >= 1000000.0d ? Stringify(myGame.matsMinedLifetime.ToString("R"), StringifyOptions.LongText) : myGame.matsMinedLifetime.ToString("N0"))}"
-                , "MoneyMiner Statistics", MessageBoxButtons.OK
-                );
-
+                $"\nMaterials Mined all lifetimes: {(myGame.matsMinedLifetime >= 1000000.0d ? Stringify(myGame.matsMinedLifetime.ToString("R"), StringifyOptions.LongText) : myGame.matsMinedLifetime.ToString("N0"))}";
+            Stats mystats = new Stats(statsmessage);
+            mystats.ShowDialog();
         }
         private void btnMine_MouseDown(object sender, MouseEventArgs e)
         {
@@ -888,11 +874,9 @@ namespace FirstClicker
             }
             sb.AppendLine($"\nThanks for playing MoneyMiner!");
             sb.AppendLine($"\n© 2024 - All Rights Reserved");
-            MessageBox.Show(sb.ToString(), "About MoneyMiner", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            About aboutme = new About(sb.ToString());
+            aboutme.ShowDialog();
 
-            //for testing only...
-            About aboutme = new About();
-            aboutme.Show();
         }
         public static void btnBuy_Hover(object sender, EventArgs e)
         {
@@ -1035,7 +1019,8 @@ namespace FirstClicker
 
                 if (mygame.MySaveType != SaveType.Prestigesave && mygame.MySaveType != SaveType.NewGame)
                 {
-                    MessageBox.Show($"Welcome Back!\nYou were gone for {mygame.sinceLastSave.TotalHours:N0} hours, {mygame.sinceLastSave.Minutes:N0} minutes, and {mygame.sinceLastSave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!", "Since you've been gone...", MessageBoxButtons.OK, MessageBoxIcon.Information, MessageBoxDefaultButton.Button1, MessageBoxOptions.DefaultDesktopOnly, false);
+                    WelcomeBack myWelcome = new WelcomeBack($"Welcome Back!\nYou were gone for {mygame.sinceLastSave.TotalHours:N0} hours, {mygame.sinceLastSave.Minutes:N0} minutes, and {mygame.sinceLastSave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!");
+                    myWelcome.ShowDialog();
                 }
             }
             return mygame;
@@ -1067,6 +1052,9 @@ namespace FirstClicker
             tempGame.toolTipDelay = mygame.toolTipDelay;
             tempGame.toolTipVisibleTime = mygame.toolTipVisibleTime;
             tempGame.totalGameTime = mygame.totalGameTime;
+            tempGame.AutosaveEnabled = mygame.AutosaveEnabled;
+            tempGame.AutosaveInterval = mygame.AutosaveInterval;
+            tempGame.CurrentLogFile = mygame.CurrentLogFile;
 
             //calculate and update clickamount and item salaries
             tempGame.clickAmount *= ((tempGame.prestigePoints / (100.0d / tempGame.prestigeMultiplier)) + 1);
@@ -1074,7 +1062,8 @@ namespace FirstClicker
             {
                 item.mySalary *= ((tempGame.prestigePoints / (100.0d / tempGame.prestigeMultiplier)) + 1);
             }
-            MessageBox.Show($"You gained {(mygame.prestigeGainedNextRestart >= 1000000.0d ? Stringify(mygame.prestigeGainedNextRestart.ToString("R"), StringifyOptions.LongText) : mygame.prestigeGainedNextRestart.ToString("N"))} prestige points!", "Congratulations!");
+            PrestigeEarned prestWindow = new PrestigeEarned($"You gained {(mygame.prestigeGainedNextRestart >= 1000000.0d ? Stringify(mygame.prestigeGainedNextRestart.ToString("R"), StringifyOptions.LongText) : mygame.prestigeGainedNextRestart.ToString("N0"))} prestige points!");
+            prestWindow.ShowDialog();
             return tempGame;
         }
 
@@ -1908,7 +1897,7 @@ namespace FirstClicker
             AutosaveEnabled = save.AutosaveEnabled;
             AutosaveInterval = save.AutosaveInterval;
             AutosaveTimer = new();
-            CurrentLogFile = "";
+            CurrentLogFile = save.CurrentLogFile == "" ? "" : save.CurrentLogFile;
         }
     }
     [Serializable]
@@ -1950,6 +1939,8 @@ namespace FirstClicker
         internal bool AutosaveEnabled;
         [OptionalField(VersionAdded = 3)]
         internal int AutosaveInterval;
+        [OptionalField(VersionAdded = 3)]
+        internal string CurrentLogFile;
         
         /// <summary>
         /// Creates a GameState (a save structure) for Game object. 
@@ -1990,6 +1981,7 @@ namespace FirstClicker
             SaveLocation = game.lastSaveLocation;
             AutosaveEnabled = game.AutosaveEnabled;
             AutosaveInterval = game.AutosaveInterval;
+            CurrentLogFile = this.saveType == SaveType.Prestigesave ? game.CurrentLogFile : "";
         }
         
     }

@@ -73,6 +73,7 @@
             // 
             btnPurchAmount.Anchor = AnchorStyles.Bottom;
             btnPurchAmount.CausesValidation = false;
+            btnPurchAmount.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold);
             btnPurchAmount.Location = new Point(3, 3);
             btnPurchAmount.Name = "btnPurchAmount";
             btnPurchAmount.Size = new Size(65, 55);
@@ -118,10 +119,10 @@
             // 
             lblMatsMined.Anchor = AnchorStyles.Bottom;
             lblMatsMined.AutoSize = true;
-            lblMatsMined.Font = new Font("Segoe UI", 12F);
+            lblMatsMined.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblMatsMined.Location = new Point(500, 467);
             lblMatsMined.Name = "lblMatsMined";
-            lblMatsMined.Size = new Size(138, 21);
+            lblMatsMined.Size = new Size(141, 19);
             lblMatsMined.TabIndex = 7;
             lblMatsMined.Text = "Materials Mined: 0";
             // 
@@ -129,9 +130,10 @@
             // 
             lblIncrPerClick.Anchor = AnchorStyles.Bottom;
             lblIncrPerClick.AutoSize = true;
+            lblIncrPerClick.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold);
             lblIncrPerClick.Location = new Point(521, 488);
             lblIncrPerClick.Name = "lblIncrPerClick";
-            lblIncrPerClick.Size = new Size(102, 15);
+            lblIncrPerClick.Size = new Size(96, 14);
             lblIncrPerClick.TabIndex = 9;
             lblIncrPerClick.Text = "Mined Per Click: 1";
             // 
@@ -142,7 +144,7 @@
             // btnPrestige
             // 
             btnPrestige.Anchor = AnchorStyles.Bottom;
-            btnPrestige.Font = new Font("Segoe UI", 9F, FontStyle.Regular, GraphicsUnit.Point, 0);
+            btnPrestige.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold);
             btnPrestige.Location = new Point(321, 3);
             btnPrestige.Name = "btnPrestige";
             btnPrestige.Size = new Size(75, 55);
@@ -168,10 +170,10 @@
             // 
             lblClickAmount.AutoSize = true;
             lblClickAmount.CausesValidation = false;
-            lblClickAmount.Font = new Font("Segoe UI", 12F);
+            lblClickAmount.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold);
             lblClickAmount.Location = new Point(86, 93);
             lblClickAmount.Name = "lblClickAmount";
-            lblClickAmount.Size = new Size(168, 21);
+            lblClickAmount.Size = new Size(171, 19);
             lblClickAmount.TabIndex = 2;
             lblClickAmount.Text = "Mining: $0.25 Per Click";
             lblClickAmount.TextAlign = ContentAlignment.MiddleCenter;
@@ -181,10 +183,10 @@
             // 
             lblSalary.AutoSize = true;
             lblSalary.CausesValidation = false;
-            lblSalary.Font = new Font("Segoe UI", 12F);
+            lblSalary.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold);
             lblSalary.Location = new Point(86, 59);
             lblSalary.Name = "lblSalary";
-            lblSalary.Size = new Size(159, 21);
+            lblSalary.Size = new Size(169, 19);
             lblSalary.TabIndex = 1;
             lblSalary.Text = "Salary: $0 Per Second";
             lblSalary.TextAlign = ContentAlignment.MiddleCenter;
@@ -194,10 +196,10 @@
             // 
             lblMoney.AutoSize = true;
             lblMoney.CausesValidation = false;
-            lblMoney.Font = new Font("Segoe UI", 16F);
+            lblMoney.Font = new Font("Bahnschrift SemiBold", 15.75F, FontStyle.Bold, GraphicsUnit.Point, 0);
             lblMoney.Location = new Point(108, 19);
             lblMoney.Name = "lblMoney";
-            lblMoney.Size = new Size(116, 30);
+            lblMoney.Size = new Size(106, 25);
             lblMoney.TabIndex = 0;
             lblMoney.Text = "Money: $0";
             lblMoney.TextAlign = ContentAlignment.MiddleCenter;
@@ -218,6 +220,7 @@
             // 
             btnPause.Anchor = AnchorStyles.Bottom;
             btnPause.CausesValidation = false;
+            btnPause.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
             btnPause.Location = new Point(74, 28);
             btnPause.Name = "btnPause";
             btnPause.Size = new Size(75, 30);
@@ -244,6 +247,7 @@
             // 
             btnQuickBuy.Anchor = AnchorStyles.Bottom;
             btnQuickBuy.CausesValidation = false;
+            btnQuickBuy.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold);
             btnQuickBuy.Location = new Point(240, 28);
             btnQuickBuy.Name = "btnQuickBuy";
             btnQuickBuy.Size = new Size(75, 30);
@@ -254,8 +258,8 @@
             // 
             // frmMain
             // 
-            AutoScaleDimensions = new SizeF(7F, 15F);
-            AutoScaleMode = AutoScaleMode.Font;
+            AutoScaleMode = AutoScaleMode.None;
+            BackColor = Color.Tan;
             CausesValidation = false;
             ClientSize = new Size(984, 561);
             Controls.Add(lblMatsMined);
@@ -267,6 +271,7 @@
             Controls.Add(itemPanel);
             Controls.Add(pctCenterBackground);
             DoubleBuffered = true;
+            Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             MinimumSize = new Size(1000, 600);
             Name = "frmMain";
             SizeGripStyle = SizeGripStyle.Show;
