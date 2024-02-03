@@ -23,6 +23,7 @@ using System.Windows;
 using System.Windows.Forms;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
+using System.Xml.Serialization;
 using FirstClicker.Controls;
 using Microsoft.Win32;
 using MoneyMiner;
@@ -66,7 +67,12 @@ namespace FirstClicker
 
         //Move default items to external (xml?) file with permissions (create from internal default if it doesn't exist or is outdated - compare application.settings.builddate with file date?)
 
-        //Move default upgrades to external (xml?) file with permissions (create from internal default if it doesn't exist or is outdated - compare application.settings.builddate with file date?)
+        //Starting to add ability to build a list of default upgrades from xml file. Serialization methods are there and functional. 
+        //Implementation is another thing though. 'LoadUpgradesFromXml()' can NOT set upgrade.purchased. This is only for injecting new upgrades
+        //easily and overriding the internal default list. Store Upgrades.xml in '{currentdir}\Resources\Xml\Upgrades.xml'. Check for it's
+        //existence on startup, and if it's there, load it in as a replacement for defaults(as long as there is at least 1 in it). We will create
+        //the file on startup if it does not exist. Items can be done the same way. Note: If we put achievements in, how can we ensure this isn't
+        //hacked? Should we calculate a hashset and hard-code a check for it? Research options...
 
         //Store instance of unlockList in each item as well as the global one, each item will reference their 
             own first, then the global one, to determine global unlocks. This allows for different unlock levels across the board,
@@ -1530,6 +1536,50 @@ namespace FirstClicker
             File.AppendAllLines(myGame.CurrentLogFile, new string[]{ DateTime.Now + ": " + message});
             //would love to use Async, but need a way to keep them in order and avoid race conditions. Use sync for now.
         }
+        internal static void SaveUpgradesToXml(List<Upgrade> Upgrades, string fileName)
+        {
+            //here we'll save the current upgrade list to disk as an xml file, built by a list of upgradeinfo objects, which are built from 
+            //the upgrades in the passed in List<Upgrade> object.
+            List<UpgradeInfo> upgradelist = new();
+            foreach (Upgrade upgrade in Upgrades)
+            {
+                UpgradeInfo info = new();
+                info.description = upgrade.Description;
+                info.itemid = upgrade.itemID;
+                info.cost = upgrade.Cost;
+                info.multiplier = upgrade.Multiplier;
+                info.upgradeid = upgrade.upgradeID;
+                info.purchased = upgrade._purchased;
+                upgradelist.Add(info);
+            }
+            XmlSerializer mySer = new(typeof(List<UpgradeInfo>));
+            FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate);
+            mySer.Serialize(fs, upgradelist);
+            fs.Close();
+            return;
+        }
+        internal static List<Upgrade> LoadUpgradesFromXml(string fileName)
+        {
+            //Read file if exists, and build a list of upgrades using UpgradeInfo objects parsed from xml.
+            //If there's an issue, return an empty list.
+            List<UpgradeInfo>? upgradeinfos = new();
+            List<Upgrade> upgradelist = new();
+            if (File.Exists(fileName))
+            {
+                XmlSerializer mySer = new(typeof(List<UpgradeInfo>));
+                FileStream fs = new(fileName, FileMode.Open);
+                upgradeinfos = (List<UpgradeInfo>?)mySer.Deserialize(fs);
+                if (upgradeinfos != null && upgradeinfos.Count > 0)
+                {
+                    foreach (UpgradeInfo info in upgradeinfos)
+                    {
+                        upgradelist.Add(new(info.description, info.cost, info.itemid, info.multiplier, info.upgradeid));
+                    }
+                    if (upgradelist != null && upgradelist.Count > 0) { return upgradelist; }
+                }
+            }
+            return new();
+        }
 
         //----Audio Methods----//
         public void SetAudioVolume(int musicVol, int fxVol)
@@ -2017,6 +2067,24 @@ namespace FirstClicker
         
 
         
+    }
+    public struct UpgradeInfo
+    {
+        public string description;
+        public int itemid;
+        public int upgradeid;
+        public double cost;
+        public double multiplier;
+        public bool purchased;
+    }
+    public struct ItemInfo
+    {
+        public string name;
+        public int itemid;
+        public double cost;
+        public double costmultiplier;
+        public double salary;
+        public int timeinms;
     }
     public class UpgradeButton : Button
     {
