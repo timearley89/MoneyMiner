@@ -73,6 +73,45 @@ namespace FirstClicker
         //existence on startup, and if it's there, load it in as a replacement for defaults(as long as there is at least 1 in it). We will create
         //the file on startup if it does not exist. Items can be done the same way. Note: If we put achievements in, how can we ensure this isn't
         //hacked? Should we calculate a hashset and hard-code a check for it? Research options...
+        //after myGame load(or create), check for Upgrades.xml.
+        //if found, load it, but don't apply it yet.
+        //scan through it and compare to myGame.Upgrades.
+        //If an upgrade is different(custom equals function), apply the new list, marking any that have already been purchased as true.
+        //Write a new static method for doing this, that returns the newly generated list as a combination of the two.
+        //
+        //Upgrade(Desc, itemid, cost, mult, upgradeid) & purchased
+        //
+        //UpgradeList and UpgradeListFromXml should be sorted by UpgradeID first
+        //Upgrade.Equals(Upgrade) should compare the following:
+        //  -UpgradeID first
+        //  -If the same, is the cost the same?
+        //  -If yes, is the multiplier the same?
+        //  -If yes, is itemID the same?
+            -If all of the above is true, then they're comparable. Is desc the same? Purchased?
+                -if equals==true && upgradedefault.desc != upgradefromxml.desc, then upgradedefault = upgradefromxml. If upgradedefault.Purchased, then upgradefromxml.SetPurchased(true).
+                -if equals==true && desc==desc, then loop continue; - no need to replace it.
+
+            -foreach (Upgrade upgradefromxml in UpgradesFromXml)
+                -bool UpgradeHandled = false;
+                -for (int i = 0; i < upgradelistdefault.Count; i++)
+                    -upgradeID is the same
+                        -upgradeDefault.Purchased == false
+                            -upgradeDefault = upgradeFromXml
+                            -UpgradeHandled = true;
+                        -upgradeDefault.Purchased == true
+                            -Upgrade.Equals==true && desc==desc
+                                -UpgradeHandled = true;
+                                -break;
+                            -Upgrade.Equals==true && desc!=desc
+                                -upgradeDefault = upgradeFromXml
+                                -upgradeDefault.SetPurchased(true)
+                                -UpgradeHandled = true;
+                            -Upgrade.Equals!=true
+                                -upgradeDefault = upgradeFromXml(purchased defaults to false)
+                                -UpgradeHandled = true;
+                    -upgradeID is different
+                        -break;
+                -if (!UpgradeHandled) { UpgradeListDefault.Add(UpgradeFromXml); }
 
         //Store instance of unlockList in each item as well as the global one, each item will reference their 
             own first, then the global one, to determine global unlocks. This allows for different unlock levels across the board,
@@ -1580,6 +1619,10 @@ namespace FirstClicker
             }
             return new();
         }
+        internal static List<Upgrade> MergeUpgradesFromXml(List<Upgrade> UpgradeListInternal)
+        {
+
+        }
 
         //----Audio Methods----//
         public void SetAudioVolume(int musicVol, int fxVol)
@@ -2036,7 +2079,7 @@ namespace FirstClicker
         
     }
     [Serializable]
-    internal struct Upgrade(string description, double cost, int ID, double multiplier, int upgradeID)
+    internal struct Upgrade(string description, double cost, int ID, double multiplier, int upgradeID) : IEquatable<Upgrade>
     {
         //public getters and struct declaration means we can read the struct and it's properties from anywhere, even a different namespace.
         //private fields and internal constructor mean that only the struct can access it's fields, and only this assembly can create new upgrades.
@@ -2064,8 +2107,16 @@ namespace FirstClicker
             myUpgrade._purchased = false;
             return myUpgrade;
         }
-        
 
+        public bool Equals(Upgrade upgrade)
+        {
+            if ((this.itemID<0 || this.Cost<0.0d || this.Multiplier<=0.0d||this.upgradeID<=0||this.Description==null)||
+                upgrade.itemID<0 || upgrade.Cost<0.0d|| upgrade.Multiplier<=0.0d||upgrade.upgradeID<=0||upgrade.Description==null) 
+            { 
+                return false; 
+            }
+            return (this.upgradeID == upgrade.upgradeID && this.Cost == upgrade.Cost && this.itemID == upgrade.upgradeID && this.Multiplier == upgrade.Multiplier);
+        }
         
     }
     public struct UpgradeInfo
