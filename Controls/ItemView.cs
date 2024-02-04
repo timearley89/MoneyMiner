@@ -158,9 +158,9 @@ namespace MoneyMiner.Controls
             myTimer.Interval = 100;
             progressMining.Minimum = 0;
             progressMining.Maximum = mySalaryTimeMS; //if max==salarytime, we go through 11 cycles and either 1st or last update don't get drawn.
-            if (mySalaryTimeMS < myTimer.Interval)
+            if (mySalaryTimeMS < myTimer.Interval * 2)
             {
-                NormalizeSalary(this, myTimer.Interval);
+                NormalizeSalary(this, myTimer.Interval * 2);
             }
             if (this.myprogressvalue > 0 && this.myQty > 0)
             {
@@ -202,7 +202,7 @@ namespace MoneyMiner.Controls
         public static void NormalizeSalary(ItemView item, int timeinMS = 100)
         {
             //salary / time = salpersec
-            item.mySalary = (item.mySalary / (item.mySalaryTimeMS / 1000.0d)) * (timeinMS / 1000);
+            item.mySalary = (item.mySalary / (item.mySalaryTimeMS / 1000.0d)) * (timeinMS / 1000.0d);
             item.mySalaryTimeMS = timeinMS;
         }
         public static double GetTotalSalPerSec(ItemView item)

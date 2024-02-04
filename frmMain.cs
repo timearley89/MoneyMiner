@@ -31,6 +31,7 @@ using MoneyMiner.Properties;
 using MoneyMiner.Windows;
 using static MoneyMiner.Upgrade;
 using System.Security.Policy;
+using System.Net.Security;
 
 namespace MoneyMiner
 {
@@ -83,6 +84,7 @@ namespace MoneyMiner
         public string BuildVersion = "1.3.0.5-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = false;
+        public const int MinSalaryTimeMS = 200;
 
         //----Initialization----//
         public frmMain()
@@ -436,6 +438,15 @@ namespace MoneyMiner
             if (sender == null) { return; }
             ItemView senderview = (ItemView)sender;
             //senderview.myTimer.Stop();
+            if (senderview.mySalaryTimeMS <= 200)
+            {
+                //if the item calling this has the minimum salarytime, just keep the progressbar at maximum. Don't forget to pay the man.
+                senderview.progressMining.Value = senderview.progressMining.Maximum;
+                myGame.myMoney += senderview.mySalary * senderview.myQty;
+                myGame.thislifetimeMoney += senderview.mySalary * senderview.myQty;
+                return;
+            }
+            else { senderview.progressMining.MarqueeAnimationSpeed = senderview.mySalaryTimeMS; }
             if (senderview.progressMining.Value == senderview.progressMining.Maximum)
             {
                 //payout, force draw, then iterate
@@ -581,6 +592,41 @@ namespace MoneyMiner
                         LogMessage($"Upgrade '{btnsender.myUpgrade.Description}' Purchased");
                     }
                 }
+                else if (btnitemID >= 21 && btnitemID <= 28)    //Needs to be tested
+                {
+                    //miner speed x2
+                    //this won't break anything with the progressbar/tick system will it? I don't think so...
+                    //btnvars itemID is between 21 and 28, so SpeedUpgrade
+                    //myItems[i] is derived from btnitemID - 20
+                    if (myGame.myMoney >= btnsender.myUpgrade.Cost)
+                    {
+                        myGame.myMoney -= btnsender.myUpgrade.Cost;
+                        ItemView tempItem = myGame.myItems.Where(x => x.myID == btnitemID - 20).First<ItemView>();
+                        //If the timeframe will be less than 200mS after upgrade, normalize salary after applying upgrade to 100mS(default).
+                        tempItem.mySalaryTimeMS /= (int)btnsender.myUpgrade.Multiplier;
+                        if (tempItem.mySalaryTimeMS < MinSalaryTimeMS)
+                        {
+                            ItemView.NormalizeSalary(tempItem, MinSalaryTimeMS);
+                        }
+                        else if (tempItem.mySalaryTimeMS % MinSalaryTimeMS != 0)
+                        {
+                            int newSalTimeMS = ((int)Math.Floor((double)(tempItem.mySalaryTimeMS / MinSalaryTimeMS)) * MinSalaryTimeMS) + MinSalaryTimeMS;
+                            ItemView.NormalizeSalary(tempItem, newSalTimeMS);
+                        }
+                        //set progress to 1 tick, so that the next tick, the item completes a cycle. If black hole has just started and is
+                        //then upgraded, yes, it will give a 'free' salary payout. This is intended.
+                        tempItem.myprogressvalue = tempItem.mySalaryTimeMS - 100;
+                        tempItem.progressMining.Maximum = tempItem.mySalaryTimeMS;
+                        tempItem.progressMining.Value = tempItem.myprogressvalue;
+
+                        btnsender.myUpgrade = Upgrade.SetPurchased(btnsender.myUpgrade);
+                        //find the upgrade by upgradeid in mainupgradelist that matches the button's upgradeid, and set it's Purchased property, then overwrite it's old entry in mainupgradelist.
+                        Upgrade tempUpgrade = myGame.MainUpgradeList.Find(x => x.upgradeID == btnsender.myUpgrade.upgradeID);
+                        myGame.MainUpgradeList[myGame.MainUpgradeList.IndexOf(tempUpgrade)] = Upgrade.SetPurchased(tempUpgrade);
+                        PlaySound(SoundList.Register);
+                        LogMessage($"Upgrade '{btnsender.myUpgrade.Description}' Purchased");
+                    }
+                }
                 UpgradeButtonEnable(btnsender, false);
             }
         }
@@ -662,7 +708,7 @@ namespace MoneyMiner
                 sender.calculatedCost = costcalcnew(sender, temppurchamount);
                 sender.purchaseAmount = temppurchamount;
             }
-            if (sender.mySalaryTimeMS < sender.myTimer.Interval) { ItemView.NormalizeSalary(sender, sender.myTimer.Interval); }
+            if (sender.mySalaryTimeMS < sender.myTimer.Interval * 2) { ItemView.NormalizeSalary(sender, sender.myTimer.Interval * 2); }
             sender.UpdateLabels();
             sender.ButtonColor(myGame.myMoney, sender.purchaseAmount, sender.myCostMult);
         }
@@ -743,7 +789,7 @@ namespace MoneyMiner
         private void btnMine_Click(object sender, EventArgs e)
         {
             const double matThreshval = 50.0d;  //allows incrperclick to change at different values.
-            if (myGame.matsMined != 0 && myGame.matsMined + myGame.incrperclick >= (Math.Round((double)myGame.matsMined / matThreshval, MidpointRounding.ToPositiveInfinity) * matThreshval) && myGame.incrperclick < 10 && myGame.matsMined != (Math.Round((double)myGame.matsMined / matThreshval, MidpointRounding.ToPositiveInfinity) * matThreshval))
+            if (myGame.matsMined != 0 && myGame.matsMined + myGame.incrperclick >= (Math.Round((double)myGame.matsMined / matThreshval, MidpointRounding.ToPositiveInfinity) * matThreshval) && myGame.incrperclick < 50 && myGame.matsMined != (Math.Round((double)myGame.matsMined / matThreshval, MidpointRounding.ToPositiveInfinity) * matThreshval))
             {
                 myGame.matsMined += myGame.incrperclick;
                 myGame.matsMinedLifetime += myGame.incrperclick;
@@ -955,22 +1001,54 @@ namespace MoneyMiner
         }
         public static void btnBuy_Hover(object sender, EventArgs e)
         {
-            Button btnbuy;
+            Button? btnbuy;
             ItemView? btnItem;
             try
             {
-                btnbuy = (Button)sender;
+                btnbuy = (sender == null) ? null : (Button)sender;
+                if (btnbuy == null) { return; }
                 btnItem = btnbuy.Parent == null ? null : btnbuy.Parent as ItemView;
+                if (btnItem == null) { return; }
             }
             catch (Exception ex)
             {
-                if (ex is NullReferenceException) { MessageBox.Show(ex.Message, "NullReferenceException in btnBuy_Hover"); }
-                else { MessageBox.Show(ex.Message, "Unknown Exception in btnBuy_Hover"); }
+                if (ex is NullReferenceException) { Debug.WriteLine(ex.Message); }
+                else { Debug.WriteLine(ex.Message); }
                 return;
             }
             if (btnItem == null) { return; }
             ToolTip salaryGainTip = new ToolTip();
-            double saltogain = btnItem.displaySalPerSec ? (btnItem.mySalary * btnItem.purchaseAmount) / (btnItem.mySalaryTimeMS / 1000.0d) : btnItem.mySalary * btnItem.purchaseAmount;
+            double currentSalpersec = btnItem.mySalary * btnItem.myQty / (btnItem.mySalaryTimeMS / 1000.0d);
+            int mult = 1;
+            //calculate total multiplier from item's unlockList if purchased
+            if (btnItem.myQty + btnItem.purchaseAmount >= btnItem.myUnlockList[0, btnItem.latestUnlock + 1] && btnItem.latestUnlock + 1 < btnItem.myUnlockList.Length)
+            {
+                int numberofunlocks = 0;
+                //current is 13, pamount=38, totalafter=51
+                int unlockcounter = btnItem.latestUnlock + 1;
+                do
+                {
+                    if (btnItem.myQty + btnItem.purchaseAmount >= btnItem.myUnlockList[0, unlockcounter])
+                    {
+                        numberofunlocks++;
+                    }
+                    unlockcounter++;
+                } while (btnItem.myUnlockList[0, unlockcounter] <= btnItem.myQty + btnItem.purchaseAmount);
+                mult = 1;
+                int newunlock = btnItem.latestUnlock + 1;
+                while (numberofunlocks > 0)
+                {
+                    mult *= btnItem.myUnlockList[1, newunlock];
+                    numberofunlocks--;
+                    newunlock++;
+                    //we need to do this without invalidating previous multipliers.
+                    //I believe multiplier is correct here - we just need to change how we use it afterwards.
+                    //((currentsalps + newsalps) * mult) - currentsalps
+                }
+            }
+            double saltogain = btnItem.displaySalPerSec ? 
+                (((((btnItem.mySalary * btnItem.purchaseAmount) / (btnItem.mySalaryTimeMS / 1000.0d)) + currentSalpersec) * mult) - currentSalpersec)
+                : (((btnItem.mySalary * btnItem.purchaseAmount) + (btnItem.mySalary * btnItem.myQty)) * mult) - (btnItem.mySalary * btnItem.myQty);
             string strGain = btnItem.displaySalPerSec ? $"Gain ${(saltogain >= 1000000.0d ? Stringify(saltogain.ToString("R")) : double.Round(saltogain, 2).ToString("N"))} per second for {btnItem.Name}!" :
                 $"Gain ${(saltogain >= 1000000.0d ? Stringify(saltogain.ToString("R")) : double.Round(saltogain, 2).ToString("N"))} per cycle for {btnItem.Name}!";
             salaryGainTip.SetToolTip(btnbuy, strGain);
@@ -1042,7 +1120,7 @@ namespace MoneyMiner
         /// <param name="thislifeMoney">Money made this prestige loop</param>
         /// <param name="prestigeModifier">Modifier for prestige difficulty. Default is 4B, but can be overridden.</param>
         /// <returns>double representing calculated prestige points to gain.</returns>
-        public static double calcPrestige(double lastlifeMoney, double thislifeMoney, double prestigeModifier = 4000000000.0d)
+        public static double calcPrestige(double lastlifeMoney, double thislifeMoney, double prestigeModifier = 400000000000.0d)
         {
             double newlifeMoney = lastlifeMoney + thislifeMoney;
             double term1 = Math.Pow(newlifeMoney / (prestigeModifier / 9), 0.5d);
@@ -1739,7 +1817,7 @@ namespace MoneyMiner
                     UpgradeListInternal.Add(upgradefromxml);
                 }
             }
-            return UpgradeListInternal;
+            return UpgradeListInternal.OrderBy(x => x.Cost).ToList();
         }
 
         //----Audio Methods----//
@@ -1892,6 +1970,18 @@ namespace MoneyMiner
         {
             btnMine.Left = (pctCenterBackground.Width / 2) - (((int)btnMine.Width) / 2);
             btnMine.Top = pctCenterBackground.Height - btnMine.Height - lblMatsMined.Height;
+        }
+
+        private void pctCenterBackground_MouseMove(object sender, MouseEventArgs e)
+        {
+            //the rendering on this was choppy and slow, and produced a lot of artifacts. Might be better off
+            //removing the button entirely and moving around a small picturebox, and just detecting clicks on it.
+            /*if (Math.Abs(btnMine.Location.X - e.X) > 20 || Math.Abs(btnMine.Location.Y - e.Y) > 20)
+            {
+                btnMine.Location = PointToClient(new Point(e.X - (btnMine.Width - 30), e.Y - (btnMine.Height - 30)));
+            }*/
+
+            
         }
     }
 

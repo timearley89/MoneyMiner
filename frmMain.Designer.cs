@@ -218,6 +218,7 @@
             pctCenterBackground.SizeMode = PictureBoxSizeMode.StretchImage;
             pctCenterBackground.TabIndex = 12;
             pctCenterBackground.TabStop = false;
+            pctCenterBackground.MouseMove += pctCenterBackground_MouseMove;
             pctCenterBackground.Resize += pctCenterBackground_Resize;
             // 
             // btnPause
