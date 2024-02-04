@@ -1,4 +1,4 @@
-using FirstClicker;
+using MoneyMiner;
 using System.Security.Cryptography.X509Certificates;
 
 namespace MoneyMiner

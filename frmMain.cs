@@ -24,14 +24,15 @@ using System.Windows.Forms;
 using System.Windows.Forms;
 using System.Windows.Forms.VisualStyles;
 using System.Xml.Serialization;
-using FirstClicker.Controls;
+using MoneyMiner.Controls;
 using Microsoft.Win32;
 using MoneyMiner;
 using MoneyMiner.Properties;
 using MoneyMiner.Windows;
-using static FirstClicker.Upgrade;
+using static MoneyMiner.Upgrade;
+using System.Security.Policy;
 
-namespace FirstClicker
+namespace MoneyMiner
 {
 
     public partial class frmMain : Form
@@ -53,8 +54,6 @@ namespace FirstClicker
 
         //Should have bonuses like time warps, profit multipliers, autoclickers, etc. We have the framework now to implement them pretty easily.
 
-        //Prestige button should change color (or overlays an exclamation point or something) when prestigepoints to be earned >= current prestigepoints (or > 0 if at 0)
-
         //Achievements? Or not necessary?
 
         //Upgrades sorted into button/per type which update to the next related upgrade after buying one? Or is the list approach better?
@@ -67,69 +66,29 @@ namespace FirstClicker
 
         //Move default items to external (xml?) file with permissions (create from internal default if it doesn't exist or is outdated - compare application.settings.builddate with file date?)
 
-        //Starting to add ability to build a list of default upgrades from xml file. Serialization methods are there and functional. 
-        //Implementation is another thing though. 'LoadUpgradesFromXml()' can NOT set upgrade.purchased. This is only for injecting new upgrades
-        //easily and overriding the internal default list. Store Upgrades.xml in '{currentdir}\Resources\Xml\Upgrades.xml'. Check for it's
-        //existence on startup, and if it's there, load it in as a replacement for defaults(as long as there is at least 1 in it). We will create
-        //the file on startup if it does not exist. Items can be done the same way. Note: If we put achievements in, how can we ensure this isn't
-        //hacked? Should we calculate a hashset and hard-code a check for it? Research options...
-        //after myGame load(or create), check for Upgrades.xml.
-        //if found, load it, but don't apply it yet.
-        //scan through it and compare to myGame.Upgrades.
-        //If an upgrade is different(custom equals function), apply the new list, marking any that have already been purchased as true.
-        //Write a new static method for doing this, that returns the newly generated list as a combination of the two.
-        //
-        //Upgrade(Desc, itemid, cost, mult, upgradeid) & purchased
-        //
-        //UpgradeList and UpgradeListFromXml should be sorted by UpgradeID first
-        //Upgrade.Equals(Upgrade) should compare the following:
-        //  -UpgradeID first
-        //  -If the same, is the cost the same?
-        //  -If yes, is the multiplier the same?
-        //  -If yes, is itemID the same?
-            -If all of the above is true, then they're comparable. Is desc the same? Purchased?
-                -if equals==true && upgradedefault.desc != upgradefromxml.desc, then upgradedefault = upgradefromxml. If upgradedefault.Purchased, then upgradefromxml.SetPurchased(true).
-                -if equals==true && desc==desc, then loop continue; - no need to replace it.
-
-            -foreach (Upgrade upgradefromxml in UpgradesFromXml)
-                -bool UpgradeHandled = false;
-                -for (int i = 0; i < upgradelistdefault.Count; i++)
-                    -upgradeID is the same
-                        -upgradeDefault.Purchased == false
-                            -upgradeDefault = upgradeFromXml
-                            -UpgradeHandled = true;
-                        -upgradeDefault.Purchased == true
-                            -Upgrade.Equals==true && desc==desc
-                                -UpgradeHandled = true;
-                                -break;
-                            -Upgrade.Equals==true && desc!=desc
-                                -upgradeDefault = upgradeFromXml
-                                -upgradeDefault.SetPurchased(true)
-                                -UpgradeHandled = true;
-                            -Upgrade.Equals!=true
-                                -upgradeDefault = upgradeFromXml(purchased defaults to false)
-                                -UpgradeHandled = true;
-                    -upgradeID is different
-                        -break;
-                -if (!UpgradeHandled) { UpgradeListDefault.Add(UpgradeFromXml); }
-
         //Store instance of unlockList in each item as well as the global one, each item will reference their 
             own first, then the global one, to determine global unlocks. This allows for different unlock levels across the board,
             and also, keeping things dynamic this way allows for things like custom events later.
+            We could just use a 2D array, so: myItems[0].unlockList[0]={1, 10, 25, 50, 100, 200, 300, 400, 500} (etc)
+                                              myItems[0].unlockList[1]={2,  3,  2, 2.5, 10, 7.7,   3,   5,  10} (etc)
 
         //Change save/load to use different serialization than binary - maybe base64 encoded text? XML? Json?
+
+        //Add an 'Unlocks' window which shows the next unlock for each item and for global, and their associated bonus (how should that be stored? see 'instance of unlockList in...' above)
 
         */
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.3.0.1-alpha";
+        public string BuildVersion = "1.3.0.5-alpha";
+        public string logfile;
+        public bool PrestigeUpdateHasBeenView = false;
 
         //----Initialization----//
         public frmMain()
         {
             InitializeComponent();
-
+            logfile = CreateLog();
             //attempt autoload of $"{Environment.CurrentDirectory}\GameState.mmf"
             GameState? tempSave = this.LoadGame();
             bool wasSaveNull = false;
@@ -148,13 +107,30 @@ namespace FirstClicker
                 wasSaveNull = true;
                 myGame = new Game();
             }
-            CreateLog();
+            myGame.CurrentLogFile = logfile;
             LogMessage(wasSaveNull ? "New Game Initialized" : "Game Save Loaded");
+            CheckForXml();
             InitAudio();
             InitControls();
             LoadItemControlsToForm();
             LoadUpgradeControlsToForm();
 
+        }
+        public void CheckForXml()
+        {
+            LogMessage("Checking for Upgrades.xml...");
+            if (File.Exists(Environment.CurrentDirectory + @"\Resources\Xml\Upgrades.xml"))
+            {
+                LogMessage("Upgrades.xml found. Loading...");
+                myGame.MainUpgradeList = MergeUpgradesFromXml(myGame.MainUpgradeList, LoadUpgradesFromXml(Environment.CurrentDirectory + @"\Resources\Xml\Upgrades.xml"));
+            }
+            else
+            {
+                LogMessage("Upgrades.xml not found. Creating...");
+                if (!Directory.Exists(Environment.CurrentDirectory + @"\Resources\Xml\")) { Directory.CreateDirectory(Environment.CurrentDirectory + @"\Resources\Xml\"); }
+                SaveUpgradesToXml(myGame.MainUpgradeList, Environment.CurrentDirectory + @"\Resources\Xml\Upgrades.xml");
+            }
+            LogMessage("Complete. Continuing...");
         }
         public void InitAudio()
         {
@@ -179,7 +155,18 @@ namespace FirstClicker
             LogMessage("Initializing Controls...");
             //Set default form colors
             this.BackColor = Colors.colBackground;
-            this.btnMine.BackColor = Colors.colButtonEnabled;
+            //this.btnMine.BackColor = Colors.colButtonEnabled;
+            btnMine.Parent = pctCenterBackground;
+            btnMine.Left = (pctCenterBackground.Width / 2) - (((int)btnMine.Width) / 2);
+            btnMine.Top = pctCenterBackground.Height - btnMine.Height - lblMatsMined.Height;
+
+            btnMine.FlatStyle = FlatStyle.Flat;
+            btnMine.FlatAppearance.BorderSize = 0;
+            btnMine.FlatAppearance.MouseDownBackColor = Color.Transparent;
+            btnMine.FlatAppearance.MouseOverBackColor = Color.Transparent;
+            btnMine.BackColor = Color.Transparent;
+            btnMine.TextAlign = System.Drawing.ContentAlignment.BottomCenter;
+            btnMine.ForeColor = Colors.colButtonEnabled;
             this.btnPrestige.BackColor = Colors.colButtonEnabled;
             this.btnPurchAmount.BackColor = Colors.colButtonEnabled;
             this.btnQuickBuy.BackColor = Colors.colButtonDisabled;
@@ -190,6 +177,8 @@ namespace FirstClicker
             this.grpMoney.BackColor = Colors.colBorders;
             this.btnPause.BackColor = Colors.colButtonEnabled;
             this.btnMine.BackgroundImageLayout = ImageLayout.Stretch;
+            this.btnUnlocks.BackColor = Colors.colButtonEnabled;
+            this.btnUnlocks.ForeColor = Colors.colUpgradeTextEnabled;
             LogMessage("Controls Initialized");
         }   //after ctor, before frmMain_load
         public void LoadItemControlsToForm()
@@ -207,8 +196,9 @@ namespace FirstClicker
         {
             LogMessage("Loading Upgrades to Form...");
             //add upgrade button for each upgrade, configure it, and add to form's upgradePanel, then center it.
-            foreach (Upgrade upgrade in myGame.MainUpgradeList)
+            for (int i = 0; i < myGame.MainUpgradeList.Count; i++)
             {
+                Upgrade upgrade = myGame.MainUpgradeList[i];
                 UpgradeButton btn = new UpgradeButton();
                 btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString("R"), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
                 btn.Font = new Font("Ebrima", 9, FontStyle.Bold);
@@ -236,6 +226,7 @@ namespace FirstClicker
         }   //after ctor, before frmMain_load
         private void frmMain_Load(object sender, EventArgs e)
         {
+
             LogMessage("Form loaded");
             //set window state according to game object, and thus by the last save, if it exists
             this.WindowState = myGame.myWindowState;
@@ -356,7 +347,45 @@ namespace FirstClicker
                 tempsal += ((view.mySalary / ((double)view.mySalaryTimeMS / 1000.0d)) * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             myGame.salary = tempsal;
-
+            if (myGame.prestigePoints >= 1)
+            {
+                double prestrightnow = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
+                if (prestrightnow >= myGame.prestigePoints)
+                {
+                    if (btnPrestige.BackColor == Colors.colButtonEnabled && !PrestigeUpdateHasBeenView)
+                    {
+                        btnPrestige.BackColor = Colors.colButtonPurchased;
+                    }
+                    else if (btnPrestige.BackColor == Colors.colButtonPurchased && !PrestigeUpdateHasBeenView)
+                    {
+                        btnPrestige.BackColor = Colors.colButtonEnabled;
+                    }
+                    else
+                    {
+                        btnPrestige.BackColor = Colors.colButtonEnabled;
+                        PrestigeUpdateHasBeenView = false;
+                    }
+                }
+            }
+            else
+            {
+                if (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) >= 1)
+                {
+                    if (btnPrestige.BackColor == Colors.colButtonEnabled && !PrestigeUpdateHasBeenView)
+                    {
+                        btnPrestige.BackColor = Colors.colButtonPurchased;
+                    }
+                    else if (btnPrestige.BackColor == Colors.colButtonPurchased && !PrestigeUpdateHasBeenView)
+                    {
+                        btnPrestige.BackColor = Colors.colButtonEnabled;
+                    }
+                    else
+                    {
+                        btnPrestige.BackColor = Colors.colButtonEnabled;
+                        PrestigeUpdateHasBeenView = false;
+                    }
+                }
+            }
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
@@ -576,7 +605,7 @@ namespace FirstClicker
                 {
                     highestunlockindex++;
                 }
-                while (sender.myQty >= Game.unlockList[highestunlockindex]);
+                while (sender.myQty >= sender.myUnlockList[0, highestunlockindex]);
                 highestunlockindex--;   //since we're checking condition after iteration, we need to back down by 1 to get the last valid result. If we're in this routine, we just bought at least 1. HUI is 0 now.
                 if (highestunlockindex > sender.latestUnlock)     //0 > -1 == true
                 {
@@ -584,8 +613,8 @@ namespace FirstClicker
                     do
                     {
                         sender.latestUnlock++;        //-1 + 1 = 0;
-                        LogMessage($"'{sender.Name}' Unlock Reached - X{Game.unlockList[sender.latestUnlock]}");
-                        if (sender.myQty > 1) { sender.mySalary *= Game.unlockMultiplier; }  //apply the bonus to this item if we bought more than 1, so that we can still have buy1 within buynext, and so we get an unlock for buying 1 of all.
+                        LogMessage($"'{sender.Name}' Unlock Reached - X{sender.myUnlockList[0, sender.latestUnlock]}");
+                        if (sender.myQty > 1) { sender.mySalary *= sender.myUnlockList[1, sender.latestUnlock]; }  //apply the bonus to this item if we bought more than 1, so that we can still have buy1 within buynext, and so we get an unlock for buying 1 of all.
                         bool allOthersHave = true;
                         for (int i = 0; i < myGame.myItems.Length; i++)
                         {
@@ -622,9 +651,9 @@ namespace FirstClicker
             {
                 //calculate next
                 int temppurchamount;
-                if (sender.latestUnlock + 1 < Game.unlockList.Length && sender.latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
+                if (sender.latestUnlock + 1 < sender.myUnlockList.Length && sender.latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
                 {
-                    temppurchamount = Game.unlockList[sender.latestUnlock + 1] - sender.myQty;
+                    temppurchamount = sender.myUnlockList[0, sender.latestUnlock + 1] - sender.myQty;
                 }
                 else
                 {
@@ -640,7 +669,7 @@ namespace FirstClicker
         private void btnPurchAmount_Click(object sender, EventArgs e)
         {
             PlaySound(SoundList.ClickSound);
-            
+
             //purchAmount should be made into an enum. Perfect use-case for it, and reduces possible errors from invalid values.
             if (myGame.myPurchaseAmount == PurchaseAmount.BuyOne)
             {
@@ -696,9 +725,9 @@ namespace FirstClicker
                 for (int i = 0; i < myGame.myItems.Length; i++)
                 {
                     int temppurchamount;
-                    if (myGame.myItems[i].latestUnlock + 1 < Game.unlockList.Length && myGame.myItems[i].latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
+                    if (myGame.myItems[i].latestUnlock + 1 < myGame.myItems[i].myUnlockList.Length && myGame.myItems[i].latestUnlock + 1 >= 0)     //make sure the unlock we're looking for is in the list...
                     {
-                        temppurchamount = Game.unlockList[myGame.myItems[i].latestUnlock + 1] - myGame.myItems[i].myQty;
+                        temppurchamount = myGame.myItems[i].myUnlockList[0, myGame.myItems[i].latestUnlock + 1] - myGame.myItems[i].myQty;
                     }
                     else
                     {
@@ -740,7 +769,7 @@ namespace FirstClicker
         private void btnPrestige_Click(object sender, EventArgs e)
         {
             PlaySound(SoundList.ClickSound);
-
+            PrestigeUpdateHasBeenView = true;
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
             //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.   Edit: Why not both?
             double tempprestige = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
@@ -900,7 +929,8 @@ namespace FirstClicker
         public void ShowAbout()
         {
             StringBuilder sb = new StringBuilder();
-            sb.AppendLine($"MoneyMiner {Application.ProductVersion.Split("+")[0]}");
+            sb.AppendLine($"MoneyMiner {BuildVersion}");
+            //sb.AppendLine($"MoneyMiner {Application.ProductVersion.Split("+")[0]}");
             sb.AppendLine($"\nCreated By Tim Earley");
             sb.AppendLine($"\nLocation: '{Environment.CurrentDirectory}'\n");
             TextReader treader = File.OpenText($@"{Environment.CurrentDirectory}\Resources\ResourceAttributions.txt");
@@ -1158,11 +1188,11 @@ namespace FirstClicker
                 }
             }
             //if any upgrades flagged CanBuyUpgrade, enable btnQuickBuy; otherwise, disable.
-            if (CanBuyUpgrade) 
+            if (CanBuyUpgrade)
             {
                 btnQuickBuy.BackColor = Colors.colButtonEnabled;
                 btnQuickBuy.ForeColor = Colors.colUpgradeTextEnabled;
-                btnQuickBuy.Enabled = true; 
+                btnQuickBuy.Enabled = true;
             }
             else
             {
@@ -1452,17 +1482,20 @@ namespace FirstClicker
             //the game is closed it will save a new file, overwriting the corrupted one if it exists.
             catch (FileNotFoundException noFileEx)
             {
+
                 LogMessage($"Save file not found at {Environment.CurrentDirectory + @"\GameState.mmf"}, initializing default new game...");
                 LogMessage($"Exception message: {noFileEx.Message}");
                 return null;
             }
             catch (SerializationException binaryEx)
             {
+
                 LogMessage($"Incompatible save - {binaryEx.Message}, initializing defaults");
                 return null;
             }
             catch (Exception ex)
             {
+
                 LogMessage($"Unhandled exception occurred during LoadGame() - {ex.Message}, initializing defaults");
                 return null;
             }
@@ -1487,9 +1520,12 @@ namespace FirstClicker
                     TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
                     save.thislifegametime.Add(sincelastsave);
                     save.totalgametime.Add(sincelastsave);
+                    string myLog = myGame.CurrentLogFile;
                     myGame = new Game(save);
                     myGame.lastSaveLocation = loadLocation;
+                    myGame.CurrentLogFile = myLog;
                     ClearFormItems();
+                    CheckForXml();
                     InitAudio();
                     InitControls();
                     LoadItemControlsToForm();
@@ -1498,9 +1534,12 @@ namespace FirstClicker
                 }
                 else if (save != null && save.saveType == SaveType.Prestigesave)
                 {
+                    string myLog = myGame.CurrentLogFile;
                     myGame = ApplyNewPrestige(new Game(save));
                     myGame.lastSaveLocation = loadLocation;
+                    myGame.CurrentLogFile = myLog;
                     ClearFormItems();
+                    CheckForXml();
                     InitAudio();
                     InitControls();
                     LoadItemControlsToForm();
@@ -1545,9 +1584,9 @@ namespace FirstClicker
             PlaySound(SoundList.Ping);
         }
         /// <summary>
-        /// Creates a new log file using subsequent naming, and stores the file name in myGame.CurrentLogFile. Call this as early as you can.
+        /// Creates a new log file using subsequent naming, and returns the file name as string. Call this as early as you can.
         /// </summary>
-        public void CreateLog()
+        public string CreateLog()
         {
             //check currentdir/logs for *.txt files containing 'GameLog' and get a count of them.
             //create new text file (filestream) called GameLog{existinglogcount + 1}.txt
@@ -1559,8 +1598,9 @@ namespace FirstClicker
             string[] allfilenames = Directory.EnumerateFiles(Environment.CurrentDirectory + @"\Logs\").ToArray<string>();
             int logfilecount = allfilenames.Where(x => (x.Contains("GameLog") && x.Contains(".txt"))).Count();
             StreamWriter logstream = File.CreateText(Environment.CurrentDirectory + $@"\Logs\GameLog{logfilecount + 1}.txt");
-            myGame.CurrentLogFile = Environment.CurrentDirectory + $@"\Logs\GameLog{logfilecount + 1}.txt";
             logstream.Close();
+            return Environment.CurrentDirectory + $@"\Logs\GameLog{logfilecount + 1}.txt";
+
         }
         /// <summary>
         /// Add a line to the currently referenced myGame.CurrentLogFile. Automatically includes DateTime.Now - no need to include that in 'message' parameter.
@@ -1572,7 +1612,13 @@ namespace FirstClicker
             //set filestream position to end of file
             //writeline(DateTime.Now.ToString() + ": " + message)
             //close filestream
-            File.AppendAllLines(myGame.CurrentLogFile, new string[]{ DateTime.Now + ": " + message});
+            string logFilePath;
+            if (myGame.CurrentLogFile == null || myGame.CurrentLogFile == "")
+            {
+                logFilePath = logfile;
+            }
+            else { logFilePath = myGame.CurrentLogFile; }
+            File.AppendAllLines(logFilePath, new string[] { DateTime.Now + ": " + message });
             //would love to use Async, but need a way to keep them in order and avoid race conditions. Use sync for now.
         }
         internal static void SaveUpgradesToXml(List<Upgrade> Upgrades, string fileName)
@@ -1614,14 +1660,86 @@ namespace FirstClicker
                     {
                         upgradelist.Add(new(info.description, info.cost, info.itemid, info.multiplier, info.upgradeid));
                     }
-                    if (upgradelist != null && upgradelist.Count > 0) { return upgradelist; }
+                    if (upgradelist != null && upgradelist.Count > 0)
+                    {
+                        return upgradelist;
+                    }
                 }
             }
             return new();
         }
-        internal static List<Upgrade> MergeUpgradesFromXml(List<Upgrade> UpgradeListInternal)
+        internal static List<Upgrade> MergeUpgradesFromXml(List<Upgrade> UpgradeListInternal, List<Upgrade> UpgradeListXml)
         {
-
+            /*-foreach (Upgrade upgradefromxml in UpgradesFromXml)
+                -bool UpgradeHandled = false;
+                -for (int i = 0; i < upgradelistdefault.Count; i++)
+                    -upgradeID is the same
+                        -upgradeDefault.Purchased == false
+                            -upgradeDefault = upgradeFromXml
+                            -UpgradeHandled = true;
+                        -upgradeDefault.Purchased == true
+                            -Upgrade.Equals==true && desc==desc
+                                -UpgradeHandled = true;
+                                -break;
+                            -Upgrade.Equals==true && desc!=desc
+                                -upgradeDefault = upgradeFromXml
+                                -upgradeDefault.SetPurchased(true)
+                                -UpgradeHandled = true;
+                            -Upgrade.Equals!=true
+                                -upgradeDefault = upgradeFromXml(purchased defaults to false)
+                                -UpgradeHandled = true;
+                    -upgradeID is different
+                        -break;
+                -if (!UpgradeHandled) { UpgradeListDefault.Add(UpgradeFromXml); }*/
+            foreach (Upgrade upgradefromxml in UpgradeListXml)
+            {
+                bool UpgradeHandled = false;
+                for (int i = 0; i < UpgradeListInternal.Count; i++)
+                {
+                    if (upgradefromxml.upgradeID == UpgradeListInternal[i].upgradeID)
+                    {
+                        if (!UpgradeListInternal[i].Purchased)
+                        {
+                            UpgradeListInternal[i] = upgradefromxml;
+                            UpgradeHandled = true;
+                            break;
+                        }
+                        else
+                        {
+                            if (UpgradeListInternal[i].Equals(upgradefromxml))
+                            {
+                                if (UpgradeListInternal[i].Description == upgradefromxml.Description)
+                                {
+                                    UpgradeHandled = true;
+                                    break;
+                                }
+                                else
+                                {
+                                    UpgradeListInternal[i] = upgradefromxml;
+                                    Upgrade.SetPurchased(UpgradeListInternal[i]);
+                                    UpgradeHandled = true;
+                                    break;
+                                }
+                            }
+                            else
+                            {
+                                UpgradeListInternal[i] = upgradefromxml;
+                                UpgradeHandled = true;
+                                break;
+                            }
+                        }
+                    }
+                    else
+                    {
+                        continue;
+                    }
+                }
+                if (!UpgradeHandled)
+                {
+                    UpgradeListInternal.Add(upgradefromxml);
+                }
+            }
+            return UpgradeListInternal;
         }
 
         //----Audio Methods----//
@@ -1764,11 +1882,21 @@ namespace FirstClicker
             }
         }
 
+        private void btnUnlocks_Click(object sender, EventArgs e)
+        {
+            Unlocks unlocks = new Unlocks(myGame.myItems);
+            unlocks.ShowDialog();
+        }
 
+        private void pctCenterBackground_Resize(object sender, EventArgs e)
+        {
+            btnMine.Left = (pctCenterBackground.Width / 2) - (((int)btnMine.Width) / 2);
+            btnMine.Top = pctCenterBackground.Height - btnMine.Height - lblMatsMined.Height;
+        }
     }
 
     //------Classes------//
-    public struct Game
+    public struct Game : IEquatable<Game>
     {
         public bool MusicEnabled;
         public bool FXEnabled;
@@ -1821,6 +1949,42 @@ namespace FirstClicker
                                                 "Unnonagintillion", "Duononagintillion", "Trenonagintillion", "Quattornonagintillion", "Quinonagintillion", "Sexnonagintillion", "Septenonagintillion", "Octononagintillion", "Novemnonagintillion", "Centillion", "Uncentillion"};  //handles full size of type 'double'
         internal const double Octoquinquagintillion = 1000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000.00d;
 
+        public bool Equals(Game gameb)
+        {
+            return (MusicEnabled == gameb.MusicEnabled &&
+                FXEnabled == gameb.FXEnabled &&
+                PlayRegisterSound1 == gameb.PlayRegisterSound1 &&
+                PrestigeNextRestart == gameb.PrestigeNextRestart &&
+                matsMined == gameb.matsMined &&
+                incrperclick == gameb.incrperclick &&
+                toolTipDelay == gameb.toolTipDelay &&
+                toolTipVisibleTime == gameb.toolTipVisibleTime &&
+                matsMinedLifetime == gameb.matsMinedLifetime &&
+                MusicVolume == gameb.MusicVolume &&
+                FXVolume == gameb.FXVolume &&
+                myMoney == gameb.myMoney &&
+                salary == gameb.salary &&
+                clickAmount == gameb.clickAmount &&
+                thislifetimeMoney == gameb.thislifetimeMoney &&
+                lastlifetimeMoney == gameb.lastlifetimeMoney &&
+                prestigePoints == gameb.prestigePoints &&
+                prestigeMultiplier == gameb.prestigeMultiplier &&
+                prestigeGainedNextRestart == gameb.prestigeGainedNextRestart &&
+                thislifeGameTime == gameb.thislifeGameTime &&
+                totalGameTime == gameb.totalGameTime &&
+                sinceLastSave == gameb.sinceLastSave &&
+                MainUpgradeList == gameb.MainUpgradeList &&
+                upgradeButtons == gameb.upgradeButtons &&
+                myItems == gameb.myItems &&
+                myPurchaseAmount == gameb.myPurchaseAmount &&
+                myWindowState == gameb.myWindowState &&
+                lastSaveLocation == gameb.lastSaveLocation &&
+                MySaveType == gameb.MySaveType &&
+                CurrentLogFile == gameb.CurrentLogFile &&
+                AutosaveEnabled == gameb.AutosaveEnabled &&
+                AutosaveInterval == gameb.AutosaveInterval);
+        }
+
         /// <summary>
         /// Default constructor - returns a Game object filled with default values, for a new game or new prestige upgrade.
         /// </summary>
@@ -1829,14 +1993,14 @@ namespace FirstClicker
             //init myItems Default
             if (this.myItems == default || this.myItems.Length == 0)
             {
-                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.0d, 600),
-                    new ItemView(2, "Stone Miner", 60d, 1.15d, 60d, 3000),
-                    new ItemView(3, "Iron Miner", 720d, 1.14d, 540d, 6000),
-                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 4320d, 12000),
-                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 51840d, 24000),
-                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000),
-                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000),
-                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000)];
+                myItems = [new ItemView(1, "Wood Miner", 3.738d, 1.07d, 1.0d, 600, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\wood.png")),
+                    new ItemView(2, "Stone Miner", 60d, 1.15d, 60d, 3000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\granite.png")),
+                    new ItemView(3, "Iron Miner", 720d, 1.14d, 540d, 6000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\pig-iron.png")),
+                    new ItemView(4, "Steel Miner", 8640d, 1.13d, 4320d, 12000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\steel.png")),
+                    new ItemView(5, "Diamond Miner", 103680d, 1.12d, 51840d, 24000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\diamond.png")),
+                    new ItemView(6, "Uranium Miner", 1244160d, 1.11d, 622080d, 96000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\uranium.png")),
+                    new ItemView(7, "Antimatter Miner", 14929920d, 1.10d, 7464960d, 384000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\atom.png")),
+                    new ItemView(8, "Black Hole Miner", 179159040d, 1.09d, 89579520d, 1536000, Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\black-hole.png"))];
                 
             }
 
@@ -2110,14 +2274,17 @@ namespace FirstClicker
 
         public bool Equals(Upgrade upgrade)
         {
-            if ((this.itemID<0 || this.Cost<0.0d || this.Multiplier<=0.0d||this.upgradeID<=0||this.Description==null)||
-                upgrade.itemID<0 || upgrade.Cost<0.0d|| upgrade.Multiplier<=0.0d||upgrade.upgradeID<=0||upgrade.Description==null) 
-            { 
-                return false; 
-            }
-            return (this.upgradeID == upgrade.upgradeID && this.Cost == upgrade.Cost && this.itemID == upgrade.upgradeID && this.Multiplier == upgrade.Multiplier);
+            return (this.upgradeID == upgrade.upgradeID && this.Cost == upgrade.Cost && this.itemID == upgrade.itemID && this.Multiplier == upgrade.Multiplier);
         }
-        
+        public override bool Equals(object? obj)
+        {
+            return (obj is Upgrade upgr && Equals(upgr));
+        }
+        public override int GetHashCode()
+        {
+            return this.upgradeID.GetHashCode() + this.Cost.GetHashCode() + this.itemID.GetHashCode() + this.Multiplier.GetHashCode();
+        }
+
     }
     public struct UpgradeInfo
     {

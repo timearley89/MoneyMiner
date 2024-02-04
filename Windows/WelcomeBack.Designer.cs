@@ -75,7 +75,6 @@
             MaximizeBox = false;
             MinimizeBox = false;
             Name = "WelcomeBack";
-            Opacity = 0.75D;
             ShowIcon = false;
             ShowInTaskbar = false;
             SizeGripStyle = SizeGripStyle.Hide;

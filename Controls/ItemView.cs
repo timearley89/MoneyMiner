@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
 
-namespace FirstClicker.Controls
+namespace MoneyMiner.Controls
 {
 
 
@@ -33,8 +33,11 @@ namespace FirstClicker.Controls
         public int mySalaryTimeMS;
         public int myprogressvalue;
         public bool displaySalPerSec;
+        public Image? myIcon;
+        public int[,] myUnlockList = {{ 1, 10, 25, 50, 100, 200, 300, 400, 500, 600, 666, 700, 777, 800, 900, 1000, 1100, 1111, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2222, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3333, 3400, 3500, 3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700, 4800, 4900, 5000 },
+                                      { 1,  2,  2,  2,   3,   3,   4,   4,   4,   3,   5,   2,   7,   4,   4,    5,    4,    4,    4,    4,    4,    4,    4,    4,    4,    4,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5}};
 
-        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _salaryTime, int _latestUnlock = -1, int progressvalue = 0)
+        public ItemView(int myID, string myName, double _myCost, double _myCostMult, double _mySalary, int _salaryTime, Image myIcon, int _latestUnlock = -1, int progressvalue = 0)
         {
             InitializeComponent();
             this.myID = myID;
@@ -51,6 +54,9 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = _salaryTime;
             this.progressMining.Maximum = _salaryTime;
             this.displaySalPerSec = false;
+            this.myIcon = myIcon;
+            this.pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.Image = myIcon;
             myTimer = new System.Windows.Forms.Timer();
             if (progressvalue > this.progressMining.Maximum)
             {
@@ -78,6 +84,63 @@ namespace FirstClicker.Controls
             this.mySalaryTimeMS = data.mySalaryTimeMS;
             this.progressMining.Maximum = this.mySalaryTimeMS;
             this.displaySalPerSec = data.displaySalPerSec;
+            if (data.myIcon == null)
+            {
+                switch (this.myID)
+                {
+                    case (1):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\wood.png");
+                            break;
+                        }
+                    case (2):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\granite.png");
+                            break;
+                        }
+                    case (3):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\pig-iron.png");
+                            break;
+                        }
+                    case (4):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\steel.png");
+                            break;
+                        }
+                    case (5):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\diamond.png");
+                            break;
+                        }
+                    case (6):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\uranium.png");
+                            break;
+                        }
+                    case (7):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\atom.png");
+                            break;
+                        }
+                    case (8):
+                        {
+                            this.myIcon = Image.FromFile(Environment.CurrentDirectory + @"\Resources\Icons\black-hole.png");
+                            break;
+                        }
+                    default:
+                        {
+                            this.myIcon = new Bitmap(55, 55);
+                            break;
+                        }
+                }
+            }
+            else
+            {
+                this.myIcon = data.myIcon;
+            }
+            pictureBox1.SizeMode = PictureBoxSizeMode.StretchImage;
+            this.pictureBox1.Image = this.myIcon;
             myTimer = new();
             if (data.progressvalueMS > this.progressMining.Maximum)
             {
@@ -274,8 +337,10 @@ namespace FirstClicker.Controls
         public int latestUnlock;
         public int mySalaryTimeMS;
         public int progressvalueMS;
-        [OptionalField(VersionAdded =3)]
+        [OptionalField(VersionAdded = 3)]
         public bool displaySalPerSec;
+        [OptionalField(VersionAdded = 4)]
+        public Image? myIcon;
 
         public ItemData(ItemView item)
         {
@@ -293,6 +358,7 @@ namespace FirstClicker.Controls
             this.progressvalueMS = item.myprogressvalue;
             this.displaySalPerSec = item.displaySalPerSec;
             this.myColors = new();
+            this.myIcon = item.myIcon == null ? new Bitmap(55, 55) : item.myIcon;
         }
         public ItemData(double myCost, int myQty, double mySalary, int myID, int purchaseAmount, double myCostMult, double calculatedCost, double baseCost, string myName, int mySalaryTimeMS, int latestUnlock = -1, int myprogressvalue = 0)
         {

@@ -1,4 +1,4 @@
-﻿namespace FirstClicker.Controls
+﻿namespace MoneyMiner.Controls
 {
     partial class ItemView
     {
@@ -38,13 +38,16 @@
             lblQuantity = new Label();
             progressMining = new ProgressBar();
             tooltipTotalSal = new ToolTip(components);
+            pictureBox1 = new PictureBox();
             grpItem.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).BeginInit();
             SuspendLayout();
             // 
             // btnBuy
             // 
+            btnBuy.Anchor = AnchorStyles.Bottom;
             btnBuy.Font = new Font("Segoe UI", 12F);
-            btnBuy.Location = new Point(3, 127);
+            btnBuy.Location = new Point(3, 162);
             btnBuy.Name = "btnBuy";
             btnBuy.Size = new Size(291, 32);
             btnBuy.TabIndex = 0;
@@ -55,6 +58,8 @@
             // 
             // grpItem
             // 
+            grpItem.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            grpItem.Controls.Add(pictureBox1);
             grpItem.Controls.Add(lblTimeLeft);
             grpItem.Controls.Add(lblTotalSal);
             grpItem.Controls.Add(lblSalPerSec);
@@ -63,17 +68,17 @@
             grpItem.Font = new Font("Segoe UI", 12F);
             grpItem.Location = new Point(3, 3);
             grpItem.Name = "grpItem";
-            grpItem.Size = new Size(291, 122);
+            grpItem.Size = new Size(291, 157);
             grpItem.TabIndex = 1;
             grpItem.TabStop = false;
             grpItem.Text = "groupBox1";
             // 
             // lblTimeLeft
             // 
-            lblTimeLeft.Anchor = AnchorStyles.Left;
+            lblTimeLeft.Anchor = AnchorStyles.Bottom;
             lblTimeLeft.BackColor = SystemColors.ActiveCaption;
             lblTimeLeft.Font = new Font("Segoe UI", 11F);
-            lblTimeLeft.Location = new Point(6, 58);
+            lblTimeLeft.Location = new Point(6, 91);
             lblTimeLeft.Name = "lblTimeLeft";
             lblTimeLeft.Size = new Size(132, 24);
             lblTimeLeft.TabIndex = 4;
@@ -81,9 +86,10 @@
             // 
             // lblTotalSal
             // 
+            lblTotalSal.Anchor = AnchorStyles.Bottom;
             lblTotalSal.BackColor = SystemColors.ActiveCaption;
             lblTotalSal.Font = new Font("Segoe UI", 12F);
-            lblTotalSal.Location = new Point(6, 88);
+            lblTotalSal.Location = new Point(6, 123);
             lblTotalSal.Name = "lblTotalSal";
             lblTotalSal.Size = new Size(279, 31);
             lblTotalSal.TabIndex = 3;
@@ -93,9 +99,10 @@
             // 
             // lblSalPerSec
             // 
+            lblSalPerSec.Anchor = AnchorStyles.Bottom;
             lblSalPerSec.BackColor = SystemColors.ActiveCaption;
             lblSalPerSec.Font = new Font("Segoe UI", 9F);
-            lblSalPerSec.Location = new Point(144, 54);
+            lblSalPerSec.Location = new Point(144, 89);
             lblSalPerSec.Name = "lblSalPerSec";
             lblSalPerSec.Size = new Size(141, 28);
             lblSalPerSec.TabIndex = 2;
@@ -105,9 +112,10 @@
             // 
             // lblCost
             // 
+            lblCost.Anchor = AnchorStyles.Bottom;
             lblCost.BackColor = SystemColors.ActiveCaption;
             lblCost.Font = new Font("Segoe UI", 9F);
-            lblCost.Location = new Point(144, 16);
+            lblCost.Location = new Point(144, 51);
             lblCost.Name = "lblCost";
             lblCost.Size = new Size(141, 32);
             lblCost.TabIndex = 1;
@@ -116,11 +124,12 @@
             // 
             // lblQuantity
             // 
+            lblQuantity.Anchor = AnchorStyles.Bottom;
             lblQuantity.BackColor = SystemColors.ActiveCaption;
             lblQuantity.Font = new Font("Segoe UI", 11F);
-            lblQuantity.Location = new Point(6, 24);
+            lblQuantity.Location = new Point(144, 16);
             lblQuantity.Name = "lblQuantity";
-            lblQuantity.Size = new Size(132, 24);
+            lblQuantity.Size = new Size(141, 24);
             lblQuantity.TabIndex = 0;
             lblQuantity.Text = "label1";
             lblQuantity.TextAlign = ContentAlignment.MiddleLeft;
@@ -128,7 +137,7 @@
             // progressMining
             // 
             progressMining.Anchor = AnchorStyles.Bottom;
-            progressMining.Location = new Point(3, 160);
+            progressMining.Location = new Point(3, 195);
             progressMining.MarqueeAnimationSpeed = 10;
             progressMining.Name = "progressMining";
             progressMining.Size = new Size(291, 18);
@@ -139,6 +148,15 @@
             // tooltipTotalSal
             // 
             tooltipTotalSal.IsBalloon = true;
+            // 
+            // pictureBox1
+            // 
+            pictureBox1.Anchor = AnchorStyles.Bottom;
+            pictureBox1.Location = new Point(44, 28);
+            pictureBox1.Name = "pictureBox1";
+            pictureBox1.Size = new Size(55, 55);
+            pictureBox1.TabIndex = 5;
+            pictureBox1.TabStop = false;
             // 
             // ItemView
             // 
@@ -151,10 +169,11 @@
             Controls.Add(grpItem);
             Controls.Add(btnBuy);
             Name = "ItemView";
-            Size = new Size(301, 181);
+            Size = new Size(301, 216);
             Load += ItemView_Load;
             Paint += ItemView_Paint;
             grpItem.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)pictureBox1).EndInit();
             ResumeLayout(false);
         }
 
@@ -169,5 +188,6 @@
         public ProgressBar progressMining;
         private Label lblTimeLeft;
         private ToolTip tooltipTotalSal;
+        private PictureBox pictureBox1;
     }
 }

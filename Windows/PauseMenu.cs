@@ -1,4 +1,4 @@
-﻿using FirstClicker;
+﻿using MoneyMiner;
 using MoneyMiner.Windows;
 using System;
 using System.Collections.Generic;
@@ -37,6 +37,7 @@ namespace MoneyMiner
             this.checkEffectsEnabled.Checked = myGame.FXEnabled;
             this.checkAutosaveEnabled.Checked = myGame.AutosaveEnabled;
             this.numAutosaveInterval.Value = myGame.AutosaveInterval >= numAutosaveInterval.Minimum ? myGame.AutosaveInterval : 5;
+            FrmMainObj.SetAutosaveInterval((int)numAutosaveInterval.Value);
         }
 
         private void sliderVolume_Scroll(object sender, EventArgs e)
@@ -136,7 +137,7 @@ namespace MoneyMiner
         private void btnMasterReset_Click(object sender, EventArgs e)
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
-            MsgBox delMsg = new MsgBox("Are you sure? There is no undoing this if you don't havce a backup save!", "Delete Forever!?");
+            MsgBox delMsg = new MsgBox("Are you sure? There is no undoing this if you don't have a backup save!", "Delete Forever!?");
             DialogResult deleteResult = delMsg.ShowDialog();
             if (deleteResult == DialogResult.Yes)
             {

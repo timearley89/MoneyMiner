@@ -1,4 +1,4 @@
-﻿namespace FirstClicker
+﻿namespace MoneyMiner
 {
     partial class frmMain
     {
@@ -45,6 +45,7 @@
             pctCenterBackground = new PictureBox();
             btnPause = new Button();
             pnlButtons = new Panel();
+            btnUnlocks = new Button();
             btnQuickBuy = new Button();
             grpMoney.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)pctCenterBackground).BeginInit();
@@ -99,10 +100,12 @@
             // 
             btnMine.Anchor = AnchorStyles.Bottom;
             btnMine.BackColor = Color.Transparent;
-            btnMine.BackgroundImage = MoneyMiner.Properties.Resources.pickaxe;
+            btnMine.BackgroundImage = Properties.Resources.pickaxe;
             btnMine.BackgroundImageLayout = ImageLayout.Stretch;
-            btnMine.CausesValidation = false;
+            btnMine.FlatAppearance.BorderColor = Color.DarkSalmon;
             btnMine.FlatAppearance.BorderSize = 0;
+            btnMine.FlatAppearance.MouseDownBackColor = Color.DarkSalmon;
+            btnMine.FlatAppearance.MouseOverBackColor = Color.DarkSalmon;
             btnMine.FlatStyle = FlatStyle.Flat;
             btnMine.Font = new Font("Segoe UI", 24F);
             btnMine.Location = new Point(414, 169);
@@ -208,13 +211,14 @@
             // pctCenterBackground
             // 
             pctCenterBackground.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-            pctCenterBackground.Image = MoneyMiner.Properties.Resources.mining_miner_cartoon;
+            pctCenterBackground.Image = Properties.Resources.mining_miner_cartoon;
             pctCenterBackground.Location = new Point(375, 145);
             pctCenterBackground.Name = "pctCenterBackground";
             pctCenterBackground.Size = new Size(389, 337);
             pctCenterBackground.SizeMode = PictureBoxSizeMode.StretchImage;
             pctCenterBackground.TabIndex = 12;
             pctCenterBackground.TabStop = false;
+            pctCenterBackground.Resize += pctCenterBackground_Resize;
             // 
             // btnPause
             // 
@@ -234,6 +238,7 @@
             pnlButtons.Anchor = AnchorStyles.Bottom;
             pnlButtons.BackColor = Color.Transparent;
             pnlButtons.CausesValidation = false;
+            pnlButtons.Controls.Add(btnUnlocks);
             pnlButtons.Controls.Add(btnQuickBuy);
             pnlButtons.Controls.Add(btnPause);
             pnlButtons.Controls.Add(btnPurchAmount);
@@ -242,6 +247,20 @@
             pnlButtons.Name = "pnlButtons";
             pnlButtons.Size = new Size(399, 61);
             pnlButtons.TabIndex = 15;
+            // 
+            // btnUnlocks
+            // 
+            btnUnlocks.Anchor = AnchorStyles.Bottom;
+            btnUnlocks.BackColor = Color.FromArgb(128, 255, 255);
+            btnUnlocks.CausesValidation = false;
+            btnUnlocks.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            btnUnlocks.Location = new Point(155, 28);
+            btnUnlocks.Name = "btnUnlocks";
+            btnUnlocks.Size = new Size(79, 30);
+            btnUnlocks.TabIndex = 16;
+            btnUnlocks.Text = "Unlocks...";
+            btnUnlocks.UseVisualStyleBackColor = false;
+            btnUnlocks.Click += btnUnlocks_Click;
             // 
             // btnQuickBuy
             // 
@@ -306,5 +325,6 @@
         private Button btnPause;
         private Panel pnlButtons;
         private Button btnQuickBuy;
+        private Button btnUnlocks;
     }
 }
