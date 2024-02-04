@@ -81,7 +81,7 @@ namespace MoneyMiner
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.3.0.5-alpha";
+        public string BuildVersion = "1.4.0.1-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = false;
         public const int MinSalaryTimeMS = 200;
@@ -314,28 +314,33 @@ namespace MoneyMiner
             if (btn.myUpgrade.itemID >= 1 && btn.myUpgrade.itemID <= myGame.myItems.Length)
             {
                 //upgrade refers to an item
-                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies each {myGame.myItems[btn.myUpgrade.itemID - 1].Name}'s salary per second by {btn.myUpgrade.Multiplier}!", Application.OpenForms.OfType<frmMain>().First(), mousepos);
+                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies each {myGame.myItems[btn.myUpgrade.itemID - 1].Name}'s salary per second by {btn.myUpgrade.Multiplier}!", this, mousepos);
                 //"Double-Tap multiplies Wood's salary per second by 3!"
             }
             else if (btn.myUpgrade.itemID == 0)
             {
                 //upgrade is a clickamount upgrade
-                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies 'Click-Mining' earnings by {btn.myUpgrade.Multiplier}!", Application.OpenForms.OfType<frmMain>().First(), mousepos);
+                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies 'Click-Mining' earnings by {btn.myUpgrade.Multiplier}!", this, mousepos);
             }
             else if (btn.myUpgrade.itemID == 15)
             {
                 //upgrade is for all items
-                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies all miner salaries by {btn.myUpgrade.Multiplier}!", Application.OpenForms.OfType<frmMain>().First(), mousepos);
+                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies all miner salaries by {btn.myUpgrade.Multiplier}!", this, mousepos);
             }
             else if (btn.myUpgrade.itemID == 20)
             {
                 //upgrade is a prestige point upgrade
-                myGame.myTip.Show($"{btn.myUpgrade.Description} adds {((btn.myUpgrade.Multiplier * 100) - 100):N0}% gain per prestige point!", Application.OpenForms.OfType<frmMain>().First(), mousepos);
+                myGame.myTip.Show($"{btn.myUpgrade.Description} adds {((btn.myUpgrade.Multiplier * 100) - 100):N0}% gain per prestige point!", this, mousepos);
+            }
+            else if (btn.myUpgrade.itemID >= 21 && btn.myUpgrade.itemID <= 28)
+            {
+                //upgrade is an item speed upgrade
+                myGame.myTip.Show($"{btn.myUpgrade.Description} multiplies {myGame.myItems[btn.myUpgrade.itemID - 21].Name} speed by {btn.myUpgrade.Multiplier}!", this, mousepos);
             }
             else
             {
                 //we have no idea what this button does. ItemID not found.
-                Debug.WriteLine($"{DateTime.Now}: Invalid UpgradeButton.myUpgrade.itemID encountered in Btn_Hover! Sender: '{btn.Text}', Upgrade: '{btn.myUpgrade.Description}', itemID: {btn.myUpgrade.itemID}");
+                LogMessage($"Invalid UpgradeButton.myUpgrade.itemID encountered in Btn_Hover! Sender: '{btn.Text}', Upgrade: '{btn.myUpgrade.Description}', itemID: {btn.myUpgrade.itemID}");
                 return;
             }
 
