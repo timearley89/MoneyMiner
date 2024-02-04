@@ -1,0 +1,643 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ArrayOfUpgradeInfo xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+  <UpgradeInfo>
+    <description>Double Tap</description>
+    <itemid>0</itemid>
+    <upgradeid>1</upgradeid>
+    <cost>1000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Click Amplifier</description>
+    <itemid>0</itemid>
+    <upgradeid>2</upgradeid>
+    <cost>25000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Steel Fingers</description>
+    <itemid>0</itemid>
+    <upgradeid>3</upgradeid>
+    <cost>150000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Sharper Axes</description>
+    <itemid>1</itemid>
+    <upgradeid>6</upgradeid>
+    <cost>250000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Button Springs</description>
+    <itemid>0</itemid>
+    <upgradeid>4</upgradeid>
+    <cost>500000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Pneumatic Pickaxes</description>
+    <itemid>2</itemid>
+    <upgradeid>11</upgradeid>
+    <cost>500000</cost>
+    <multiplier>9</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Iron Chiseling</description>
+    <itemid>3</itemid>
+    <upgradeid>16</upgradeid>
+    <cost>1000000</cost>
+    <multiplier>8</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>AI Assistance</description>
+    <itemid>0</itemid>
+    <upgradeid>5</upgradeid>
+    <cost>1500000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Alloy Research</description>
+    <itemid>4</itemid>
+    <upgradeid>21</upgradeid>
+    <cost>5000000</cost>
+    <multiplier>7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Deeper Caverns</description>
+    <itemid>5</itemid>
+    <upgradeid>26</upgradeid>
+    <cost>10000000</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Waste Enrichment</description>
+    <itemid>6</itemid>
+    <upgradeid>31</upgradeid>
+    <cost>25000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Magnetic Confinement</description>
+    <itemid>7</itemid>
+    <upgradeid>36</upgradeid>
+    <cost>500000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Wormholes</description>
+    <itemid>8</itemid>
+    <upgradeid>41</upgradeid>
+    <cost>10000000000</cost>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Tax Adjustment</description>
+    <itemid>15</itemid>
+    <upgradeid>46</upgradeid>
+    <cost>1000000000000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Logger's Overtime 1</description>
+    <itemid>21</itemid>
+    <upgradeid>57</upgradeid>
+    <cost>1100000000000</cost>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Logger's Overtime 2</description>
+    <itemid>21</itemid>
+    <upgradeid>58</upgradeid>
+    <cost>12000000000000</cost>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Logger's Overtime 3</description>
+    <itemid>21</itemid>
+    <upgradeid>59</upgradeid>
+    <cost>130000000000000</cost>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stone Ground Coffee 1</description>
+    <itemid>22</itemid>
+    <upgradeid>60</upgradeid>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+    <cost>2500000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stone Ground Coffee 2</description>
+    <itemid>22</itemid>
+    <upgradeid>61</upgradeid>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+    <cost>20000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stone Ground Coffee 3</description>
+    <itemid>22</itemid>
+    <upgradeid>62</upgradeid>
+    <multiplier>2</multiplier>
+    <purchased>false</purchased>
+    <cost>180000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Lighter Crucibles 1</description>
+    <itemid>23</itemid>
+    <upgradeid>63</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>5000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Lighter Crucibles 2</description>
+    <itemid>23</itemid>
+    <upgradeid>64</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>26000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Lighter Crucibles 3</description>
+    <itemid>23</itemid>
+    <upgradeid>65</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>204000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Alloy Rebalance 1</description>
+    <itemid>24</itemid>
+    <upgradeid>66</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>8000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Alloy Rebalance 2</description>
+    <itemid>24</itemid>
+    <upgradeid>67</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>31200000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Alloy Rebalance 3</description>
+    <itemid>24</itemid>
+    <upgradeid>68</upgradeid>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+    <cost>240000000000000</cost>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Carbon Printing 1</description>
+    <itemid>25</itemid>
+    <upgradeid>69</upgradeid>
+    <cost>8000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Carbon Printing 2</description>
+    <itemid>25</itemid>
+    <upgradeid>70</upgradeid>
+    <cost>36000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Carbon Printing 3</description>
+    <itemid>25</itemid>
+    <upgradeid>71</upgradeid>
+    <cost>261000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Fusion Calibration 1</description>
+    <itemid>26</itemid>
+    <upgradeid>72</upgradeid>
+    <cost>11000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Fusion Calibration 2</description>
+    <itemid>26</itemid>
+    <upgradeid>73</upgradeid>
+    <cost>42000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Fusion Calibration 3</description>
+    <itemid>26</itemid>
+    <upgradeid>74</upgradeid>
+    <cost>285000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Accelerator Aim 1</description>
+    <itemid>27</itemid>
+    <upgradeid>75</upgradeid>
+    <cost>15000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Accelerator Aim 2</description>
+    <itemid>27</itemid>
+    <upgradeid>76</upgradeid>
+    <cost>47000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Accelerator Aim 3</description>
+    <itemid>27</itemid>
+    <upgradeid>77</upgradeid>
+    <cost>350000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>White Holes 1</description>
+    <itemid>28</itemid>
+    <upgradeid>78</upgradeid>
+    <cost>18000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>White Holes 2</description>
+    <itemid>28</itemid>
+    <upgradeid>79</upgradeid>
+    <cost>51000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>White Holes 3</description>
+    <itemid>28</itemid>
+    <upgradeid>80</upgradeid>
+    <cost>500000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Gene Therapy</description>
+    <itemid>0</itemid>
+    <upgradeid>56</upgradeid>
+    <cost>1200000000000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Longer Axe Handles</description>
+    <itemid>1</itemid>
+    <upgradeid>7</upgradeid>
+    <cost>20000000000000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Firecracker Mining</description>
+    <itemid>2</itemid>
+    <upgradeid>12</upgradeid>
+    <cost>50000000000000</cost>
+    <multiplier>9</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Iron Blasting</description>
+    <itemid>3</itemid>
+    <upgradeid>17</upgradeid>
+    <cost>100000000000000</cost>
+    <multiplier>8</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Thermal Stabilization</description>
+    <itemid>4</itemid>
+    <upgradeid>22</upgradeid>
+    <cost>500000000000000</cost>
+    <multiplier>7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Enhanced Crystallization</description>
+    <itemid>5</itemid>
+    <upgradeid>27</upgradeid>
+    <cost>1000000000000000</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Ionized Isotopes</description>
+    <itemid>6</itemid>
+    <upgradeid>32</upgradeid>
+    <cost>2000000000000000</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Superconductors</description>
+    <itemid>7</itemid>
+    <upgradeid>37</upgradeid>
+    <cost>5000000000000000</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Hawking De-radiation</description>
+    <itemid>8</itemid>
+    <upgradeid>42</upgradeid>
+    <cost>7000000000000000</cost>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Quarterly Bonuses</description>
+    <itemid>15</itemid>
+    <upgradeid>47</upgradeid>
+    <cost>50000000000000000</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Material Lobbying</description>
+    <itemid>20</itemid>
+    <upgradeid>51</upgradeid>
+    <cost>1E+17</cost>
+    <multiplier>1.02</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Chainsaws</description>
+    <itemid>1</itemid>
+    <upgradeid>8</upgradeid>
+    <cost>2E+18</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stone Drilling</description>
+    <itemid>2</itemid>
+    <upgradeid>13</upgradeid>
+    <cost>5E+18</cost>
+    <multiplier>9</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Crushed Iron Sifting</description>
+    <itemid>3</itemid>
+    <upgradeid>18</upgradeid>
+    <cost>7E+18</cost>
+    <multiplier>8</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Carbon Injection</description>
+    <itemid>4</itemid>
+    <upgradeid>23</upgradeid>
+    <cost>1E+19</cost>
+    <multiplier>7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Laser Cutters</description>
+    <itemid>5</itemid>
+    <upgradeid>28</upgradeid>
+    <cost>2E+19</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Reduced Radiation</description>
+    <itemid>6</itemid>
+    <upgradeid>33</upgradeid>
+    <cost>3.5E+19</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Muon Enhancement</description>
+    <itemid>7</itemid>
+    <upgradeid>38</upgradeid>
+    <cost>5E+19</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Subspace Cooling</description>
+    <itemid>8</itemid>
+    <upgradeid>43</upgradeid>
+    <cost>7.5E+19</cost>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Illegal Workers</description>
+    <itemid>15</itemid>
+    <upgradeid>48</upgradeid>
+    <cost>5E+20</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Investor Fraud</description>
+    <itemid>20</itemid>
+    <upgradeid>52</upgradeid>
+    <cost>1E+21</cost>
+    <multiplier>1.03</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stump Grinders</description>
+    <itemid>1</itemid>
+    <upgradeid>9</upgradeid>
+    <cost>2.5E+22</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>C-4 Mining</description>
+    <itemid>2</itemid>
+    <upgradeid>14</upgradeid>
+    <cost>5E+22</cost>
+    <multiplier>9</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Chemical Extraction</description>
+    <itemid>3</itemid>
+    <upgradeid>19</upgradeid>
+    <cost>1E+23</cost>
+    <multiplier>8</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Imported Tin</description>
+    <itemid>4</itemid>
+    <upgradeid>24</upgradeid>
+    <cost>2E+23</cost>
+    <multiplier>7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Synthetic Diamonds</description>
+    <itemid>5</itemid>
+    <upgradeid>29</upgradeid>
+    <cost>3E+23</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Plutonium Conversion</description>
+    <itemid>6</itemid>
+    <upgradeid>34</upgradeid>
+    <cost>4E+23</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Strange Quark Research</description>
+    <itemid>7</itemid>
+    <upgradeid>39</upgradeid>
+    <cost>4E+23</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Gravity Inversion</description>
+    <itemid>8</itemid>
+    <upgradeid>44</upgradeid>
+    <cost>6E+23</cost>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Off-Shore Mining</description>
+    <itemid>15</itemid>
+    <upgradeid>49</upgradeid>
+    <cost>9E+23</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Controlled Striking</description>
+    <itemid>20</itemid>
+    <upgradeid>53</upgradeid>
+    <cost>1E+25</cost>
+    <multiplier>1.02</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Tree Harvesters</description>
+    <itemid>1</itemid>
+    <upgradeid>10</upgradeid>
+    <cost>1E+27</cost>
+    <multiplier>10</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Stone Fracking</description>
+    <itemid>2</itemid>
+    <upgradeid>15</upgradeid>
+    <cost>5E+27</cost>
+    <multiplier>9</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Iron Recycling</description>
+    <itemid>3</itemid>
+    <upgradeid>20</upgradeid>
+    <cost>2.5E+28</cost>
+    <multiplier>8</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Skyforge Partnership</description>
+    <itemid>4</itemid>
+    <upgradeid>25</upgradeid>
+    <cost>1E+29</cost>
+    <multiplier>7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Quantum Diamond</description>
+    <itemid>5</itemid>
+    <upgradeid>30</upgradeid>
+    <cost>2.5E+29</cost>
+    <multiplier>6</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Quantum Uranium</description>
+    <itemid>6</itemid>
+    <upgradeid>35</upgradeid>
+    <cost>5E+29</cost>
+    <multiplier>5</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>CPT Reversed Antimatter</description>
+    <itemid>7</itemid>
+    <upgradeid>40</upgradeid>
+    <cost>1E+30</cost>
+    <multiplier>4</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Cooper Triplets</description>
+    <itemid>8</itemid>
+    <upgradeid>45</upgradeid>
+    <cost>5E+30</cost>
+    <multiplier>3</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Cultivated Demand</description>
+    <itemid>15</itemid>
+    <upgradeid>50</upgradeid>
+    <cost>1E+33</cost>
+    <multiplier>77.7</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Space Investing</description>
+    <itemid>20</itemid>
+    <upgradeid>54</upgradeid>
+    <cost>1E+36</cost>
+    <multiplier>1.05</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+  <UpgradeInfo>
+    <description>Planetary Ransom</description>
+    <itemid>20</itemid>
+    <upgradeid>55</upgradeid>
+    <cost>1E+39</cost>
+    <multiplier>1.06</multiplier>
+    <purchased>false</purchased>
+  </UpgradeInfo>
+</ArrayOfUpgradeInfo>
