@@ -42,8 +42,6 @@ namespace MoneyMiner
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
         /*NOTES & TODO
 
-        //AutosaveEnable doesn't persist after prestige... check constructors for Game and GameState? -FIXED
-
         //Settings menu:
         //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
             -Long Text Notation --DONE
@@ -57,31 +55,18 @@ namespace MoneyMiner
 
         //Achievements? Or not necessary?
 
-        //Upgrades sorted into button/per type which update to the next related upgrade after buying one? Or is the list approach better?
-
         //Need more upgrades! & Rebalance upgrades. Add more clickAmount upgrades and change multipliers to keep items relevant.
 
         //Need Prestige Upgrades as well - as in upgrades you buy with prestige points. -Maybe, Maybe not...
 
-        //Maybe we should add an upgradeID for item.mySalaryTimeMS / upgrade.Multiplier... "Speed X4", etc. If already normalized, multiply salary instead.
-
         //Move default items to external (xml?) file with permissions (create from internal default if it doesn't exist or is outdated - compare application.settings.builddate with file date?)
 
-        //Store instance of unlockList in each item as well as the global one, each item will reference their 
-            own first, then the global one, to determine global unlocks. This allows for different unlock levels across the board,
-            and also, keeping things dynamic this way allows for things like custom events later.
-            We could just use a 2D array, so: myItems[0].unlockList[0]={1, 10, 25, 50, 100, 200, 300, 400, 500} (etc)
-                                              myItems[0].unlockList[1]={2,  3,  2, 2.5, 10, 7.7,   3,   5,  10} (etc)
-
-        //Change save/load to use different serialization than binary - maybe base64 encoded text? XML? Json?
-
-        //Add an 'Unlocks' window which shows the next unlock for each item and for global, and their associated bonus (how should that be stored? see 'instance of unlockList in...' above)
-
+        //Better separate logic from visuals, so much so that visual update speed can be set arbitrarily and it won't affect how the game runs. May be a large task. Use async/await preferably.
         */
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.1-alpha";
+        public string BuildVersion = "1.4.0.2-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = false;
         public const int MinSalaryTimeMS = 200;
@@ -1098,10 +1083,13 @@ namespace MoneyMiner
             //when this is enabled and clicked, starting with the lowest cost, buy all upgrades we can afford.
             double currentBalance = myGame.myMoney;
             int upgradeIndex = 0;
-            while (currentBalance >= 0.0d && upgradeIndex < myGame.MainUpgradeList.Count)
+            while (currentBalance >= 0.0d && upgradeIndex < myGame.MainUpgradeList.Count - 1)
             {
                 //if balance dips below 0 or we've gone through all upgrades, do not enter this loop.
-                currentBalance -= myGame.MainUpgradeList[upgradeIndex].Cost;
+                if (myGame.MainUpgradeList[upgradeIndex].Purchased == false)
+                {
+                    currentBalance -= myGame.MainUpgradeList[upgradeIndex].Cost;
+                }
                 upgradeIndex++;
             }
             if (currentBalance < 0) { upgradeIndex--; }

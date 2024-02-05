@@ -235,7 +235,7 @@ namespace MoneyMiner.Controls
             {
                 //Display calculated salary per second
                 this.lblTotalSal.Text = $"Salary / Sec: ${(ItemView.GetTotalSalPerSec(this) > 1000000.0d ? frmMain.Stringify((ItemView.GetTotalSalPerSec(this)).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetTotalSalPerSec(this), 2).ToString("N"))}";
-                this.lblSalPerSec.Text = $"Salary/S: ${(double.Round(ItemView.GetIndSalPerSec(this), 2) > 1000000.0d ? frmMain.Stringify(ItemView.GetIndSalPerSec(this).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetIndSalPerSec(this), 2).ToString("N"))}";
+                this.lblSalPerSec.Text = $"Sal/S: ${(double.Round(ItemView.GetIndSalPerSec(this), 2) > 1000000.0d ? frmMain.Stringify(ItemView.GetIndSalPerSec(this).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetIndSalPerSec(this), 2).ToString("N"))}";
             }
             else
             {
