@@ -62,13 +62,16 @@ namespace MoneyMiner
         //Move default items to external (xml?) file with permissions (create from internal default if it doesn't exist or is outdated - compare application.settings.builddate with file date?)
 
         //Better separate logic from visuals, so much so that visual update speed can be set arbitrarily and it won't affect how the game runs. May be a large task. Use async/await preferably.
-        */
+        
+         //Prestige button needs to wait until prestige bonus would be doubled (without multiplier) instead of prestigepoints. Also, the button blinking forever is annoying.
+         */
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.2-alpha";
+        public string BuildVersion = "1.4.0.3-alpha";
         public string logfile;
-        public bool PrestigeUpdateHasBeenView = false;
+        public bool PrestigeUpdateHasBeenView = true;
+        public int PrestigeBonusGoal = 2;
         public const int MinSalaryTimeMS = 200;
 
         //----Initialization----//
@@ -339,44 +342,29 @@ namespace MoneyMiner
                 tempsal += ((view.mySalary / ((double)view.mySalaryTimeMS / 1000.0d)) * view.myQty);    //if qty is 0, salary increment will be 0.
             }
             myGame.salary = tempsal;
-            if (myGame.prestigePoints >= 1)
+            double prestBonus = myGame.prestigePoints * myGame.prestigeMultiplier;
+
+            if (!PrestigeUpdateHasBeenView && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
             {
-                double prestrightnow = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
-                if (prestrightnow >= myGame.prestigePoints)
+                if (btnPrestige.BackColor == Colors.colButtonEnabled)
                 {
-                    if (btnPrestige.BackColor == Colors.colButtonEnabled && !PrestigeUpdateHasBeenView)
-                    {
-                        btnPrestige.BackColor = Colors.colButtonPurchased;
-                    }
-                    else if (btnPrestige.BackColor == Colors.colButtonPurchased && !PrestigeUpdateHasBeenView)
-                    {
-                        btnPrestige.BackColor = Colors.colButtonEnabled;
-                    }
-                    else
-                    {
-                        btnPrestige.BackColor = Colors.colButtonEnabled;
-                        PrestigeUpdateHasBeenView = false;
-                    }
+                    btnPrestige.BackColor = Colors.colButtonPurchased;
+                    btnPrestige.ForeColor = Colors.colUpgradeTextPurchased;
+                }
+                else
+                {
+                    btnPrestige.BackColor = Colors.colButtonEnabled;
+                    btnPrestige.ForeColor = Colors.colUpgradeTextEnabled;
                 }
             }
-            else
+            else if (PrestigeUpdateHasBeenView && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
             {
-                if (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) >= 1)
-                {
-                    if (btnPrestige.BackColor == Colors.colButtonEnabled && !PrestigeUpdateHasBeenView)
-                    {
-                        btnPrestige.BackColor = Colors.colButtonPurchased;
-                    }
-                    else if (btnPrestige.BackColor == Colors.colButtonPurchased && !PrestigeUpdateHasBeenView)
-                    {
-                        btnPrestige.BackColor = Colors.colButtonEnabled;
-                    }
-                    else
-                    {
-                        btnPrestige.BackColor = Colors.colButtonEnabled;
-                        PrestigeUpdateHasBeenView = false;
-                    }
-                }
+                PrestigeUpdateHasBeenView = false;
+            }
+            else if (PrestigeUpdateHasBeenView && btnPrestige.BackColor != Colors.colButtonEnabled)
+            {
+                btnPrestige.BackColor = Colors.colButtonEnabled;
+                btnPrestige.ForeColor = Colors.colUpgradeTextEnabled;
             }
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
@@ -805,7 +793,8 @@ namespace MoneyMiner
         private void btnPrestige_Click(object sender, EventArgs e)
         {
             PlaySound(SoundList.ClickSound);
-            PrestigeUpdateHasBeenView = true;
+            //Once prestige notification has started, if player views it and closes it, the next notification will be current notification bonus threshold + 100%. eg(prestigebonusnotify at 200%, then 300%, then 400%, etc.)
+            if (!PrestigeUpdateHasBeenView) { PrestigeUpdateHasBeenView = true; PrestigeBonusGoal++; }
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
             //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.   Edit: Why not both?
             double tempprestige = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
