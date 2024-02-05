@@ -68,7 +68,7 @@ namespace MoneyMiner
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.3-alpha";
+        public string BuildVersion = "1.4.0.4-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = true;
         public int PrestigeBonusGoal = 2;
@@ -344,7 +344,7 @@ namespace MoneyMiner
             myGame.salary = tempsal;
             double prestBonus = myGame.prestigePoints * myGame.prestigeMultiplier;
 
-            if (!PrestigeUpdateHasBeenView && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
+            if (!PrestigeUpdateHasBeenView && prestBonus > 0 && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
             {
                 if (btnPrestige.BackColor == Colors.colButtonEnabled)
                 {
