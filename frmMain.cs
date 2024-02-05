@@ -68,7 +68,7 @@ namespace MoneyMiner
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.4-alpha";
+        public string BuildVersion = "1.4.0.5-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = true;
         public int PrestigeBonusGoal = 2;
@@ -893,6 +893,8 @@ namespace MoneyMiner
             {
                 thisbutton.BackgroundImage.RotateFlip(RotateFlipType.Rotate270FlipNone);
             }
+            btnMine_Click(sender, EventArgs.Empty);
+           
         }
         private void btnMine_MouseUp(object sender, MouseEventArgs e)
         {

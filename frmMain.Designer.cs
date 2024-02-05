@@ -114,7 +114,6 @@
             btnMine.TabIndex = 6;
             btnMine.Text = "Mine!";
             btnMine.UseVisualStyleBackColor = false;
-            btnMine.Click += btnMine_Click;
             btnMine.MouseDown += btnMine_MouseDown;
             btnMine.MouseUp += btnMine_MouseUp;
             // 
