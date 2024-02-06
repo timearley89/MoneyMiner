@@ -68,7 +68,7 @@ namespace MoneyMiner
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.5-alpha";
+        public string BuildVersion = "1.4.0.6-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = true;
         public int PrestigeBonusGoal = 2;
@@ -343,8 +343,8 @@ namespace MoneyMiner
             }
             myGame.salary = tempsal;
             double prestBonus = myGame.prestigePoints * myGame.prestigeMultiplier;
-
-            if (!PrestigeUpdateHasBeenView && prestBonus > 0 && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
+            double currentcalc = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
+            if (!PrestigeUpdateHasBeenView && (currentcalc + myGame.prestigePoints) * 2 >= (prestBonus > 0 ? prestBonus : 50.0d) * PrestigeBonusGoal)
             {
                 if (btnPrestige.BackColor == Colors.colButtonEnabled)
                 {
@@ -357,7 +357,7 @@ namespace MoneyMiner
                     btnPrestige.ForeColor = Colors.colUpgradeTextEnabled;
                 }
             }
-            else if (PrestigeUpdateHasBeenView && (calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney) + myGame.prestigePoints) * 2 >= prestBonus * PrestigeBonusGoal)
+            else if (PrestigeUpdateHasBeenView && (currentcalc + myGame.prestigePoints) * 2 >= (prestBonus > 0 ? prestBonus : 100.0d) * PrestigeBonusGoal)
             {
                 PrestigeUpdateHasBeenView = false;
             }
@@ -1497,7 +1497,7 @@ namespace MoneyMiner
             BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
             bformatter.Serialize(fstream, save);
-            fstream.Close();
+            fstream.Dispose();
         }
         public void SaveGame(string saveLocation, bool IsAutosave = false)
         {
@@ -1514,7 +1514,7 @@ namespace MoneyMiner
             BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
             bformatter.Serialize(fstream, save);
-            fstream.Close();
+            fstream.Dispose();
         }
         public GameState? LoadGame()
         {
@@ -1532,7 +1532,7 @@ namespace MoneyMiner
 
                 save = (GameState)bformatter.Deserialize(fstream);
 
-                fstream.Close();
+                fstream.Dispose();
 
                 TimeSpan sincelastsave = DateTime.Now.Subtract(save.lastsavetimestamp);
                 save.thislifegametime = save.thislifegametime.Add(sincelastsave);
@@ -1575,7 +1575,7 @@ namespace MoneyMiner
                 BinaryFormatter bformatter = new BinaryFormatter();
 #pragma warning restore SYSLIB0011 // Type or member is obsolete
                 save = (GameState)bformatter.Deserialize(fstream);
-                fstream.Close();
+                fstream.Dispose();
 
                 if (save != null && (save.saveType == SaveType.Manualsave || save.saveType == SaveType.Exitsave || save.saveType == SaveType.Autosave))
                 {
@@ -1660,7 +1660,7 @@ namespace MoneyMiner
             string[] allfilenames = Directory.EnumerateFiles(Environment.CurrentDirectory + @"\Logs\").ToArray<string>();
             int logfilecount = allfilenames.Where(x => (x.Contains("GameLog") && x.Contains(".txt"))).Count();
             StreamWriter logstream = File.CreateText(Environment.CurrentDirectory + $@"\Logs\GameLog{logfilecount + 1}.txt");
-            logstream.Close();
+            logstream.Dispose();
             return Environment.CurrentDirectory + $@"\Logs\GameLog{logfilecount + 1}.txt";
 
         }
@@ -1702,7 +1702,7 @@ namespace MoneyMiner
             XmlSerializer mySer = new(typeof(List<UpgradeInfo>));
             FileStream fs = new FileStream(fileName, FileMode.OpenOrCreate);
             mySer.Serialize(fs, upgradelist);
-            fs.Close();
+            fs.Dispose();
             return;
         }
         internal static List<Upgrade> LoadUpgradesFromXml(string fileName)
@@ -1716,6 +1716,7 @@ namespace MoneyMiner
                 XmlSerializer mySer = new(typeof(List<UpgradeInfo>));
                 FileStream fs = new(fileName, FileMode.Open);
                 upgradeinfos = (List<UpgradeInfo>?)mySer.Deserialize(fs);
+                fs.Dispose();
                 if (upgradeinfos != null && upgradeinfos.Count > 0)
                 {
                     foreach (UpgradeInfo info in upgradeinfos)
@@ -2442,6 +2443,7 @@ namespace MoneyMiner
         BuyNext = 200,
         BuyMax = -1
     }
+    [DefaultValue(StringifyOptions.LongText)]
     public enum StringifyOptions
     {
         LongText = 32,
