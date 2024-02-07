@@ -12,6 +12,8 @@ using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using System.Timers;
 using System.Windows.Forms;
+using Earleytech;
+using static Earleytech.Strings;
 
 namespace MoneyMiner.Controls
 {
@@ -34,6 +36,7 @@ namespace MoneyMiner.Controls
         public int myprogressvalue;
         public bool displaySalPerSec;
         public Image? myIcon;
+        public StringifyOptions NumViewSetting = StringifyOptions.LongText;
         public int[,] myUnlockList = {{ 1, 10, 25, 50, 100, 200, 300, 400, 500, 600, 666, 700, 777, 800, 900, 1000, 1100, 1111, 1200, 1300, 1400, 1500, 1600, 1700, 1800, 1900, 2000, 2100, 2200, 2222, 2300, 2400, 2500, 2600, 2700, 2800, 2900, 3000, 3100, 3200, 3300, 3333, 3400, 3500, 3600, 3700, 3800, 3900, 4000, 4100, 4200, 4300, 4400, 4500, 4600, 4700, 4800, 4900, 5000 },
                                       { 1,  2,  2,  2,   3,   3,   4,   4,   4,   3,   5,   2,   7,   4,   4,    5,    4,    4,    4,    4,    4,    4,    4,    4,    4,    4,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5,    2,    2,    2,    2,    2,    2,    2,    2,    2,    5}};
 
@@ -225,23 +228,23 @@ namespace MoneyMiner.Controls
         {
             //no calculations, just update labels/buttons.
 
-            this.lblCost.Text = $"Cost: ${(double.Round(calculatedCost, 2) > 1000000.0d ? (frmMain.Stringify(calculatedCost.ToString("R"), StringifyOptions.LongText)) : double.Round(calculatedCost, 2).ToString("N"))}";
+            this.lblCost.Text = $"Cost: ${Stringify(calculatedCost.ToString("R"), this.NumViewSetting):N}";
             this.lblQuantity.Text = $"Qty: {myQty:N0}";
             this.grpItem.Text = this.Name;
             string timeleftsec = double.Round(((1.0d - ((double)this.myprogressvalue / (double)this.mySalaryTimeMS)) * this.mySalaryTimeMS) / 1000, 1).ToString("N1");
-            this.lblTimeLeft.Text = $"Time: {frmMain.Stringify(timeleftsec, StringifyOptions.SecondsToMinSec)}";
+            this.lblTimeLeft.Text = $"Time: {Stringify(timeleftsec, StringifyOptions.SecondsToMinSec)}";
             this.btnBuy.Text = $"Purchase x{this.purchaseAmount:N0}";
             if (this.displaySalPerSec)
             {
                 //Display calculated salary per second
-                this.lblTotalSal.Text = $"Salary / Sec: ${(ItemView.GetTotalSalPerSec(this) > 1000000.0d ? frmMain.Stringify((ItemView.GetTotalSalPerSec(this)).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetTotalSalPerSec(this), 2).ToString("N"))}";
-                this.lblSalPerSec.Text = $"Sal/S: ${(double.Round(ItemView.GetIndSalPerSec(this), 2) > 1000000.0d ? frmMain.Stringify(ItemView.GetIndSalPerSec(this).ToString("R"), StringifyOptions.LongText) : double.Round(ItemView.GetIndSalPerSec(this), 2).ToString("N"))}";
+                this.lblTotalSal.Text = $"Salary / Sec: ${Stringify((ItemView.GetTotalSalPerSec(this)).ToString("R"), this.NumViewSetting):N}";
+                this.lblSalPerSec.Text = $"Sal/S: ${Stringify(ItemView.GetIndSalPerSec(this).ToString("R"), this.NumViewSetting):N}";
             }
             else
             {
                 //Display total salary per payout period
-                this.lblTotalSal.Text = $"Total Salary: ${(this.mySalary * this.myQty > 1000000.0d ? frmMain.Stringify((this.mySalary * this.myQty).ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary * this.myQty, 2).ToString("N"))}";
-                this.lblSalPerSec.Text = $"Salary: ${(double.Round(this.mySalary, 2) > 1000000.0d ? frmMain.Stringify(this.mySalary.ToString("R"), StringifyOptions.LongText) : double.Round(this.mySalary, 2).ToString("N"))}";//double.Round(this.mySalary,
+                this.lblTotalSal.Text = $"Total Salary: ${Stringify((this.mySalary * this.myQty).ToString("R"), this.NumViewSetting):N}";
+                this.lblSalPerSec.Text = $"Salary: ${Stringify(this.mySalary.ToString("R"), this.NumViewSetting):N}";
 
 
             }

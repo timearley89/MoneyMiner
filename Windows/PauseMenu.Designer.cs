@@ -50,6 +50,11 @@
             lblIntervalText = new Label();
             numAutosaveInterval = new NumericUpDown();
             checkAutosaveEnabled = new CheckBox();
+            grpNumDisplay = new GroupBox();
+            panel3 = new Panel();
+            radioSciNot = new RadioButton();
+            radioShortText = new RadioButton();
+            radioLongText = new RadioButton();
             ((System.ComponentModel.ISupportInitialize)sliderVolume).BeginInit();
             grpVolume.SuspendLayout();
             panel1.SuspendLayout();
@@ -58,6 +63,8 @@
             grpAutosave.SuspendLayout();
             pnlAutosave.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)numAutosaveInterval).BeginInit();
+            grpNumDisplay.SuspendLayout();
+            panel3.SuspendLayout();
             SuspendLayout();
             // 
             // lblHeader
@@ -345,7 +352,7 @@
             numAutosaveInterval.TabIndex = 1;
             numAutosaveInterval.TextAlign = HorizontalAlignment.Center;
             numAutosaveInterval.Value = new decimal(new int[] { 5, 0, 0, 0 });
-            numAutosaveInterval.ValueChanged += this.numAutosaveInterval_ValueChanged;
+            numAutosaveInterval.ValueChanged += numAutosaveInterval_ValueChanged;
             // 
             // checkAutosaveEnabled
             // 
@@ -361,6 +368,83 @@
             checkAutosaveEnabled.UseVisualStyleBackColor = true;
             checkAutosaveEnabled.CheckedChanged += checkAutosaveEnabled_CheckedChanged;
             // 
+            // grpNumDisplay
+            // 
+            grpNumDisplay.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
+            grpNumDisplay.BackColor = Color.FromArgb(128, 255, 255);
+            grpNumDisplay.CausesValidation = false;
+            grpNumDisplay.Controls.Add(panel3);
+            grpNumDisplay.Font = new Font("Bahnschrift SemiBold", 12F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            grpNumDisplay.Location = new Point(198, 387);
+            grpNumDisplay.Name = "grpNumDisplay";
+            grpNumDisplay.Size = new Size(180, 88);
+            grpNumDisplay.TabIndex = 10;
+            grpNumDisplay.TabStop = false;
+            grpNumDisplay.Text = "Number Display";
+            // 
+            // panel3
+            // 
+            panel3.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+            panel3.BackColor = Color.PaleTurquoise;
+            panel3.BorderStyle = BorderStyle.Fixed3D;
+            panel3.CausesValidation = false;
+            panel3.Controls.Add(radioSciNot);
+            panel3.Controls.Add(radioShortText);
+            panel3.Controls.Add(radioLongText);
+            panel3.Location = new Point(6, 19);
+            panel3.Name = "panel3";
+            panel3.Size = new Size(168, 63);
+            panel3.TabIndex = 0;
+            // 
+            // radioSciNot
+            // 
+            radioSciNot.Anchor = AnchorStyles.Right;
+            radioSciNot.CheckAlign = ContentAlignment.BottomCenter;
+            radioSciNot.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            radioSciNot.Location = new Point(108, 10);
+            radioSciNot.Name = "radioSciNot";
+            radioSciNot.Size = new Size(52, 40);
+            radioSciNot.TabIndex = 2;
+            radioSciNot.TabStop = true;
+            radioSciNot.Text = "1E6";
+            radioSciNot.TextAlign = ContentAlignment.TopCenter;
+            radioSciNot.TextImageRelation = TextImageRelation.TextAboveImage;
+            radioSciNot.UseVisualStyleBackColor = true;
+            radioSciNot.CheckedChanged += radioSciNot_CheckedChanged;
+            // 
+            // radioShortText
+            // 
+            radioShortText.Anchor = AnchorStyles.Left | AnchorStyles.Right;
+            radioShortText.CheckAlign = ContentAlignment.BottomCenter;
+            radioShortText.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            radioShortText.Location = new Point(55, 10);
+            radioShortText.Name = "radioShortText";
+            radioShortText.Size = new Size(52, 40);
+            radioShortText.TabIndex = 1;
+            radioShortText.TabStop = true;
+            radioShortText.Text = "1 M";
+            radioShortText.TextAlign = ContentAlignment.TopCenter;
+            radioShortText.TextImageRelation = TextImageRelation.TextAboveImage;
+            radioShortText.UseVisualStyleBackColor = true;
+            radioShortText.CheckedChanged += radioShortText_CheckedChanged;
+            // 
+            // radioLongText
+            // 
+            radioLongText.Anchor = AnchorStyles.Left;
+            radioLongText.CheckAlign = ContentAlignment.BottomCenter;
+            radioLongText.Checked = true;
+            radioLongText.Font = new Font("Bahnschrift SemiBold", 9F, FontStyle.Bold | FontStyle.Underline, GraphicsUnit.Point, 0);
+            radioLongText.Location = new Point(3, 10);
+            radioLongText.Name = "radioLongText";
+            radioLongText.Size = new Size(57, 40);
+            radioLongText.TabIndex = 0;
+            radioLongText.TabStop = true;
+            radioLongText.Text = "1 Million";
+            radioLongText.TextAlign = ContentAlignment.TopCenter;
+            radioLongText.TextImageRelation = TextImageRelation.TextAboveImage;
+            radioLongText.UseVisualStyleBackColor = true;
+            radioLongText.CheckedChanged += radioLongText_CheckedChanged;
+            // 
             // PauseMenu
             // 
             AutoScaleDimensions = new SizeF(7F, 15F);
@@ -368,6 +452,7 @@
             BackColor = Color.Tan;
             ClientSize = new Size(390, 662);
             ControlBox = false;
+            Controls.Add(grpNumDisplay);
             Controls.Add(grpAutosave);
             Controls.Add(btnAbout);
             Controls.Add(btnStats);
@@ -395,6 +480,8 @@
             pnlAutosave.ResumeLayout(false);
             pnlAutosave.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)numAutosaveInterval).EndInit();
+            grpNumDisplay.ResumeLayout(false);
+            panel3.ResumeLayout(false);
             ResumeLayout(false);
         }
 
@@ -421,5 +508,10 @@
         private CheckBox checkAutosaveEnabled;
         private Label lblIntervalText;
         private NumericUpDown numAutosaveInterval;
+        private GroupBox grpNumDisplay;
+        private Panel panel3;
+        private RadioButton radioSciNot;
+        private RadioButton radioShortText;
+        private RadioButton radioLongText;
     }
 }

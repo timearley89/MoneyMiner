@@ -32,6 +32,10 @@ using MoneyMiner.Windows;
 using static MoneyMiner.Upgrade;
 using System.Security.Policy;
 using System.Net.Security;
+using Earleytech;
+using static Earleytech.Strings;
+using System.Windows.Forms.DataVisualization.Charting;
+using System.Data.SqlClient;
 
 namespace MoneyMiner
 {
@@ -41,12 +45,6 @@ namespace MoneyMiner
         [System.Runtime.InteropServices.DllImport("winmm.dll")]
         static extern Int32 mciSendString(string command, StringBuilder? buffer, int bufferSize, IntPtr hwndCallback);
         /*NOTES & TODO
-
-        //Settings menu:
-        //-Number Notation setting? Would require fleshing out the Stringify method the rest of the way, could use the enum already implemented to facilitate.
-            -Long Text Notation --DONE
-            -Short Text Notation
-            -Scientific Notation
 
         //Money needs to 'do' something, or be used for something. Would add some depth, but what? In 'other games', money is used to buy 'Mega-bucks', which can be
             used to purchase global multipliers, time warps, etc.
@@ -63,21 +61,39 @@ namespace MoneyMiner
 
         //Better separate logic from visuals, so much so that visual update speed can be set arbitrarily and it won't affect how the game runs. May be a large task. Use async/await preferably.
         
-         //Prestige button needs to wait until prestige bonus would be doubled (without multiplier) instead of prestigepoints. Also, the button blinking forever is annoying.
+        //In btnPrestige flashing method, when user views prestige and clicks 'no', set the bonus target int to the current projected bonus(Math.Floor((projectedBonus / 100.0d) + 1) to prevent having
+        //to 'catch up' to projections.
+
+        //For the purpose of balancing, should I implement an 'autobuyer' that runs based on the value of a private readonly const autoBuy, and
+        //purchases items and upgrades as it can afford them? I could then speed up the game using cheatengine and watch the entirety of gameplay, 
+        //potentially logging salary/sec data from each itemview and graphing it after a certain threshold is reached. This would of course be for
+        //internal testing and debug ONLY. It could run from visualupdate_tick.
+
          */
 
         //----Properties/Fields----//
         public Game myGame;
-        public string BuildVersion = "1.4.0.6-alpha";
+        public string BuildVersion = "1.4.1.0-alpha";
         public string logfile;
         public bool PrestigeUpdateHasBeenView = true;
         public int PrestigeBonusGoal = 2;
         public const int MinSalaryTimeMS = 200;
+        public StringifyOptions NumberViewSetting = StringifyOptions.LongText;
+
+        private const bool UseAutobuy = false;
+        GraphViewer mygraph;
+        Series upgradedata;
 
         //----Initialization----//
         public frmMain()
         {
             InitializeComponent();
+            mygraph = new();
+            upgradedata = new("Upgrades");
+            upgradedata.Color = Color.Aqua;
+            upgradedata.ChartType = SeriesChartType.Spline;
+            upgradedata.ChartArea = "Miner $/Sec";
+            
             logfile = CreateLog();
             //attempt autoload of $"{Environment.CurrentDirectory}\GameState.mmf"
             GameState? tempSave = this.LoadGame();
@@ -173,10 +189,13 @@ namespace MoneyMiner
         }   //after ctor, before frmMain_load
         public void LoadItemControlsToForm()
         {
+
             LogMessage("Loading Items To Form...");
+            this.NumberViewSetting = myGame.numberviewsetting;
             //Populate form with items from array, then center the items.
             for (int i = 1; i <= myGame.myItems.Length; i++)
             {
+                myGame.myItems[i - 1].NumViewSetting = this.NumberViewSetting;
                 itemPanel.Controls.Add(myGame.myItems[i - 1]);  //add all items to itempanel
             }
             itemPanel_Resize(this, EventArgs.Empty);  //make sure items are centered
@@ -190,7 +209,7 @@ namespace MoneyMiner
             {
                 Upgrade upgrade = myGame.MainUpgradeList[i];
                 UpgradeButton btn = new UpgradeButton();
-                btn.Text = upgrade.Description + $"\n${(upgrade.Cost >= 1000000.0d ? Stringify(upgrade.Cost.ToString("R"), StringifyOptions.LongText) : double.Round(upgrade.Cost, 2).ToString("N"))}";
+                btn.Text = upgrade.Description + $"\n${Stringify(upgrade.Cost.ToString("R"), this.NumberViewSetting):N}";
                 btn.Font = new Font("Ebrima", 9, FontStyle.Bold);
                 btn.MouseHover += Btn_Hover;
                 btn.myUpgrade = upgrade;
@@ -366,9 +385,14 @@ namespace MoneyMiner
                 btnPrestige.BackColor = Colors.colButtonEnabled;
                 btnPrestige.ForeColor = Colors.colUpgradeTextEnabled;
             }
+            foreach (ItemView item in myGame.myItems)
+            {
+                mygraph.myChart.Series.FindByName(item.Name).Points.Add(new DataPoint(myGame.GameClock.Elapsed.TotalSeconds, ItemView.GetTotalSalPerSec(item)));
+            }
         }
         private void frmMain_FormClosing(object sender, FormClosingEventArgs e)
         {
+            
             LogMessage("Game closing. Shutting down audio...");
             mciSendString("close clicksound", null, 0, IntPtr.Zero);
             mciSendString("close registersound", null, 0, IntPtr.Zero);
@@ -386,7 +410,19 @@ namespace MoneyMiner
                 LogMessage("Save complete. Closing Game...");
                 Program.RestartForPrestige = false;
             }
-
+            timerPerSec.Stop();
+            timerVisualUpdate.Stop();
+            foreach (ItemView item in myGame.myItems)
+            {
+                item.myTimer.Stop();
+                mygraph.myChart.Series.FindByName(item.Name).Points.Add(new DataPoint(myGame.GameClock.Elapsed.TotalSeconds, ItemView.GetTotalSalPerSec(item)));
+            }
+            if (UseAutobuy)
+            {
+                
+                mygraph.myChart.Series.Add(upgradedata);
+                mygraph.ShowDialog();
+            }
 
 
         }
@@ -464,11 +500,15 @@ namespace MoneyMiner
         //----Control Interactions----//
         public void upgradeClicked(Object? sender, EventArgs e)
         {
+
             if (sender == null) { LogMessage("upgradeClicked(sender) was null"); return; } //basic protection
             else
             {
                 UpgradeButton btnsender = (UpgradeButton)sender;
                 if (!btnsender.IsEnabled) { return; }
+
+                upgradedata.Points.Add(new DataPoint(myGame.GameClock.Elapsed.TotalSeconds, btnsender.myUpgrade.Cost));
+
                 int btnitemID = btnsender.myUpgrade.itemID;
                 if (btnitemID >= 1 && btnitemID <= myGame.myItems.Length)
                 {
@@ -610,6 +650,7 @@ namespace MoneyMiner
         }
         public void BuyClicked(ItemView sender)
         {
+            
             if (sender.CanAfford(myGame.myMoney, sender.purchaseAmount, sender.myCostMult))
             {
 
@@ -670,6 +711,7 @@ namespace MoneyMiner
                 {
                     //they're the same, so we didn't reach a new milestone.
                 }
+                
             }
             if (myGame.myPurchaseAmount == PurchaseAmount.BuyNext)
             {
@@ -793,11 +835,25 @@ namespace MoneyMiner
         private void btnPrestige_Click(object sender, EventArgs e)
         {
             PlaySound(SoundList.ClickSound);
-            //Once prestige notification has started, if player views it and closes it, the next notification will be current notification bonus threshold + 100%. eg(prestigebonusnotify at 200%, then 300%, then 400%, etc.)
-            if (!PrestigeUpdateHasBeenView) { PrestigeUpdateHasBeenView = true; PrestigeBonusGoal++; }
+            
             //In order for this to work, I need to refactor the main game logic into it's own gameobject that takes parameters for prestige amount, and default params(overrideable) for money, upgrades, purchased items, etc.
             //Or I can take advantage of the load/save system, and just configure the save to reset for a prestige-flagged restart, that way i can customize what parameters get changed.   Edit: Why not both?
             double tempprestige = calcPrestige(myGame.lastlifetimeMoney, myGame.thislifetimeMoney);
+
+            //Once prestige notification has started, if player views it and closes it, the next notification will be current notification bonus threshold + 100%. eg(prestigebonusnotify at 200%, then 300%, then 400%, etc.)
+            if (!PrestigeUpdateHasBeenView) 
+            { 
+                PrestigeUpdateHasBeenView = true;
+                if (((tempprestige + myGame.prestigePoints) * 2) / 100 > PrestigeBonusGoal)
+                {
+                    PrestigeBonusGoal = (int)Math.Floor(((tempprestige + myGame.prestigePoints) * 2) / 100.0d) + 1;
+                }
+                else
+                {
+                    PrestigeBonusGoal++;
+                }
+            }
+
             foreach (ItemView item in myGame.myItems)
             {
                 item.myTimer.Stop();
@@ -807,7 +863,7 @@ namespace MoneyMiner
             myGame.GameClock.Stop();
             myGame.thislifeGameTime += myGame.GameClock.Elapsed;
             myGame.totalGameTime += myGame.GameClock.Elapsed;
-            string msg = $"Current Prestige: {Stringify(myGame.prestigePoints.ToString("R"), StringifyOptions.LongText)}. \nPrestige to Gain: {Stringify(tempprestige.ToString("R"), StringifyOptions.LongText)}. Prestige?";
+            string msg = $"Current Prestige: {Stringify(myGame.prestigePoints.ToString("R"), this.NumberViewSetting)}. \nPrestige to Gain: {Stringify(tempprestige.ToString("R"), this.NumberViewSetting)}. Prestige?";
             MsgBox msgBox = new(msg, "Reset To Earn Prestige Points?");
             DialogResult dres = msgBox.ShowDialog();
             if (dres == DialogResult.Yes)
@@ -870,18 +926,18 @@ namespace MoneyMiner
             myGame.GameClock.Start();
 
             string statsmessage =
-                $"Salary: ${(myGame.salary > 1000000.0d ? Stringify(myGame.salary.ToString("R"), StringifyOptions.LongText) : myGame.salary.ToString("N"))} Per Second" +
-                $"\nClickAmount: ${(myGame.clickAmount > 1000000.0d ? Stringify(myGame.clickAmount.ToString("R"), StringifyOptions.LongText) : myGame.clickAmount.ToString("N"))} Per Click" +
-                $"\nMoney Earned This Lifetime: ${(myGame.thislifetimeMoney > 1000000.0d ? Stringify(myGame.thislifetimeMoney.ToString("R"), StringifyOptions.LongText) : myGame.thislifetimeMoney.ToString("N"))}" +
-                $"\nMoney Earned Last Lifetime: ${(myGame.lastlifetimeMoney > 1000000.0d ? Stringify(myGame.lastlifetimeMoney.ToString("R"), StringifyOptions.LongText) : myGame.lastlifetimeMoney.ToString("N"))}" +
-                $"\nMoney Earned All Lifetimes: ${(myGame.lastlifetimeMoney + myGame.thislifetimeMoney > 1000000.0d ? Stringify((myGame.lastlifetimeMoney + myGame.thislifetimeMoney).ToString("R"), StringifyOptions.LongText) : (myGame.thislifetimeMoney + myGame.lastlifetimeMoney).ToString("N"))}" +
+                $"Salary: ${Stringify(myGame.salary.ToString("R"), this.NumberViewSetting):N} Per Second" +
+                $"\nClickAmount: ${Stringify(myGame.clickAmount.ToString("R"), this.NumberViewSetting):N} Per Click" +
+                $"\nMoney Earned This Lifetime: ${Stringify(myGame.thislifetimeMoney.ToString("R"), this.NumberViewSetting):N}" +
+                $"\nMoney Earned Last Lifetime: ${Stringify(myGame.lastlifetimeMoney.ToString("R"), this.NumberViewSetting):N}" +
+                $"\nMoney Earned All Lifetimes: ${Stringify((myGame.lastlifetimeMoney + myGame.thislifetimeMoney).ToString("R"), this.NumberViewSetting):N}" +
                 $"\nTime spent this lifetime: {myGame.thislifeGameTime.ToString(@"h\:mm\:ss")}" +
                 $"\nTime spent all lifetimes: {myGame.totalGameTime.ToString(@"h\:mm\:ss")}" +
-                $"\nPrestige Points: {Stringify(myGame.prestigePoints.ToString("R"), StringifyOptions.LongText)}" +
-                $"\nPrestige Multiplier: {Stringify(myGame.prestigeMultiplier.ToString("R"), StringifyOptions.LongText)}% Per Point" +
-                $"\nPrestige Percentage: {(myGame.prestigePoints * myGame.prestigeMultiplier > 1000000.0d ? Stringify((myGame.prestigePoints * myGame.prestigeMultiplier).ToString("R"), StringifyOptions.LongText) : (myGame.prestigePoints * myGame.prestigeMultiplier).ToString("N0"))} %" +
-                $"\nMaterials Mined this lifetime: {(myGame.matsMined >= 1000000.0d ? Stringify(myGame.matsMined.ToString("R"), StringifyOptions.LongText) : myGame.matsMined.ToString("N0"))}" +
-                $"\nMaterials Mined all lifetimes: {(myGame.matsMinedLifetime >= 1000000.0d ? Stringify(myGame.matsMinedLifetime.ToString("R"), StringifyOptions.LongText) : myGame.matsMinedLifetime.ToString("N0"))}";
+                $"\nPrestige Points: {Stringify(myGame.prestigePoints.ToString("R"), this.NumberViewSetting)}" +
+                $"\nPrestige Multiplier: {Stringify(myGame.prestigeMultiplier.ToString("R"), this.NumberViewSetting)}% Per Point" +
+                $"\nPrestige Percentage: {Stringify((myGame.prestigePoints * myGame.prestigeMultiplier).ToString("R"), this.NumberViewSetting):N0} %" +
+                $"\nMaterials Mined this lifetime: {Stringify(myGame.matsMined.ToString("R"), this.NumberViewSetting):N0}" +
+                $"\nMaterials Mined all lifetimes: {Stringify(myGame.matsMinedLifetime.ToString("R"), this.NumberViewSetting):N0}";
             Stats mystats = new Stats(statsmessage);
             mystats.ShowDialog();
         }
@@ -938,7 +994,7 @@ namespace MoneyMiner
             lblNew.Parent = this;
             lblNew.BringToFront();
             lblNew.Name = $"lblFloat{myGame.floatlabels.Count + 1}";
-            lblNew.Text = $"${(myGame.clickAmount * myGame.incrperclick >= 1000000.0d ? Stringify((myGame.clickAmount * myGame.incrperclick).ToString()) : double.Round(myGame.clickAmount * myGame.incrperclick, 2).ToString("N"))}";
+            lblNew.Text = $"${Stringify((myGame.clickAmount * myGame.incrperclick).ToString(), this.NumberViewSetting):N}";
             lblNew.ForeColor = Color.FromArgb(255, Colors.colTextPrimary);
             lblNew.BackColor = Color.FromArgb(0, Colors.colTextSecondary);
             lblNew.Visible = true;
@@ -1030,8 +1086,8 @@ namespace MoneyMiner
             double saltogain = btnItem.displaySalPerSec ? 
                 (((((btnItem.mySalary * btnItem.purchaseAmount) / (btnItem.mySalaryTimeMS / 1000.0d)) + currentSalpersec) * mult) - currentSalpersec)
                 : (((btnItem.mySalary * btnItem.purchaseAmount) + (btnItem.mySalary * btnItem.myQty)) * mult) - (btnItem.mySalary * btnItem.myQty);
-            string strGain = btnItem.displaySalPerSec ? $"Gain ${(saltogain >= 1000000.0d ? Stringify(saltogain.ToString("R")) : double.Round(saltogain, 2).ToString("N"))} per second for {btnItem.Name}!" :
-                $"Gain ${(saltogain >= 1000000.0d ? Stringify(saltogain.ToString("R")) : double.Round(saltogain, 2).ToString("N"))} per cycle for {btnItem.Name}!";
+            string strGain = btnItem.displaySalPerSec ? $"Gain ${Stringify(saltogain.ToString("R"), btnItem.NumViewSetting):N} per second for {btnItem.Name}!" :
+                $"Gain ${Stringify(saltogain.ToString("R"), btnItem.NumViewSetting):N} per cycle for {btnItem.Name}!";
             salaryGainTip.SetToolTip(btnbuy, strGain);
             //salaryGainTip.Show(strGain, Application.OpenForms.OfType<frmMain>().First());
         }
@@ -1156,7 +1212,7 @@ namespace MoneyMiner
 
                 if (mygame.MySaveType != SaveType.Prestigesave && mygame.MySaveType != SaveType.NewGame)
                 {
-                    WelcomeBack myWelcome = new WelcomeBack($"Welcome Back!\nYou were gone for {mygame.sinceLastSave.TotalHours:N0} hours, {mygame.sinceLastSave.Minutes:N0} minutes, and {mygame.sinceLastSave.Seconds:N0} seconds.\nYou made ${((salearned) >= 1000000.0d ? Stringify((salearned).ToString("R"), StringifyOptions.LongText) : (salearned).ToString("N"))} while you were gone!");
+                    WelcomeBack myWelcome = new WelcomeBack($"Welcome Back!\nYou were gone for {mygame.sinceLastSave.TotalHours:N0} hours, {mygame.sinceLastSave.Minutes:N0} minutes, and {mygame.sinceLastSave.Seconds:N0} seconds.\nYou made ${Stringify((salearned).ToString("R"), StringifyOptions.LongText):N} while you were gone!");
                     myWelcome.ShowDialog();
                 }
             }
@@ -1199,7 +1255,7 @@ namespace MoneyMiner
             {
                 item.mySalary *= ((tempGame.prestigePoints / (100.0d / tempGame.prestigeMultiplier)) + 1);
             }
-            PrestigeEarned prestWindow = new PrestigeEarned($"You gained {(mygame.prestigeGainedNextRestart >= 1000000.0d ? Stringify(mygame.prestigeGainedNextRestart.ToString("R"), StringifyOptions.LongText) : mygame.prestigeGainedNextRestart.ToString("N0"))} prestige points!");
+            PrestigeEarned prestWindow = new PrestigeEarned($"You gained {Stringify(mygame.prestigeGainedNextRestart.ToString("R"), StringifyOptions.LongText):N0} prestige points!");
             prestWindow.ShowDialog();
             return tempGame;
         }
@@ -1208,9 +1264,9 @@ namespace MoneyMiner
         public void frmMain_UpdateLabels()
         {
             //set main form's labels as needed
-            lblMoney.Text = $"Money: ${(myGame.myMoney >= 1000000.0d ? Stringify(myGame.myMoney.ToString("R"), StringifyOptions.LongText) : double.Round(myGame.myMoney, 2).ToString("N"))}";
-            lblSalary.Text = $"Salary: ${(myGame.salary >= 1000000.0d ? Stringify(myGame.salary.ToString("R"), StringifyOptions.LongText) : double.Round(myGame.salary, 2).ToString("N"))} Per Second";
-            lblClickAmount.Text = $"Mining: ${(myGame.clickAmount >= 1000000.0d ? Stringify(myGame.clickAmount.ToString("R"), StringifyOptions.LongText) : double.Round(myGame.clickAmount, 2).ToString("N"))} Per Click";
+            lblMoney.Text = $"Money: ${Stringify(myGame.myMoney.ToString("R"), this.NumberViewSetting):N}";
+            lblSalary.Text = $"Salary: ${Stringify(myGame.salary.ToString("R"), this.NumberViewSetting):N} Per Second";
+            lblClickAmount.Text = $"Mining: ${Stringify(myGame.clickAmount.ToString("R"), this.NumberViewSetting):N} Per Click";
             lblIncrPerClick.Text = $"Mined Per Click: {myGame.incrperclick:N0}";
             lblMatsMined.Text = $"Materials Mined: {myGame.matsMined:N0}";
             if (myGame.myPurchaseAmount == PurchaseAmount.BuyOne || myGame.myPurchaseAmount == PurchaseAmount.BuyTen || myGame.myPurchaseAmount == PurchaseAmount.Buy100)
@@ -1247,7 +1303,10 @@ namespace MoneyMiner
                         //can't afford
                         UpgradeButtonEnable(btn, false);
                     }
+                    btn.Text = btn.myUpgrade.Description + $"\n${Stringify(btn.myUpgrade.Cost.ToString("R"), this.NumberViewSetting):N}";
                 }
+                
+                
             }
             //if any upgrades flagged CanBuyUpgrade, enable btnQuickBuy; otherwise, disable.
             if (CanBuyUpgrade)
@@ -1287,6 +1346,9 @@ namespace MoneyMiner
                 }
             }
             myGame.floatlabeldeletelist.Clear();
+
+            //debug only
+            AutoBuy();
         }
         public void ToggleItemSalaryDisplays()
         {
@@ -1358,122 +1420,18 @@ namespace MoneyMiner
                 }
             }
         }
-
-        //----String Methods----//
-        internal static string Stringify(string input, StringifyOptions option = StringifyOptions.LongText)
+        public void SetItemNumView(StringifyOptions newNumSetting)
         {
-            if (input == double.PositiveInfinity.ToString())
+            foreach (ItemView item in myGame.myItems)
             {
-                throw new ArgumentOutOfRangeException(nameof(input), input, "Positive infinity reached!");
+                item.NumViewSetting = newNumSetting;
             }
-            else if (input == double.NegativeInfinity.ToString())
-            {
-                throw new ArgumentOutOfRangeException(nameof(input), input, "Negative Infinity reached!");
-            }
-
-            //IMPORTANT - Currently will not handle non-numerical input. Intended for 'lblMoney.Text = Stringify(myMoney.ToString(), StringifyOptions.LongText);' or similar!
-            switch (option)
-            {
-                case (StringifyOptions.LongText):
-                    {
-                        if (input.Contains("E")) { input = ReBig(input); }
-                        //1,000.00
-                        if (input.Length > 5 && input.Contains("."))
-                        {
-                            input = input.Split('.')[0];
-                            //if the input is longer than 4 digits plus a decimal then we don't need the decimal for display.
-                        }
-                        //return string using classic long notation (#.### followed by Million, Billion, Trillion, etc)
-                        string myOutput = "";
-
-                        //index 0 = 7-9 length, index 1 = 10-12 length, index 2 = 13-15 length, etc
-                        int digitcount = 0;
-                        for (int i = 0; i < input.Length; i++)
-                        {
-                            if (input[i] != ',') { digitcount++; }
-                        }
-                        //input 1,935,342.35 => split: 1,935,342
-                        if (digitcount < 7) { return input; }
-                        string trimmedinput = "";
-                        int index = 0;
-                        int digits = 0;
-                        while (digits < 4)
-                        {
-                            if (input[index] != ',')
-                            {
-                                trimmedinput += input[index];
-                                digits++;
-                            }
-                            index++;
-                        }   //1935
-                        //digitcount % 3 gives period placement, unless it's 0. If 0, put period at index 3.
-                        trimmedinput = trimmedinput.Insert((digitcount % 3 == 0 ? 3 : digitcount % 3), ".");    //1.935
-                        trimmedinput += " ";
-                        //7/3=2.333, 9/3=3, 10/3=3.333, 12/3=4, cast to double, do division, round up to nearest integer, subtract 3.
-                        int wordindex = ((int)double.Round((double)digitcount / 3, MidpointRounding.ToPositiveInfinity) - 3);
-                        myOutput = trimmedinput + Game.TextStrings[wordindex];
-                        return myOutput;
-                    }
-                case (StringifyOptions.SecondsToHourMinSec):
-                    {
-                        //input should be a number representing an amount of seconds, as a double. eg.'13528.6'. 
-                        //calibrated for at least 999999 seconds.
-                        //Note: Exception handling not in place yet!
-                        int houraccum = 0;
-                        int minaccum = 0;
-                        double parsedinput = double.Parse(input);
-                        while (parsedinput >= 3600.0d)
-                        {
-                            parsedinput -= 3600.0d;
-                            houraccum++;
-                        }
-                        while (parsedinput >= 60.0d)
-                        {
-                            parsedinput -= 60.0d;
-                            minaccum++;
-                        }
-                        return $"{houraccum.ToString("#00")}:{minaccum.ToString("00")}:{parsedinput.ToString("00.0")}";
-                    }
-                case (StringifyOptions.SecondsToMinSec):
-                    {
-                        //Calibrated for at least 999999 seconds.
-                        int minaccum = 0;
-                        double parsedinput = double.Parse(input);
-                        while (parsedinput >= 60.0d)
-                        {
-                            parsedinput -= 60.0d;
-                            minaccum++;
-                        }
-                        return $"{minaccum.ToString("###00")}:{parsedinput.ToString("00.0")}";
-                    }
-                default:
-                    {
-                        return input;
-                    }
-            }
-        }
-        internal static string ReBig(string input)
-        {
-            //Removes scientific notation and returns a string as a literal representation of the number.
-            if (input[0] == '-') { input = input.Remove(0, 1); }
-            string[] parts = input.Split('E');  //7.5, +27
-            if (parts[1].Contains('+')) { parts[1] = parts[1].Remove(0, 1); }   //7.5, 27
-
-            //remove decimal if it exists, and subtract it's distance to end of string from parts[1]: {7.5, 27} => {75, 26}
-            if (parts[0].Contains('.'))
-            {
-                int subtractor = (parts[0].Length - 1) - parts[0].IndexOf("."); //7.5 gives 2-1=1, 4.23 gives 3-1=2, 2.331 gives 4-1=3
-                parts[1] = (Int32.Parse(parts[1]) - subtractor).ToString();     //27-1=26
-                parts[0] = parts[0].Remove(parts[0].IndexOf("."), 1);           //7.5 => 75
-            }
-            string output = parts[0];
-            for (int i = 0; i < Int32.Parse(parts[1]); i++) { output += "0"; }
-            return output;
         }
 
         //----Save/Load----//
         public void SaveGame()
         {
+            myGame.numberviewsetting = this.NumberViewSetting;
             GameState save = new GameState(myGame);
 
             //if prestige was earned, set flags to ensure recalculation of salaries.
@@ -1501,6 +1459,7 @@ namespace MoneyMiner
         }
         public void SaveGame(string saveLocation, bool IsAutosave = false)
         {
+            myGame.numberviewsetting = this.NumberViewSetting;
             GameState save = new GameState(myGame);
             save.saveType = myGame.PrestigeNextRestart ? SaveType.Prestigesave : SaveType.Manualsave;
             if (IsAutosave) { save.saveType = SaveType.Autosave; }
@@ -1968,6 +1927,22 @@ namespace MoneyMiner
 
             
         }
+
+        //----Debug Only----//
+        private void AutoBuy()
+        {
+            if (UseAutobuy)
+            {
+                //since money calculations are already done inside button methods, this just tries to click all item buy buttons
+                //and the quickbuy button once per update. May cause catastrophe, who knows...
+                foreach (ItemView item in myGame.myItems)
+                {
+                    
+                    BuyClicked(item);
+                }
+                btnQuickBuy_Click(this, EventArgs.Empty);
+            }
+        }
     }
 
     //------Classes------//
@@ -2011,6 +1986,7 @@ namespace MoneyMiner
         public bool AutosaveEnabled { get; set; }
         public int AutosaveInterval { get; set; }
         public System.Windows.Forms.Timer AutosaveTimer;
+        public StringifyOptions numberviewsetting;
 
         public const double unlockMultiplier = 2.0d;
         public readonly static int[] unlockList =
@@ -2181,6 +2157,7 @@ namespace MoneyMiner
             this.AutosaveInterval = 0;
             this.AutosaveTimer = new();
             this.CurrentLogFile = "";
+            this.numberviewsetting = StringifyOptions.LongText;
         }
         /// <summary>
         /// Game Load constructor - creates a new Game object from GameState (save) data.
@@ -2230,6 +2207,7 @@ namespace MoneyMiner
             AutosaveInterval = save.AutosaveInterval;
             AutosaveTimer = new();
             CurrentLogFile = save.CurrentLogFile == "" ? "" : save.CurrentLogFile;
+            numberviewsetting = save.numberviewsetting;
         }
     }
     [Serializable]
@@ -2273,6 +2251,8 @@ namespace MoneyMiner
         internal int AutosaveInterval;
         [OptionalField(VersionAdded = 3)]
         internal string CurrentLogFile;
+        [OptionalField(VersionAdded = 4)]
+        internal StringifyOptions numberviewsetting;
         
         /// <summary>
         /// Creates a GameState (a save structure) for Game object. 
@@ -2314,6 +2294,7 @@ namespace MoneyMiner
             AutosaveEnabled = game.AutosaveEnabled;
             AutosaveInterval = game.AutosaveInterval;
             CurrentLogFile = this.saveType == SaveType.Prestigesave ? game.CurrentLogFile : "";
+            numberviewsetting = game.numberviewsetting;
         }
         
     }
@@ -2442,15 +2423,6 @@ namespace MoneyMiner
         Buy100 = 100,
         BuyNext = 200,
         BuyMax = -1
-    }
-    [DefaultValue(StringifyOptions.LongText)]
-    public enum StringifyOptions
-    {
-        LongText = 32,
-        ShortText = 64,
-        ScientificNotation = 128,
-        SecondsToMinSec = 256,
-        SecondsToHourMinSec = 512
     }
     public enum SoundList
     {

@@ -1,4 +1,5 @@
 ﻿using MoneyMiner;
+using MoneyMiner.Controls;
 using MoneyMiner.Windows;
 using System;
 using System.Collections.Generic;
@@ -9,6 +10,8 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using Earleytech;
+using static Earleytech.Strings;
 
 namespace MoneyMiner
 {
@@ -38,6 +41,24 @@ namespace MoneyMiner
             this.checkAutosaveEnabled.Checked = myGame.AutosaveEnabled;
             this.numAutosaveInterval.Value = myGame.AutosaveInterval >= numAutosaveInterval.Minimum ? myGame.AutosaveInterval : 5;
             FrmMainObj.SetAutosaveInterval((int)numAutosaveInterval.Value);
+            switch (FrmMainObj.NumberViewSetting)
+            {
+                case (StringifyOptions.LongText):
+                {
+                        this.radioLongText.Checked = true;
+                    break;
+                }
+                case (StringifyOptions.ShortText):
+                {
+                        this.radioShortText.Checked = true;
+                    break;
+                }
+                case (StringifyOptions.ScientificNotation):
+                {
+                        this.radioSciNot.Checked = true;
+                    break;
+                }
+            }
         }
 
         private void sliderVolume_Scroll(object sender, EventArgs e)
@@ -161,6 +182,39 @@ namespace MoneyMiner
         {
             FrmMainObj.PlaySound(SoundList.ClickSound);
             FrmMainObj.SetAutosaveInterval((int)numAutosaveInterval.Value);
+        }
+
+        private void radioLongText_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioLongText.Checked)
+            {
+                radioShortText.Checked = false;
+                radioSciNot.Checked = false;
+                FrmMainObj.NumberViewSetting = Earleytech.Strings.StringifyOptions.LongText;
+                FrmMainObj.SetItemNumView(Earleytech.Strings.StringifyOptions.LongText);
+            }
+        }
+
+        private void radioShortText_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioShortText.Checked)
+            {
+                radioLongText.Checked = false;
+                radioSciNot.Checked = false;
+                FrmMainObj.NumberViewSetting = Earleytech.Strings.StringifyOptions.ShortText;
+                FrmMainObj.SetItemNumView(Earleytech.Strings.StringifyOptions.ShortText);
+            }
+        }
+
+        private void radioSciNot_CheckedChanged(object sender, EventArgs e)
+        {
+            if (radioSciNot.Checked)
+            {
+                radioLongText.Checked = false;
+                radioShortText.Checked = false;
+                FrmMainObj.NumberViewSetting = Earleytech.Strings.StringifyOptions.ScientificNotation;
+                FrmMainObj.SetItemNumView(Earleytech.Strings.StringifyOptions.ScientificNotation);
+            }
         }
     }
 }
